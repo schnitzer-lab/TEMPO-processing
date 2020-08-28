@@ -25,7 +25,7 @@ function [chunksFirstLast,summary]=chunkFrames(chunkSize,frameFirstLast)
 %    305   320
 % 
 % DEMO AND UNITTEST (must run if any changes are introduced!)
-% runtests('test_chunkFrames')
+% runtests('chunkFramesTest')
 %
 % ISSUES
 % #1

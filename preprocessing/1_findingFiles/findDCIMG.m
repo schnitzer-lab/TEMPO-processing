@@ -41,7 +41,20 @@ end
 
 
 %% CORE
-%The core of the function should just go here.
+
+[~,~,ext]=fileparts(h5path);
+if strcmpi(ext,'.dcimg')
+    dcimgPath=h5path;
+    disps('You already provied a dcimg path rather than expected H5 input. Fine, terminating.')
+    return;
+elseif strcmpi(ext,'.h5')
+    % that's a default
+else 
+    disps('Wrong path')
+    error('Expected h5 file path on the input');
+end
+
+
 vPathsStructure=voltPaths(fileparts(h5path));
 
 isGreen = contains(h5path,'-cG');

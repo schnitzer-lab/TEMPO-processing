@@ -216,7 +216,7 @@ elseif strcmp(wildpath,'**')
   % A double wildcards directory means recurs down into sub directories
 
   % first look for files in the current directory (remove extra filesep)
-  D = util.rdir([prepath postpath(2:end)]);
+  D = rdir([prepath postpath(2:end)]);
 
   % then look for sub directories
   D_sd = dir([prepath '*']);
@@ -227,7 +227,7 @@ elseif strcmp(wildpath,'**')
 
   % Process each sub directory found
   % Performance tweak: avoid growing array within loop (X. Mo)
-  c_D = arrayfun(@(x) util.rdir([prepath x.name filesep wildpath postpath]),...
+  c_D = arrayfun(@(x) rdir([prepath x.name filesep wildpath postpath]),...
     D_sd, 'UniformOutput', false);
   
   D = [D; cell2mat( c_D ) ];

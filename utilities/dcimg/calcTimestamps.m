@@ -61,8 +61,8 @@ summary.jitter=std(summary.interval);
 summary.medianInterval=median(summary.interval);
 summary.intervalDeviations=abs(summary.interval-summary.medianInterval);
 summary.framesDroppedVec=round(summary.intervalDeviations./summary.medianInterval);
-summary.nDroppedFramesFrames=sum(summary.framesDroppedVec);
-nDroppedFrames=summary.nDroppedFramesFrames;
+summary.nDroppedFrames=sum(summary.framesDroppedVec);
+nDroppedFrames=summary.nDroppedFrames;
 
 
 if options.plot

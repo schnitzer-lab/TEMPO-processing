@@ -24,18 +24,17 @@ ylabel('Time stamp (s)')
 
 
 subplot(2,2,2)
-plot(summaryStructure.frames_dropped_vec)
+plot(summaryStructure.framesDroppedVec)
 
 xlabel('Frame (#)')
 ylabel('Frames dropped')
 
 subplot(2,2,3)
-plot(summaryStructure.fpsvec)
+plot(summaryStructure.fpsVec)
 xlabel('Frame (#)')
 ylabel('Frame rate (fps)')
 
-t=suptitle(sprintf('%s\n%i frames dropped',strrep(summaryStructure.dcimgFilePath,'\','\\'),...
-    summaryStructure.frames_dropped_n));
+t=suptitle(sprintf('%i frames dropped', summaryStructure.nDroppedFrames));
 
 t.FontSize=10;
 t.FontName='Calibri';
@@ -44,7 +43,7 @@ set(gcf,'color','white');
 
 
 subplot(2,2,4)
-intervals=diff(summaryStructure.timestamps);
+intervals=diff(timestamps);
 plot(intervals)
 
 xlabel('Frame (#)')

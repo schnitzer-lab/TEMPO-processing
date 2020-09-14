@@ -36,7 +36,9 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 % 11/29/2019 - adding parallel computing for speedup RC
 % 11/29/2019 - seriously updated, removed all options and argument handling RC
 % 05/29/2020 - adapting for VoltageImagingAnalysis without dependencies RC
-
+%
+% TODO
+% - 2020-09-13 17:07:37 - unify content of sequential vs parallel loop
 
 
 
@@ -47,7 +49,6 @@ options.binning=8; % default scale factor for spatial downsampling (binning).
 options.outputType='single'; % 'uint16', 'double' - changing data type of the output movie but ONLY if you bin it spatially.
 
 % display options
-options.waitbar=false;
 options.imshow=true; % for displaying the first frame after loading, disable on default
 options.verbose=1; % 0 - nothing passed to command window, 1 (default) passing messages about state of the execution.
 
@@ -102,9 +103,7 @@ summary.scaleFactor=1/options.binning;
 
 if options.verbose; fprintf('\n'); disps('Start'); end
 
-if options.waitbar
-    hWaitBar = waitbar(0,'Opening DCIMG file...');
-end
+
 
 % loading first frame
 disps('Loading first frame and file info.')
@@ -140,8 +139,8 @@ if ~isempty(options.cropROI)
     summary.cropROI=options.cropROI;
 end
 
-summary.frame_MB=frame_info.bytes/2^20;
-summary.file_GB=frame_info.bytes*double(totalframes)/2^30;
+summary.frameMB=frame_info.bytes/2^20;
+summary.fileGB=frame_info.bytes*double(totalframes)/2^30;
 
 
 if options.imshow
@@ -160,7 +159,7 @@ numFrames = endframe - startframe+1;
 
 summary.nframes2load=double(numFrames);
 summary.frame_range=[startframe+1,endframe+1];
-summary.loadedMB_fromDisk=double(numFrames)*summary.frame_MB;
+summary.loadedMB_fromDisk=double(numFrames)*summary.frameMB;
 
 if numFrames>totalframes
     error('Wrong frame indices!');
@@ -176,39 +175,28 @@ progress=0;
 %% main loading loop
 frameidx=0;
 
+transpose=options.transpose;
+% autoCrop=options.autoCrop;
+scaleFactor=summary.scaleFactor;
+outputType=options.outputType;
+cropROI=options.cropROI;
+
 %%% parallel loading
 if options.parallel % for parallel computing
     
     disps('Starting loading DCIMG using PARALLEL mode (no progress will be reported).')
     
-    %     % - 2020-07-18 15:05:33 - SH > get the option outside the parfor
-    %     transpose=options.transpose;
-    %     autoCrop=options.autoCrop;
-    %     resize=options.resize; % they are redundant > remove resize...?
-    %     scaleFactor=summary.scaleFactor;
-    %     type=options.outputType;
-    % ROI=options.cropROI;
-    % - 2020-07-18 15:05:33 - SH > why int32 here?
-    parfor ii=int32(1:numFrames) % indexing starts from 0 for the mex file!!!
+    parfor iFrame=1:numFrames % indexing starts from 0 for the mex file!!!
         % Read each frame into the appropriate frame in memory.
-        [framedata,~]=  dcimgmatlab(ii+startframe-1, filepath);
+        [framedata,~]=  dcimgmatlab(int32(iFrame+startframe-1), filepath);        
+        if transpose, framedata=framedata'; end        
+        if scaleFactor~=1
+            framedata=cast(framedata,outputType); % cast typing to preserve more information upon averaging
+            framedata=imresize(framedata,scaleFactor,'box'); % this suprisingly gives speed up !
+        end       
+        if ~isempty(cropROI),  framedata = imcrop(framedata, cropROI); end % ORCA and matlab different XY convention         % Done after imresize > ROI detected after resizing
         
-        if options.transpose
-            framedata=framedata';
-        end
-        
-        if summary.scaleFactor~=1
-            framedata=cast(framedata,options.outputType); % cast typing to preserve more information upon averaging
-            framedata=imresize(framedata,summary.scaleFactor,'box'); % this suprisingly gives speed up !
-        end
-        
-        % Done after imresize > ROI detected after resizing
-        if ~isempty(options.cropROI)
-            % ORCA and matlab different XY convention
-            framedata = imcrop(framedata, options.cropROI);
-        end
-        
-        movie(:,:,ii)  = framedata; % for chunks loading it has to be frameidx not frame
+        movie(:,:,iFrame)  = framedata; % for chunks loading it has to be frameidx not frame
     end
     disps('File loaded')
 else
@@ -224,9 +212,6 @@ else
         
         if rem(round(progress*100),5)==0
             refresh_idx=refresh_idx+1;
-            if options.waitbar
-                waitbar(progress,hWaitBar,'Loading DCIMG file     ');
-            end
             if refresh_idx==1
                 fprintf('%3d%%\n',round(progress*100))
             else
@@ -236,8 +221,7 @@ else
         
         % Read each frame into the appropriate frame in memory.
         [framedata,~]=  dcimgmatlab(frame, filepath);
-        if options.transpose
-            framedata=framedata'; % transposing is needed for imshow orientation compatibility
+        if options.transpose, framedata=framedata'; % transposing is needed for imshow orientation compatibility
         end
         
         if summary.scaleFactor~=1
@@ -251,12 +235,6 @@ else
     
 end %% end choose if sequential of parallel
 %%%%%%%%%%%%%%%%%%%
-
-
-if options.waitbar
-    waitbar(progress,hWaitBar,'Loading DCIMG file - finished');
-    close(hWaitBar)
-end
 
 disps(sprintf('Loading DCIMG finished: %s',filepath));
 

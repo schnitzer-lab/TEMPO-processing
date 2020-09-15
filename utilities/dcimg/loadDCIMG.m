@@ -26,7 +26,7 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 % DEPENDENCIES
 % - Hamamatsu DCAM API installed
 % - dcimgmatlab.mexw64 on a path
-%
+
 % HISTORY
 %
 % 02/2019 - created by Radek Chrapkiewicz (radekch@stanford.edu)
@@ -36,6 +36,8 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 % 11/29/2019 - adding parallel computing for speedup RC
 % 11/29/2019 - seriously updated, removed all options and argument handling RC
 % 05/29/2020 - adapting for VoltageImagingAnalysis without dependencies RC
+% - 2020-09-15 01:34:13 - refreshed, getting compatible with
+% loadDCIMGchunks new syntax
 %
 % TODO
 % - 2020-09-13 17:07:37 - unify content of sequential vs parallel loop
@@ -170,7 +172,6 @@ sizeFrame=size(framedata);
 % Preallocate the array
 movie = zeros(sizeFrame(1),sizeFrame(2),numFrames, class(framedata));
 movie(:,:,1) = framedata;
-progress=0;
 
 %% main loading loop
 frameidx=0;
@@ -244,6 +245,9 @@ clear mex; % 2019-11-29 16:12:11 RC - clearing mex buffer
 
 %% SAVING SUMMARY
 movie_info=whos('movie');
+frame=movie(:,:,1);
+frameInfo=whos('frame');
+summary.frameMB=frameInfo.bytes/2^20;
 summary.loadedMB_toRAM=movie_info.bytes/2^20;
 summary.execution_duration=toc(summary.execution_duration);
 

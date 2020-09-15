@@ -5,15 +5,15 @@ function [movie,summary]=loadDCIMGchunks(filePath,varargin)
 % possible too.
 %
 % SYNTAX
-% [movietotalframes,summary]= loadDCIMGchunks(filepath) -
-% [movietotalframes,summary]= loadDCIMGchunks(filepath,frameRange,binning)
-% [movietotalframes,summary]= loadDCIMGchunks(filepath,frameRange,binning,'optionName',optionValue,...)
+% [movietotalframes,summary]= loadDCIMGchunks(filepath)
+% [movietotalframes,summary]= loadDCIMGchunks(filepath,frameRange)
+% [movietotalframes,summary]= loadDCIMGchunks(filepath,frameRange,'optionName',optionValue,...)
 %
 % INPUTS:
 % - filepath - path to DCIMG file
 % - frameRange - range of frames to load in the format
 %       'frameRange=maxnumberOfFrmaes' or 'frameRange=[firstFrame,lastFrame]'
-% - binning - resize scale factor e.g. binning =2 -> scaleFactor=0.5
+% - 
 %
 % OUTPUTS:
 % - movie - loaded movie or path to h5 file
@@ -21,7 +21,7 @@ function [movie,summary]=loadDCIMGchunks(filePath,varargin)
 % of the function that includes all input options as well as the imporant parameters characterizing the function configuration, performance and execution.
 %
 % OPTIONS:
-% - see below the section of code showing all possible input options and comments for their meaning.
+% - binning - resize scale factor e.g. binning =2 -> scaleFactor=0.5
 %
 % DEPENDENCIES
 % - loadDCIMG, checkRAM, chunkFrames on the path along with their dependencies.
@@ -32,18 +32,17 @@ function [movie,summary]=loadDCIMGchunks(filePath,varargin)
 % - 2020-06-21 19:34:22 - add saving h5 option, J.Li
 % - 2020-06-27 18:44:13 - accepting scalefactor as empty parameter RC
 % - 2020-06-28 01:35:59 - saving h5 using h5append for simplicity; getting back to the chunk size based on RAM or options without manipulating in the middle RC
-% - 2020-06-28 03:08:37 - leaving just h5Path option without having both h5save option  RC
+% - 2020-06-28 03:08:37 - leaving just h5path option without having both h5save option  RC
 % - 2020-07-16 13:41:15 - put non-filepath input variable into varargin (binning, frameRange) SH
 % - 2020-09-13 16:25:43 - getting rid of scale_factor, redundant with 'binning' RC
 % - 2020-09-13 16:27:54 - bringing back 2nd and 3rd arguments, someone got rid of them... RC
-
-
+% - 2020-09-15 01:36:40 - bringing back frame range as an argument RC
 
 %% OPTIONS
 
 % Key parameters
 options.binning=8; % replacing previous scale_factor
-options.frameRange=[];
+
 options.cropROI=[];
 % ADVANCED: not recommended to change unless you are sure what you are doing:
 options.chunkSize=[]; % on default empty and not overwriting the one found based on the available RAM size
@@ -56,25 +55,25 @@ options.verbose=true;
 options.imshow=true; % for displaying the first frame after loading, disable on default
 
 % Export data
-options.h5Path=[]; % if not empty doing convertion into h5 file instead of loading to memory (obsolete and deleted: options.saveh5 = false ) RC
+options.h5path=[]; % if not empty doing convertion into h5 file instead of loading to memory (obsolete and deleted: options.saveh5 = false ) RC
 options.dataset='mov';
 
 %% VARIABLE CHECK
 if nargin>=2
+    frameRange=varargin{1};
+else 
+    frameRange=[];
+end
     
+if nargin>=3
+    options=getOptions(options,varargin(2:end)); % CHECK IF NUMBER OF THE OPTION ARGUMENT OK!
 end
 
-if nargin>=4
-    options=getOptions(options,varargin); % CHECK IF NUMBER OF THE OPTION ARGUMENT OK!
-end
-scaleFactor=1/options.binning;
-if scaleFactor~=1, disps('Loading with resized movie'); end
+if options.binning~=1, disps('Loading with resized movie'); end
 input_options=options; % saving orginally passed options to output them in the original form for potential next use
 
 %% Summary preparation
-summary1.function_path=mfilename('fullpath'); % will be repalced by summary after loading summary from the first batch
-summary1.execution_started=datetime('now');
-summary1.execution_duration=tic;
+summary1=initSummary;
 summary1.firstframe = 0;
 
 %% CORE
@@ -86,7 +85,7 @@ firstbatchLoadingStart=tic;
 disps('Getting info from the first frames');
 try % we don't know yet how many frames are in this file so error can be expected...
     [movie,totalframes,summary_1frame]=...
-        loadDCIMG(filePath,options.firstnFrames,'resize',true,'scaleFactor',scaleFactor,...
+        loadDCIMG(filePath,options.firstnFrames,'binning',options.binning,...
         'cropROI',options.cropROI,'parallel',options.parallel,'verbose',0,'imshow',options.imshow);
 %     summary.firstframe_original=summary_1frame.firstframe_original; %
 %     this will be probably overwritten % - 2020-06-28 04:05:05 -   RC
@@ -102,20 +101,9 @@ summary.firstbatch_loading_duration=toc(firstbatchLoadingStart);
 summary.datatype = class(summary.firstframe);
 
 % parsing frame range
-frameRange=options.frameRange;
-if isempty(frameRange)
-    firstframe=1;
-    lastframe=totalframes;
-elseif length(frameRange)==1
-    firstframe=1;
-    lastframe=frameRange;
-elseif length(frameRange)==2
-    firstframe=frameRange(1);
-    lastframe=frameRange(2);
-else
-    error('Wrong format of frame range');
-end
-lastframe=min(lastframe,totalframes);
+frameRange=parseFrameRange(frameRange,totalframes);
+firstframe=frameRange(1);
+lastframe=frameRange(2);
 
 summary.frame_range=[firstframe,lastframe];
 summary.nframes2load=lastframe-firstframe+1;
@@ -123,7 +111,7 @@ summary.nframes2load=lastframe-firstframe+1;
 % getting estimates about the loading
 summary.estimated_MB_per_sec=summary_1frame.MB_per_sec;
 summary.MB_per_sec=[]; % will be populated in the end
-summary.estimated_loading_time=(summary.nframes2load*summary_1frame.frame_MB/summary.estimated_MB_per_sec);
+summary.estimated_loading_time=(summary.nframes2load*summary_1frame.frameMB/summary.estimated_MB_per_sec);
 disps(sprintf('Estimated loading time: %.1fs with the speed %.2fMB/s',summary.estimated_loading_time,summary.estimated_MB_per_sec));
 
 
@@ -135,7 +123,7 @@ if ~isempty(options.chunkSize)
 else
     % determining the chunk size
     summary.availableRAM=checkRAM; % that is calling our external function that should be on the path
-    summary.chunkSize=round(options.maxRAM*summary.availableRAM/summary.frame_MB/2^20);
+    summary.chunkSize=round(options.maxRAM*summary.availableRAM/summary.frameMB/2^20);
 end
 
 
@@ -145,25 +133,25 @@ end
 chunksFirstLast=double(chunkFrames(summary.chunkSize,summary.frame_range)); % preparing the chunk frame numbers array
 summary.chunksFirstLast=chunksFirstLast;
 
-if ~isempty(options.h5Path)
+if ~isempty(options.h5path)
     disps('Converting DCIMG to H5 rather than loading to memory')
-    h5Path = options.h5Path;   
+    h5path = options.h5path;   
     
-    if isfile(h5Path)
-        disps(['Already found h5 file:' h5Path 'deleting!']);
-        delete(h5Path);
+    if isfile(h5path)
+        disps(['Already found h5 file:' h5path 'deleting!']);
+        delete(h5path);
     end
     
     for ichunk=1:size(chunksFirstLast,1) % this should be regular for loop as the inside DCIMG loading might be parallel already
-        [movie_batch,~,summary_batch]=loadDCIMG(filePath,chunksFirstLast(ichunk,:),'resize',true,'scaleFactor',scaleFactor,...
+        [movie_batch,~,summary_batch]=loadDCIMG(filePath,chunksFirstLast(ichunk,:),'binning',options.binning,...
             'parallel',options.parallel,'verbose',0,'imshow',options.imshow);
         
-        [~,summary_append]=h5append(h5Path, movie_batch, options.dataset); % and that's enough an covers creation too. Don't convert to single yet. RC
+        [~,summary_append]=h5append(h5path, movie_batch, options.dataset); % and that's enough an covers creation too. Don't convert to single yet. RC
         disps(sprintf('Chunk %d/%d loaded with a speed %.1fMB/s and saved with %.1fMB/s',...
             ichunk,size(chunksFirstLast,1),summary_batch.MB_per_sec,summary_append.MB_per_sec));
     end
     
-    movie = h5Path;
+    movie = h5path;
     
 else
     

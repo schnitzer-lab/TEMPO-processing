@@ -1,8 +1,8 @@
-function plotTimestamps(timestamps,summaryStructure)
+function plotTimestamps(timestamps)
 % HELP
 % Plots the time stamp output.
 % SYNTAX
-%[output_arg1,summary]= plotTimestamps(timestamps,summaryStructure)
+%[output_arg1,summary]= plotTimestamps(timestamps)
 %
 % INPUTS:
 % - timestamps - ...
@@ -16,6 +16,9 @@ function plotTimestamps(timestamps,summaryStructure)
 
 % HISTORY
 % - 31-Aug-2020 12:21:03 - created by Radek Chrapkiewicz (radekch@stanford.edu)
+
+[fps,nDropped,summaryStructure]=calcTimestamps(timestamps);
+    
 
 subplot(2,2,1)
 plot(timestamps)
@@ -37,7 +40,7 @@ ylabel('Frame rate (fps)')
 t=suptitle(sprintf('%i frames dropped', summaryStructure.nDroppedFrames));
 
 t.FontSize=10;
-t.FontName='Calibri';
+t.FontName='Arial';
 set(gcf,'color','white');
 
 

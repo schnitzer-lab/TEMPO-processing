@@ -4,7 +4,7 @@ function [frame1frameLast]=parseFrameRange(frameRange,totalNumFrames)
 % 1) If frameRange=[] or Inf, then [1,lastFrame];
 % 2) frameRange=iFrame, then [1,iFrame];
 % 3) frameRange=[iFrame,jFrame] then [iFrame,min(jFrame,totalNumFrames)]
-% jFrame can be Inf
+% iFrame and jFrame can be Inf, for last frame
 % SYNTAX
 %[frame1frameLast,summary]= parseframeRange(frameRange,totalNumFrames)\
 %
@@ -29,6 +29,12 @@ elseif length(frameRange)==1
     end
 elseif length(frameRange)==2
     frame1frameLast=frameRange;
+    if frame1frameLast(1)==Inf
+        frame1frameLast(1)=totalNumFrames;
+    elseif frame1frameLast(1)>totalNumFrames
+        warning('Specified a frame outside the range')
+        frame1frameLast(1)=totalNumFrames;
+    end
     if frame1frameLast(2)==Inf
         frame1frameLast(2)=totalNumFrames;
     elseif frame1frameLast(2)>totalNumFrames

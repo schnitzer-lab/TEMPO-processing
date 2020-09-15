@@ -75,6 +75,7 @@ input_options=options; % saving orginally passed options to output them in the o
 %% Summary preparation
 summary1=initSummary;
 summary1.firstframe = 0;
+ticStart=tic;
 
 %% CORE
 disps('Starting loading file in chunks');
@@ -175,12 +176,11 @@ end
 
 %% CLOSING
 summary.input_options=input_options; % passing input options separately so they can be used later to feed back to function input.
-summary.execution_duration=toc(summary.execution_duration);
+summary.execution_duration=toc(ticStart);
 
 
 movie_info=whos('movie');
 summary.loadedMB_toRAM=movie_info.bytes/2^20;
-summary.execution_duration=toc(summary1.execution_duration);
 
 summary.frames_per_sec=summary.nframes2load/summary.execution_duration;
 summary.MB_per_sec=summary.loadedMB_fromDisk/summary.execution_duration;

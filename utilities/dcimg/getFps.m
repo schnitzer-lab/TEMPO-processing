@@ -30,6 +30,7 @@ end
 
 if ~isfile(timeStampPath)
     disps('Time stamps not generated before, generating')
+    dcimgFilePath=findDCIMG(filePath);
     genTimesamps(dcimgFilePath);
 end
 summary.timeStampPath=timeStampPath;

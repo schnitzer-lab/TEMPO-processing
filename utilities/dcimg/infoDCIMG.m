@@ -13,7 +13,7 @@ options.transpose=true;
 if ~isfile(filePath)
     error('That is not even a file!')
 end
-
+tic
 [firstFrame,framesNumber]=  dcimgmatlab(int32(0), filePath); % that's the mex file that should be on a path
 loadingTimeFrame=toc;
 

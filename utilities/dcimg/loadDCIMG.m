@@ -82,6 +82,8 @@ if nargin>=2
     end
 else
     startframe=int32(0); % indexing starts from 0 for the mex file!
+    infoFile=infoDCIMG(filepath);
+    maxframe=infoFile.framesNumber;
 end
 
 if nargin>=3

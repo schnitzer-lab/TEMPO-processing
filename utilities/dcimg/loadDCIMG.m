@@ -38,6 +38,8 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 % 05/29/2020 - adapting for VoltageImagingAnalysis without dependencies RC
 % - 2020-09-15 01:34:13 - refreshed, getting compatible with
 % loadDCIMGchunks new syntax
+% - 2020-09-19 20:43:08 - turns on parallel only for longer chunks of the
+% movie
 %
 % TODO
 % - 2020-09-13 17:07:37 - unify content of sequential vs parallel loop
@@ -47,17 +49,18 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 %% OPTIONS
 options.resize=false; % down sample spatially the file while loading? It speeds up loading especially combined with a parallel pool
 options.parallel=true; % for parallel computing
-options.binning=8; % default scale factor for spatial downsampling (binning).
+options.binning=1; % default scale factor for spatial downsampling (binning).
 options.outputType='single'; % 'uint16', 'double' - changing data type of the output movie but ONLY if you bin it spatially.
 
 % display options
-options.imshow=true; % for displaying the first frame after loading, disable on default
+options.imshow=false; % for displaying the first frame after loading, disable on default
 options.verbose=1; % 0 - nothing passed to command window, 1 (default) passing messages about state of the execution.
 
 % not recommended to change below:
 options.transpose=true; % we always transposed the original file to make
 %it compatible with Matlab displays but it is swapping camera rows with columns
 options.cropROI=[];
+options.parallelLimit=200; % number of frames above which parallel computeing is used
 
 
 %% VARIABLE CHECK
@@ -181,6 +184,15 @@ transpose=options.transpose;
 scaleFactor=summary.scaleFactor;
 outputType=options.outputType;
 cropROI=options.cropROI;
+
+%%% checking if really use parallel 
+if isempty(gcp('nocreate')) % if parallel is not on
+    if numFrames<options.parallelLimit % and you are loading just a small chunk
+        options.parallel=false; % don't use parallel as turning it on will take more time than it is worth it
+    end
+end
+    
+    
 
 %%% parallel loading
 if options.parallel % for parallel computing

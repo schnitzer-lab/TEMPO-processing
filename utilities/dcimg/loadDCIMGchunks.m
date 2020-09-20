@@ -41,7 +41,7 @@ function [movie,summary]=loadDCIMGchunks(filePath,varargin)
 %% OPTIONS
 
 % Key parameters
-options.binning=8; % replacing previous scale_factor
+options.binning=1; % replacing previous scale_factor
 
 options.cropROI=[];
 % ADVANCED: not recommended to change unless you are sure what you are doing:

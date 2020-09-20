@@ -9,7 +9,11 @@ function [info]=infoDCIMG(filePath)
 
 options.transpose=true;
 % loading first frame
-tic
+
+if ~isfile(filePath)
+    error('That is not even a file!')
+end
+
 [firstFrame,framesNumber]=  dcimgmatlab(int32(0), filePath); % that's the mex file that should be on a path
 loadingTimeFrame=toc;
 

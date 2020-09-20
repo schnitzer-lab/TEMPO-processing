@@ -31,7 +31,17 @@ end
 if ~isfile(timeStampPath)
     disps('Time stamps not generated before, generating')
     dcimgFilePath=findDCIMG(filePath);
-    genTimesamps(dcimgFilePath);
+    try
+        genTimestamps(dcimgFilePath);
+    catch ME1
+        warning('Cannot generate time stamps, parsing fps from the filename and terminating')
+        [~,endIndex] = regexp(dcimgFilePath,'-fps');
+        fps=sscanf(dcimgFilePath((endIndex+1):end),'%f');
+        nDroppedFrames=-1;
+        summary.error=ME1;
+        summary=closeSummary(summary);
+        return;       
+    end
 end
 summary.timeStampPath=timeStampPath;
 

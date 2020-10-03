@@ -24,6 +24,18 @@ switch getExt(filePath)
         timeStampPath=filePath;
     case '.dcimg'
         timeStampPath=[filePath,'.txt'];
+    case '.h5'
+        folderPath=fileparts(filePath);
+        folderPathMeta=fullfile(folderPath,LVmeta);
+        fList=rdir(fullfile(folderPathMeta,'*-cG.dcimg.txt'));
+        if isempty(fList)
+            timeStampPath=[];
+            fps=parseFps(filePath);
+            nDroppedFrames=[];
+            return
+        else
+            timeStampPath=fList(1).name;
+        end            
     otherwise 
         error('Unsupported %s format of the file',getExt(filePath));
 end

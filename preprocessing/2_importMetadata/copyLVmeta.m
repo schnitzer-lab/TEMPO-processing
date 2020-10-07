@@ -10,9 +10,8 @@ function [copied_filelist,found_filelist,summary]=copyLVmeta(sourcepath,targetpa
 %[copied_filelistfound_filelist,summary]= copyLVmeta(sourcepath,targetpath,'options',options) - passing options as a structure.
 %
 % INPUTS:
-% - sourcepath - file path or a folder path. This function should flexible
-% parse either
-% - targetpath - ...
+% - sourcepath - file path or a folder path. This function should flexibly parse either
+% - targetpath - parent folder where data are going to be copied
 %
 % OUTPUTS:
 % - copied_filelist - ...
@@ -20,18 +19,13 @@ function [copied_filelist,found_filelist,summary]=copyLVmeta(sourcepath,targetpa
 % - summary - %
 % OPTIONS:
 % - see below the section of code showing all possible input options and comments for their meaning. 
-%
+
 % HISTORY
 % - 29-Jun-2020 17:04:49 - created by Radek Chrapkiewicz (radekch@stanford.edu)
-%
-% ISSUES
-% #1 - issue 1
-%
-% TODO
-% *1 - get the first working version of the function!
+% - 2020-10-06 22:54:14  - simplified content, summary and updated help RC
 
 
-%% OPTIONS (Biafra style, type 'help getOptions' for details) or: https://github.com/schnitzer-lab/VoltageImagingAnalysis/wiki/'options':-structure-with-function-configuration
+%% OPTIONS
 options=struct; % add your options below 
 options.subfolder='LVmeta';
 
@@ -40,18 +34,9 @@ options.subfolder='LVmeta';
 if nargin>=3
 options=getOptions(options,varargin(1:end)); % CHECK IF NUMBER OF THE OPTION ARGUMENT OK!
 end
-input_options=options; % saving orginally passed options to output them in the original form for potential next use
-
-%% PATHS
-
-%% Summary preparation
-summary.function_path=mfilename('fullpath');
-summary.execution_started=datetime('now');
-summary.execution_duration=tic;
-
+summary=initSummary(options); % saving orginally passed options to output them in the original form for potential next use
 
 %% CORE
-%The core of the function should just go here.
 if isfile(sourcepath)
     folderpath=fileparts(sourcepath);
 elseif isfolder(sourcepath)
@@ -65,20 +50,14 @@ if ~strcmp(fileparts(targetpath),options.subfolder)
 else
     targetfolder=targetpath;
 end
-
-if ~isfolder(targetfolder)
-    mkdir(targetfolder)
-end
+mkdirs(targetfolder);
 
 % finding all files in the source folder 
-
 found_filelist=rdir(folderpath);
-
 table_files=struct2table(found_filelist);
-
 excluded_ind=[];
 
-disp(sprintf('Starting to copy files from %s to %s',folderpath, targetfolder));
+disps(sprintf('Starting to copy files from %s to %s',folderpath, targetfolder));
 
 for ii=1:length(found_filelist)
     [~,~,ext]=fileparts(found_filelist(ii).name);
@@ -91,27 +70,15 @@ end
 
 found_filelist(excluded_ind)=[];
 nfound=length(found_filelist);
-
-disp(sprintf('Copied %d files',nfound));
-
+disps(sprintf('Copied %d files',nfound));
 copied_filelist=rdir(targetfolder);
-
 ntarget=length(copied_filelist);
 
 if ntarget~=nfound
-    disp('The number of found and copied files does not match')
+    disps('The number of found and copied files does not match')
 end
 
 
-%% CLOSING
-summary.input_options=input_options; % passing input options separately so they can be used later to feed back to function input.
-summary.execution_duration=toc(summary.execution_duration);
-
-
+summary=closeSummary(summary);
 end  %%% END COPYLVMETA
-
-function disp(string) %overloading disp for this function - this function should be nested
-FUNCTION_NAME='copyLVmeta';
-fprintf('%s %s: %s\n', datetime('now'),FUNCTION_NAME,string);
-end
 

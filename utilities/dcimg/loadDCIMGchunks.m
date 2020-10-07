@@ -37,6 +37,7 @@ function [movie,summary]=loadDCIMGchunks(filePath,varargin)
 % - 2020-09-13 16:25:43 - getting rid of scale_factor, redundant with 'binning' RC
 % - 2020-09-13 16:27:54 - bringing back 2nd and 3rd arguments, someone got rid of them... RC
 % - 2020-09-15 01:36:40 - bringing back frame range as an argument RC
+% - 2020-10-06 21:20:46 - calculating chunk size including binning value RC
 
 %% OPTIONS
 
@@ -124,7 +125,7 @@ if ~isempty(options.chunkSize)
 else
     % determining the chunk size
     summary.availableRAM=checkRAM; % that is calling our external function that should be on the path
-    summary.chunkSize=round(options.maxRAM*summary.availableRAM/summary.frameMB/2^20);
+    summary.chunkSize=round(options.maxRAM*summary.availableRAM/summary.frameMB/options.binning^2/2^20); % adding binning to calculation
 end
 
 

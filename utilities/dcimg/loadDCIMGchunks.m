@@ -162,7 +162,7 @@ else
     
     nframes_loaded=0;
     for ichunk=1:size(chunksFirstLast,1) % this should be regular for loop as the inside DCIMG loading might be parallel already
-        [movie_batch,~,summary_batch]=loadDCIMG(filePath,chunksFirstLast(ichunk,:),'resize',true,'scaleFactor',scaleFactor,...
+        [movie_batch,~,summary_batch]=loadDCIMG(filePath,chunksFirstLast(ichunk,:),'resize',true,'binning',options.binning,...
             'parallel',options.parallel,'verbose',0,'imshow',options.imshow);
         
         movie(:,:,nframes_loaded+(1:size(movie_batch,3)))=movie_batch;

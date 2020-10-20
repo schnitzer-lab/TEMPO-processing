@@ -66,8 +66,8 @@ end
 
 %% SUMMARY PREPARATION
 summary.funcname = 'reg';
-fname_suffix=['_',summary.funcname];
-if ~(suffix.is(fname_suffix)); error('not a valid suffix'); end
+fname_Suffix=['_',summary.funcname];
+if ~(Suffix.is(fname_Suffix)); error('not a valid Suffix'); end
 summary.input_options=options;
 summary.function_path=mfilename('fullpath');
 summary.execution_started=datetime('now');
@@ -97,11 +97,11 @@ if ischar(fixed) % passing movie as filepth to h5 files
          datatype = class(fixed_frame);
         % output file names
 
-        suff_obj_fixed=suffix(fixed);
-        fixedV=suff_obj_fixed.change(fname_suffix); % handling changing suffixes through class suffix to avoid multiple adding of suffixes and not allowed ones. This causes a problem for automatic file search.
+        suff_obj_fixed=Suffix(fixed);
+        fixedV=suff_obj_fixed.change(fname_Suffix); % handling changing Suffixes through class Suffix to avoid multiple adding of Suffixes and not allowed ones. This causes a problem for automatic file search.
 
-        suff_obj_moving=suffix(moving);
-        registeredV=suff_obj_moving.change(fname_suffix);
+        suff_obj_moving=Suffix(moving);
+        registeredV=suff_obj_moving.change(fname_Suffix);
     else
         error('Filetype %s not supported',ext);
     end

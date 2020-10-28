@@ -16,6 +16,9 @@ function [metadata]=importLvMetaData(lvSettingsFolder,varargin)
 % - added depth detection
 % - 2020-09-15 16:44:48 - minimalistic - reading basic info fps, binning,
 % depth. If anything else we will add it
+% - 2020-10-28 14:07:18 - improved parsing of fps, especially after LV
+% changing. Also other metadata should transition into regexp instead of
+% strict positions within a file. 
 
 
 %% OPTIONS
@@ -40,8 +43,11 @@ metadata=struct;
 
 % Detect Sampling Rate
 try
-    A=fileread(fullfile(lvSettingsFolder,options.LVSettingsFile)); B=strfind(A, 'Actual frame rate');
-    metadata.fpsLV=floor(str2double(A(B+153:B+157))); % in Hz
+    A=fileread(fullfile(lvSettingsFolder,options.LVSettingsFile)); B=strfind(A, 'Internal frame rate (Hz)'); %  'Actual frame rate'); % - 2020-10-28 13:55:11 -   RC
+    substring=A(B(1)+(0:70));
+    inds=regexp(substring,'\d');
+    strnumber=substring(inds(1):inds(end));
+    metadata.fpsLV=str2double(strnumber); %   floor(str2double(A(B+153:B+157))); % in Hz
     fprintf('Frame Rate: %1.0f Hz \n', metadata.fpsLV);
 catch
     warning('Cannot detect sampling rate');

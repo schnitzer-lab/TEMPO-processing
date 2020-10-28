@@ -26,7 +26,7 @@ switch getExt(filePath)
         timeStampPath=[filePath,'.txt'];
     case '.h5'
         folderPath=fileparts(filePath);
-        folderPathMeta=fullfile(folderPath,LVmeta);
+        folderPathMeta=fullfile(folderPath,'LVmeta');
         fList=rdir(fullfile(folderPathMeta,'*-cG.dcimg.txt'));
         if isempty(fList)
             timeStampPath=[];

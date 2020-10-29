@@ -1,5 +1,6 @@
 function [] = SaveAVI(M, path, varargin)
 % Saves 3d movie array as .avi file
+% by Vasily
 
     options = DefaultOptions();
     if nargin>=3

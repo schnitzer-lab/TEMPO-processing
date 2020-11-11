@@ -15,6 +15,12 @@ if ~isfile(filePath)
 end
 tic
 [firstFrame,framesNumber]=  dcimgmatlab(int32(0), filePath); % that's the mex file that should be on a path
+dcimgInfo=importDcimgHeader(filePath); % % - 2020-11-10 17:32:01 -   RC
+framesNumberHeader=dcimgInfo.totalFrames;
+if framesNumber~=framesNumberHeader
+    warning('Actual number of frames in the DCIMG file is different than reportded by "dcimgmatlab". Taking value from the binary file readout');
+    framesNumber=framesNumberHeader;
+end 
 loadingTimeFrame=toc;
 
 if options.transpose

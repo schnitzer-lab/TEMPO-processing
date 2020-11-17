@@ -1,6 +1,9 @@
 function [metadata]=importLvMetaData(lvSettingsFolder,varargin)
 % [metadata]=importLvMetaData(lvSettinsPath)
 % [metadata]=importLvMetaData(lvSettinsPath,'parameter',value,...)
+%
+% Structure of the metadata output:
+% metadata.hardwareBinning
 
 % HISTORY
 % - by SH 2020

@@ -73,6 +73,7 @@ nfound=length(found_filelist);
 disps(sprintf('Copied %d files',nfound));
 copied_filelist=rdir(targetfolder);
 ntarget=length(copied_filelist);
+summary.LVfolder=targetfolder; % - 2020-11-16 17:48:08 -   RC
 
 if ntarget~=nfound
     disps('The number of found and copied files does not match')

@@ -3,10 +3,8 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 % SYNTAX
 % movie=loadDCIMG(filepath)
 % movie=loadDCIMG(filepath,maxframe,...)  - loading from 1 to maxframe
-% movie=loadDCIMG(filepath,[frameFirst, frameLast]) - loading selected
-% range of frames
-% movie=loadDCIMG(filepath,framerange,'Parameter',Value) - passing extra
-% options with the 'Parameter', Value, Matlab style.
+% movie=loadDCIMG(filepath,[frameFirst, frameLast]) - loading selected range of frames
+% movie=loadDCIMG(filepath,framerange,'Parameter',Value) - passing extra options with the 'Parameter', Value, Matlab style.
 %
 % INPUTS
 % - filepath - path to the DCIMG file
@@ -21,6 +19,7 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 % OPTIONS
 % - 'resize' - enable spatial downsampling/binning
 % - 'scaleFactor' -  e.g. ('scaleFactor', 0.5) to downsample by factor of 2x2 px.
+% - 'cropROI' - crop rectangle in the format (x0,y0,width,height) such as given by imcrop.
 % - see other available options in the code below
 %
 % DEPENDENCIES
@@ -36,10 +35,9 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 % 11/29/2019 - adding parallel computing for speedup RC
 % 11/29/2019 - seriously updated, removed all options and argument handling RC
 % 05/29/2020 - adapting for VoltageImagingAnalysis without dependencies RC
-% - 2020-09-15 01:34:13 - refreshed, getting compatible with
-% loadDCIMGchunks new syntax
-% - 2020-09-19 20:43:08 - turns on parallel only for longer chunks of the
-% movie
+% - 2020-09-15 01:34:13 - refreshed, getting compatible with  loadDCIMGchunks new syntax
+% - 2020-09-19 20:43:08 - turns on parallel only for longer chunks of the movie
+% - 2020-12-14 13:28:57 - cropping moved before resizing
 %
 % TODO
 % - 2020-09-13 17:07:37 - unify content of sequential vs parallel loop
@@ -59,7 +57,7 @@ options.verbose=1; % 0 - nothing passed to command window, 1 (default) passing m
 % not recommended to change below:
 options.transpose=true; % we always transposed the original file to make
 %it compatible with Matlab displays but it is swapping camera rows with columns
-options.cropROI=[];
+options.cropROI=[]; % additional cropping of each frame provided in the format (x0,y0,width,height) such as given by imcrop.
 options.parallelLimit=200; % number of frames above which parallel computeing is used
 
 
@@ -135,6 +133,14 @@ summary.frame_size_original=size(framedata);
 summary.firstframe_original=framedata;
 % - 2020-07-18 16:17:24 - SH > should be done after imcrop and imresize...
 
+% Cropping done BEFORE resizing, unlike before% - 2020-12-14 13:27:58 -   RC
+if ~isempty(options.cropROI)
+    % ORCA and matlab different XY convention
+    framedata = imcrop(framedata, options.cropROI);
+    summary.frame_size_postCropping=size(framedata);
+    summary.cropROI=options.cropROI;
+end
+
 if summary.scaleFactor~=1
     framedata=cast(framedata,options.outputType); % cast typing to preserve more information upon averaging
     framedata=imresize(framedata,summary.scaleFactor,'box');
@@ -145,13 +151,7 @@ else
     summary.scaleFactor=1;
 end
 
-% Done after imresize > ROI detected after resizing
-if ~isempty(options.cropROI)
-    % ORCA and matlab different XY convention
-    framedata = imcrop(framedata, options.cropROI);
-    summary.frame_size_postCropping=size(framedata);
-    summary.cropROI=options.cropROI;
-end
+
 
 summary.frameMB=frame_info.bytes/2^20;
 summary.fileGB=frame_info.bytes*double(totalframes)/2^30;

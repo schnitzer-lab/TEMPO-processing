@@ -2,7 +2,7 @@ function [hAxes,summary]=formatPlot(varargin)
 % HELP FORMATPLOT.M
 % Formatting regular single axis plot for publication quality.
 % SYNTAX
-% [hAxes,summary]=formatPlot() - use gca 
+% [hAxes,summary]=formatPlot() - goes recursively over all found axes 
 % [hAxes,summary]=formatPlot(hAxes) - if empty, then using gca 
 % [hAxes,summary]= formatPlot(...,'optionName',optionValue,...) - passing options using a 'Name', 'Value' paradigm frequently used by Matlab native functions.
 % [hAxes,summary]= formatPlot(...,'options',options) - passing options as a structure.
@@ -34,13 +34,13 @@ options.brewerset='Set1'; % Set1 - recommended; Spectral set of colors from the 
 %% VARIABLE CHECK 
 
 if nargin==0
-    hAxes=gca;
+    hAxes=findall(gcf,'Type','Axes');
 else
     hAxes=varargin{1};
 end
 
 if isempty(hAxes)
-    hAxes=gca;
+    hAxes=findall(gcf,'Type','Axes');
 end
 
 if nargin>=2
@@ -51,6 +51,15 @@ summary=initSummary(options);
 
 %% CORE
 %The core of the function should just go here.
+if numel(hAxes)>1
+    disps('Recursive settting')
+    for iAx=1:numel(hAxes)
+        if isa(hAxes(iAx),'matlab.ui.controls.AxesToolbar'), continue; end
+        [~,summary.recursive(iAx)]=formatPlot(hAxes(iAx),'options',options);
+    end
+    return
+end
+        
 
 set(gcf','color','white')
 
@@ -70,7 +79,10 @@ mycolors=brewermap(length(hLines),options.brewerset);
 mycolors=flipud(mycolors); % as the lines appear in the reverse order if created by hold on
 
 if ~isempty(options.legend)
-    summary.legend=legend(options.legend{1:length(hLines)},'Box','off','Location','north','orientation','horizontal');
+    if ~iscell(options.legend)
+        options.legend={options.legend};
+    end
+    summary.legend=legend(options.legend{1:min(length(hLines),length(options.legend))},'Box','off','Location','north','orientation','horizontal');
 end
 for iLine=1:length(hLines)
     formatLine(hLines(iLine),mycolors(iLine,:)); % nested functions below

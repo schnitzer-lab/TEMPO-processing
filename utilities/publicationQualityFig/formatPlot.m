@@ -31,6 +31,8 @@ options.brewerset='Set1'; % Set1 - recommended; Spectral set of colors from the 
 % Other options: Set1-3, Pastel1-2, Dark2, Accent or some divergent
 % colormaps
 
+options.verbose=false;
+
 %% VARIABLE CHECK 
 
 if nargin==0
@@ -93,7 +95,7 @@ end
 
 %% CLOSING
 summary=closeSummary(summary);
-disps('Plot formatted')
+if options.verbose, disps('Plot formatted'); end
 
 %% NESTED FUNCTIONS
     function formatLine(hLine,color)

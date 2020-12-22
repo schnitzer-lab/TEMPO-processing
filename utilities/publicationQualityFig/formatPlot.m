@@ -77,8 +77,28 @@ hAxes.FontSize=options.fontsize;
 
 % recoloring lines
 hLines=findall(hAxes,'Type','Line');
-mycolors=brewermap(length(hLines),options.brewerset);
-mycolors=flipud(mycolors); % as the lines appear in the reverse order if created by hold on
+if length(hLines)==1
+    mycolors=brewermap(2,options.brewerset);
+    mycolors=mycolors(2,:); % blue
+    % blue
+elseif length(hLines)==2
+        mycolors=brewermap(length(hLines),options.brewerset);
+%         mycolors=flipud(mycolors); % as the lines appear in the reverse order if created by hold on
+elseif length(hLines)==3
+    mycolorsTmp=brewermap(length(hLines),options.brewerset);
+    mycolors=mycolorsTmp;
+    mycolors(1,:)=mycolorsTmp(2,:);
+    mycolors(2,:)=mycolorsTmp(1,:);
+
+else
+    mycolors=brewermap(length(hLines),options.brewerset);
+    mycolors=flipud(mycolors); % as the lines appear in the reverse order if created by hold on
+end
+    
+    
+
+
+    
 
 if ~isempty(options.legend)
     if ~iscell(options.legend)

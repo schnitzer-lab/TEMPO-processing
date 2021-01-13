@@ -295,8 +295,8 @@ else % h5 file
         
         % preallocate
        
-        transformed_moving = zeros([size(fixed_cropped),realframe]);
-        transformed_fixed = zeros([size(fixed_cropped),realframe]);
+        transformed_moving = zeros([size(fixed_cropped),realframe],class(data_moving));
+        transformed_fixed = zeros([size(fixed_cropped),realframe],class(data_moving));
         
         disp( ['processing frames ' num2str(sframe) ' - ' num2str(endframe) ', in total ' num2str(dims_fixed(end)) ' frames']);
         

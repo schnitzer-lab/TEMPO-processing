@@ -50,6 +50,8 @@ options.Binarize=false; % only hard cases where there is a lot of features that 
 options.Threshold=false; % only hard cases where there is a lot of features that are small
 options.ThresholdValue=0;
 
+options.TemplateFrame=[]; 
+
 
 % display control
 options.plot=true;
@@ -91,7 +93,9 @@ if ischar(fixed) % passing movie as filepth to h5 files
             error('Number of frames are not equal');
         end
         
-        options.TemplateFrame=num_frame_fixed; % which frame to take as a template ? on default the last one.
+        if isempty(options.TemplateFrame)
+            options.TemplateFrame=num_frame_fixed; % which frame to take as a template ? on default the last one.
+        end
         fixed_frame =  h5read(fixed,options.dataset,[1,1,options.TemplateFrame],[dims_fixed(1:end-1),1]);
         moving_frame =  fliplr(h5read(moving,options.dataset,[1,1,options.TemplateFrame],[dims_moving(1:end-1),1]));
          datatype = class(fixed_frame);

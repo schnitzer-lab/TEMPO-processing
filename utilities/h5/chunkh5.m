@@ -42,8 +42,7 @@ summary.frame_MB=double(msize(1)*msize(2)*summarymov.bytes_per_px)/2^20;
 chunkSize=round(maxRAMfactor*summary.availableRAM/summary.frame_MB/2^20);
 summary.chunkSize=chunkSize;
 %% CLOSING
-summary.input_options=input_options; % passing input options separately so they can be used later to feed back to function input.
-summary.execution_duration=toc(summary.execution_duration);
+summary=closeSummary(summary);
 
 
 end  %%% END CHUNKH5

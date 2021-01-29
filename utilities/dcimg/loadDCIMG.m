@@ -38,6 +38,7 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 % - 2020-09-15 01:34:13 - refreshed, getting compatible with  loadDCIMGchunks new syntax
 % - 2020-09-19 20:43:08 - turns on parallel only for longer chunks of the movie
 % - 2020-12-14 13:28:57 - cropping moved before resizing
+% - 2021-01-25 18:14:03 - adding Inf binning just to extract a time trace  RC
 %
 % TODO
 % - 2020-09-13 17:07:37 - unify content of sequential vs parallel loop
@@ -47,7 +48,7 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 %% OPTIONS
 options.resize=false; % down sample spatially the file while loading? It speeds up loading especially combined with a parallel pool
 options.parallel=true; % for parallel computing
-options.binning=1; % default scale factor for spatial downsampling (binning).
+options.binning=1; % default scale factor for spatial downsampling (binning). If 'Inf' then it's outputting just a mean value of the movie 
 options.outputType='single'; % 'uint16', 'double' - changing data type of the output movie but ONLY if you bin it spatially.
 
 % display options
@@ -143,7 +144,11 @@ end
 
 if summary.scaleFactor~=1
     framedata=cast(framedata,options.outputType); % cast typing to preserve more information upon averaging
-    framedata=imresize(framedata,summary.scaleFactor,'box');
+    if summary.scaleFactor~=0
+        framedata=imresize(framedata,summary.scaleFactor,'box');
+    else
+        framedata=mean(framedata,[1,2]); % - 2021-01-25 18:13:33 -   RC
+    end
     summary.frame_size_resized=size(framedata);
     summary.scaleFactor=summary.scaleFactor;
 else
@@ -182,6 +187,7 @@ end
 sizeFrame=size(framedata);
 
 % Preallocate the array
+% - 2021-01-25 18:11:58 -   RC
 movie = zeros(sizeFrame(1),sizeFrame(2),numFrames, class(framedata));
 movie(:,:,1) = framedata;
 
@@ -212,9 +218,11 @@ if options.parallel % for parallel computing
         % Read each frame into the appropriate frame in memory.
         [framedata,~]=  dcimgmatlab(int32(iFrame+startframe-1), filepath);        
         if transpose, framedata=framedata'; end        
-        if scaleFactor~=1
+        if scaleFactor~=1 && scaleFactor~=0
             framedata=cast(framedata,outputType); % cast typing to preserve more information upon averaging
             framedata=imresize(framedata,scaleFactor,'box'); % this suprisingly gives speed up !
+        elseif scaleFactor==0
+            framedata=mean(framedata,[1,2]);
         end       
         if ~isempty(cropROI),  framedata = imcrop(framedata, cropROI); end % ORCA and matlab different XY convention         % Done after imresize > ROI detected after resizing
         
@@ -246,9 +254,11 @@ else
         if options.transpose, framedata=framedata'; % transposing is needed for imshow orientation compatibility
         end
         
-        if summary.scaleFactor~=1
+        if summary.scaleFactor~=1 && summary.scaleFactor~=0
             framedata=cast(framedata,options.outputType); % cast typing to preserve more information upon averaging
             framedata=imresize(framedata,summary.scaleFactor,'box'); % this suprisingly gives speed up !
+        elseif scaleFactor==0
+            framedata=mean(framedata,[1,2]);
         end
         movie(:,:,frameidx+1)  = framedata; % for chunks loading it has to be frameidx not frame
     end

@@ -116,10 +116,12 @@ disps('Loading first frame and file info.')
 
 dcimgInfo=importDcimgHeader(filepath); % % - 2020-11-10 17:32:01 -   RC
 framesNumberHeader=dcimgInfo.totalFrames;
-if totalframes~=framesNumberHeader
+if framesNumberHeader>totalframes
     disps('Actual number of frames in the DCIMG file is different than reportded by "dcimgmatlab". Taking value from the binary file readout');
     totalframes=framesNumberHeader;
 end 
+
+
 
 if options.transpose
     framedata=framedata'; % this transposition is to make it compatible with imshow, but flips camera rows with columns

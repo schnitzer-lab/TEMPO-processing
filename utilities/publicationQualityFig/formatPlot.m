@@ -15,6 +15,7 @@ function [hAxes,summary]=formatPlot(varargin)
 
 % HISTORY
 % - 15-Dec-2020 15:00:52 - created by Radek Chrapkiewicz (radekch@stanford.edu)
+% - 2021-02-06 18:58:03 - handling empty axes handle   RC
 
 %% OPTIONS - configure full display here
 options=struct; % add your options below 
@@ -37,7 +38,9 @@ options.verbose=false;
 
 if nargin==0
     hAxes=findall(gcf,'Type','Axes');
-else
+elseif isempty(varargin{1})
+    hAxes=findall(gcf,'Type','Axes');
+else 
     hAxes=varargin{1};
 end
 
@@ -82,8 +85,13 @@ if length(hLines)==1
     mycolors=mycolors(2,:); % blue
     % blue
 elseif length(hLines)==2
-        mycolors=brewermap(length(hLines),options.brewerset);
+%         mycolors=brewermap(length(hLines),options.brewerset);
 %         mycolors=flipud(mycolors); % as the lines appear in the reverse order if created by hold on
+    mycolorsTmp=brewermap(length(hLines),options.brewerset);
+    mycolors=mycolorsTmp;
+    mycolors(1,:)=mycolorsTmp(2,:);
+    mycolors(2,:)=mycolorsTmp(1,:);
+
 elseif length(hLines)==3
     mycolorsTmp=brewermap(length(hLines),options.brewerset);
     mycolors=mycolorsTmp;
@@ -96,10 +104,6 @@ else
 end
     
     
-
-
-    
-
 if ~isempty(options.legend)
     if ~iscell(options.legend)
         options.legend={options.legend};

@@ -42,7 +42,7 @@ options.BandPx=[1,10];% spatial band expressed in pixels, input parameters to fi
 % the first value responsible for lowpass, should be super small
 
 options.ChunkSize = []; % if empty, this will be calculated based on RAM RC
-options.maxRAM=0.1;
+options.maxRAM=0.01;
 
 options.Normalize=true;
 

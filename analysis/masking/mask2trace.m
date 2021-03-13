@@ -22,10 +22,10 @@ function [timeTrace,summary]=mask2trace(movie,mask,varargin)
 
 %% OPTIONS (type 'help getOptions' for details)
 options=struct; % add your options below 
-options.plot
+options.plot=true;
 
 %% VARIABLE CHECK 
-if nargin>=2
+if nargin>=3
 options=getOptions(options,varargin(1:end)); % CHECK IF NUMBER OF THE OPTION ARGUMENT OK!
 end
 summary=initSummary(options);

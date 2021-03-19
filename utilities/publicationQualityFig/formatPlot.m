@@ -49,7 +49,7 @@ if isempty(hAxes)
 end
 
 if nargin>=2
-options=getOptions(options,varargin(2:end)); % CHECK IF NUMBER OF THE OPTION ARGUMENT OK!
+options=getOptions(options,varargin(2:end));
 end
 summary=initSummary(options);
 

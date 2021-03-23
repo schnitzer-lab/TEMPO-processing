@@ -1,4 +1,4 @@
-function [fps,nDroppedFrames,summary]=getFps(filePath)
+function [fps,nDroppedFrames,summary]=getFps(filePath,varargin)
 % HELP
 % Higher level function, importing and analyzing dcimg time stamps
 % (generating if missing) and pulling out fps and warning
@@ -16,8 +16,16 @@ function [fps,nDroppedFrames,summary]=getFps(filePath)
 
 % HISTORY
 % - 13-Sep-2020 20:35:40 - created by Radek Chrapkiewicz (radekch@stanford.edu)
+% - 2021-03-23 09:35:38 - added option to return warnings instead of errors if frame dropping occurs  RC
 
-summary=initSummary;
+options=struct;
+options.dropError=true; % returning error if frame dropping occured
+
+
+if nargin>=2
+    options=getOptions(options,varargin);
+end
+summary=initSummary(options);
 
 switch getExt(filePath)
     case '.txt'
@@ -62,7 +70,12 @@ summary.timestamps=timestamps;
 [fps,nDroppedFrames,summaryCalc]=calcTimestamps(timestamps);
 
 if nDroppedFrames>0
-    error('Frames dropped in this recording');
+    if options.dropError
+        error('Frames dropped in this recording');
+    else
+        warning('Frames dropped in this recording');
+    end
+    
 end
 
 summary=mergeSummary(summary,summaryCalc);

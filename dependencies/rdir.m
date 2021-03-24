@@ -1,20 +1,20 @@
 function [varargout] = rdir(rootdir,varargin)
-% util.rdir - Recursive directory listing
+% rdir - Recursive directory listing
 % 
-%  D = util.rdir(ROOT)
-%  D = util.rdir(ROOT, TEST)
-%  D = util.rdir(ROOT, TEST, RMPATH)
-%  D = util.rdir(ROOT, TEST, 1)
-%  D = util.rdir(ROOT, '', ...)
-%  [D, P] = util.rdir(...)
-%  util.rdir(...)
+%  D = rdir(ROOT)
+%  D = rdir(ROOT, TEST)
+%  D = rdir(ROOT, TEST, RMPATH)
+%  D = rdir(ROOT, TEST, 1)
+%  D = rdir(ROOT, '', ...)
+%  [D, P] = rdir(...)
+%  rdir(...)
 %
 %
 % *Inputs*
 %
 % * ROOT
 %
-% util.rdir(ROOT) lists the specified files.
+% rdir(ROOT) lists the specified files.
 % ROOT can be a pathname, filename, or can include both. One can use
 % absolute and relative pathnames and wildcards (*). Wildcard can be placed
 % anywhere and used many times like 'path*\*.m'
@@ -31,7 +31,7 @@ function [varargout] = rdir(rootdir,varargin)
 % Optional test that can be performed on the returned files. 
 %
 % TEST is a string indicating expression to be evaluated on selected field
-% of util.rdir output.
+% of rdir output.
 % All fields (ie name, date, bytes, isdir and datenum) can be used.
 %
 % Tests are strings similar to what one would use in a "if" statement e.g.
@@ -100,28 +100,28 @@ function [varargout] = rdir(rootdir,varargin)
 % 
 % *Examples*
 %
-%   D = util.rdir('*.m');
+%   D = rdir('*.m');
 %     for ii=1:length(D), disp(D(ii).name); end;
 %
 %   % to find all files in the current directory and sub directories
-%   D = util.rdir('**\*')
+%   D = rdir('**\*')
 %
 %   % If no output is specified then the files are sent to 
 %   % the screen.
-%   util.rdir('c:\program files\windows *\*.exe');
-%   util.rdir('c:\program files\windows *\**\*.dll');
+%   rdir('c:\program files\windows *\*.exe');
+%   rdir('c:\program files\windows *\**\*.dll');
 %
 %   % Using the test function to find files modified today
-%   util.rdir('c:\win*\*','datenum>floor(now)');
+%   rdir('c:\win*\*','datenum>floor(now)');
 %   % Using the test function to find files of a certain size
-%   util.rdir('c:\program files\win*\*.exe','bytes>1024 & bytes<1048576');
+%   rdir('c:\program files\win*\*.exe','bytes>1024 & bytes<1048576');
 %   % Using the test function to find files modified in 2011
-%   util.rdir('c:\win*\*','strfind(date, ''2011'')');
+%   rdir('c:\win*\*','strfind(date, ''2011'')');
 %
 %   % Using the 3rd input to shorten output name
-%   util.rdir([matlabroot, '\*.txt'], '', 'C:\Program Files\')
+%   rdir([matlabroot, '\*.txt'], '', 'C:\Program Files\')
 %   % Using the 3rd input to shorten output name
-%   util.rdir([matlabroot, '\*.txt'], '', 1)
+%   rdir([matlabroot, '\*.txt'], '', 1)
 %
 %
 % See also DIR
@@ -242,7 +242,7 @@ else
   D_sd(excl) = [];
     
   if ~isdir(prepath) || ( numel(D_sd)==1 && strcmp(D_sd.name, prepath))
-    % Fix case like util.rdir('path*\...') where prepath is not a full directoty
+    % Fix case like rdir('path*\...') where prepath is not a full directoty
     % name OR case were prepath match a unique directory.
     % Previous "dir" return then the matching directory name(s).
     % prepath is cleaned to use them.
@@ -254,7 +254,7 @@ else
   % Process each directory found  
   Dt = dir('');
 
-  c_D = arrayfun(@(x) util.rdir([prepath x.name postpath]),...
+  c_D = arrayfun(@(x) rdir([prepath x.name postpath]),...
     D_sd, 'UniformOutput', false);
 
   D = [Dt; cell2mat( c_D ) ];

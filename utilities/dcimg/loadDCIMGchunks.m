@@ -38,12 +38,13 @@ function [movie,summary]=loadDCIMGchunks(filePath,varargin)
 % - 2020-09-13 16:27:54 - bringing back 2nd and 3rd arguments, someone got rid of them... RC
 % - 2020-09-15 01:36:40 - bringing back frame range as an argument RC
 % - 2020-10-06 21:20:46 - calculating chunk size including binning value RC
+% - 2021-04-14 02:59:29 - added output type option  RC
 
 %% OPTIONS
 
 % Key parameters
 options.binning=1; % replacing previous scale_factor
-
+options.outputType='single'; %'uint16' % - 2021-04-14 02:59:29 -   RC
 options.cropROI=[];
 % ADVANCED: not recommended to change unless you are sure what you are doing:
 options.chunkSize=[]; % on default empty and not overwriting the one found based on the available RAM size
@@ -146,7 +147,7 @@ if ~isempty(options.h5path)
     
     for ichunk=1:size(chunksFirstLast,1) % this should be regular for loop as the inside DCIMG loading might be parallel already
         [movie_batch,~,summary_batch]=loadDCIMG(filePath,chunksFirstLast(ichunk,:),'binning',options.binning,...
-            'parallel',options.parallel,'verbose',0,'imshow',options.imshow);
+            'parallel',options.parallel,'verbose',0,'imshow',options.imshow,'outputType',options.outputType);
         
         [~,summary_append]=h5append(h5path, movie_batch, options.dataset); % and that's enough an covers creation too. Don't convert to single yet. RC
         disps(sprintf('Chunk %d/%d loaded with a speed %.1fMB/s and saved with %.1fMB/s',...

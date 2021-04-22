@@ -7,7 +7,7 @@ function [info_cells] = h5saveMovieSpecs(h5filename, movie_specs)
     
     for i = 1:length(specs_cells) 
         info_cells{i+1} = ...
-            h5save(h5filename, specs_cells{i}, char(specs_names(i)), false);
+            h5save(h5filename, specs_cells{i}, char(specs_names(i)));
     end
 end
 

@@ -80,6 +80,7 @@ if ~dspath_new
     try
         h5write(fname,dspath,data); % 2020-06-28 02:41:00 RC
         warning('Dataset %s already existed, and I overwrote it with h5write (RC)',dspath);
+        info = h5info(fname);
         return;
     catch 
         error('The dataset path has been used, choose another one!');

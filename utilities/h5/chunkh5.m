@@ -2,17 +2,17 @@ function [chunkSize,summary]=chunkh5(filepath,maxRAMfactor,varargin)
 % HELP
 % Determines the chunk size to load H5 without exceedint the maxRAMfactor limit e.g. 0.1 for 10% of remaining RAM.
 % SYNTAX
-%[chunksize,summary]= chunkh5(filepath,maxRAMfactor) - use 3, etc.
+%[chunksize,summary]= chunkh5(filepath,maxRAMfactor) 
 %[chunksize,summary]= chunkh5(filepath,maxRAMfactor,'optionName',optionValue,...) - passing options using a 'Name', 'Value' paradigm frequently used by Matlab native functions.
 %[chunksize,summary]= chunkh5(filepath,maxRAMfactor,'options',options) - passing options as a structure.
 %
 % INPUTS:
-% - filepath - ...
-% - maxRAMfactor - ...
+% - filepath - path to h5 file.
+% - maxRAMfactor - [0,1] - fraction of the RAM that can be utilized
 %
 % OUTPUTS:
-% - chunksize - ...
-% - summary - %
+% - chunksize - chunk size to load (number of frames, integer);
+% - summary - extra outputs
 % OPTIONS:
 % - see below the section of code showing all possible input options and comments for their meaning. 
 

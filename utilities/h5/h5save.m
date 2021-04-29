@@ -26,6 +26,9 @@ function [info] = h5save(fname, data, varargin)
 % - 2020-06-02 18:52:10 - add datatype handling
 % - 2020-06-04 16:00:37 - dataset as a 3rd argument, changed syntax and organization of the function - Radek Chrapkiewicz
 % - 2020-06-28 02:41:00 - Handling existing datasets by h5write RC
+% - 2021-04-23 16:48:00 - Updated handling of existing non-numeric datasets
+% and overall logic a bit (VK)
+% 
 %
 % ISSUES
 % #1 - 
@@ -71,43 +74,43 @@ end
 % check whether this dataset path has been used
 dspath_new = false;
 try
-    datasetdata=h5read(fname,dspath);
+    [dsvalue]=h5read(fname,dspath);
 catch ME
     dspath_new = true;
 end    
-if ~dspath_new
-    h5info(fname)
-    try
-        h5write(fname,dspath,data); % 2020-06-28 02:41:00 RC
-        warning('Dataset %s already existed, and I overwrote it with h5write (RC)',dspath);
-        info = h5info(fname);
-        return;
-    catch 
-        error('The dataset path has been used, choose another one!');
-    end
-end
 
-%data=jdataencode(data,'Base64',0,'UseArrayZipSize',0,options);
+if(~dspath_new) warning('Dataset %s already exists, will attemt to overwrite',dspath); end
 
-try
-    if(isa(fname,'H5ML.id'))
-        fid=fname;
+if (isnumeric(data) && isreal(data))%Simple matlab H5 writing for numeric data %~dspath_new
+    if(dspath_new) 
+        h5append(fname,data,dspath);
     else
-        if isfile(fname)
-            fid = H5F.open(fname, 'H5F_ACC_RDWR','H5P_DEFAULT');
+        h5write(fname,dspath,data); % 2020-06-28 02:41:00 RC
+    end
+else %matlab H5 writing for arbitrary data by Jizhou
+    %data=jdataencode(data,'Base64',0,'UseArrayZipSize',0,options);
+    try
+        if(isa(fname,'H5ML.id'))
+            fid=fname;
         else
-            fid = H5F.create(fname, 'H5F_ACC_TRUNC', H5P.create('H5P_FILE_CREATE'), H5P.create('H5P_FILE_ACCESS'));
+            if isfile(fname)
+                fid = H5F.open(fname, 'H5F_ACC_RDWR','H5P_DEFAULT');
+            else
+                fid = H5F.create(fname, 'H5F_ACC_TRUNC', H5P.create('H5P_FILE_CREATE'), H5P.create('H5P_FILE_ACCESS'));
+            end
         end
+        
+        if(~dspath_new)
+           H5L.delete(fid, dspath,'H5P_DEFAULT');
+           warning("dspath %s was overwritten, but allocated memory wasn't"+ ...
+                   " released. Use h5repack to free it.", dspath);
+        end
+        obj2h5(dspath,data,fid,1,options);
+    catch ME
+        if(exist('fid','var') && fid>0) H5F.close(fid); end
+        rethrow(ME);
     end
-    obj2h5(dspath,data,fid,1,options);
-catch ME
-    if(exist('fid','var') && fid>0)
-        H5F.close(fid);
-    end
-    rethrow(ME);
-end
 
-if(~isa(fname,'H5ML.id'))
     H5F.close(fid);
 end
 

@@ -40,24 +40,8 @@ function [movie,summary]=loadDCIMGchunks(filePath,varargin)
 % - 2020-10-06 21:20:46 - calculating chunk size including binning value RC
 
 %% OPTIONS
+    options = DefaultOptions();
 
-% Key parameters
-options.binning=1; % replacing previous scale_factor
-
-options.cropROI=[];
-% ADVANCED: not recommended to change unless you are sure what you are doing:
-options.chunkSize=[]; % on default empty and not overwriting the one found based on the available RAM size
-options.firstnFrames=10;% loading this many frames to estimate the speed transfer. Should never exceed the nubmer of frames in the file!
-options.maxRAM=0.1; % relative, factor outomatically adjusting the chunk size based on the available amount of RAM
-options.parallel=true;
-
-% Control display
-options.verbose=true;
-options.imshow=true; % for displaying the first frame after loading, disable on default
-
-% Export data
-options.h5path=[]; % if not empty doing convertion into h5 file instead of loading to memory (obsolete and deleted: options.saveh5 = false ) RC
-options.dataset='mov';
 
 %% VARIABLE CHECK
 if nargin>=2
@@ -88,7 +72,7 @@ disps('Getting info from the first frames');
 try % we don't know yet how many frames are in this file so error can be expected...
     [movie,totalframes,summary_1frame]=...
         loadDCIMG(filePath,options.firstnFrames,'binning',options.binning,...
-        'cropROI',options.cropROI,'parallel',options.parallel,'verbose',0,'imshow',options.imshow);
+        'cropROI',options.cropROI,'parallel',options.parallel,'verbose',0,'imshow',options.imshow, 'useDCIMGmex', options.useDCIMGmex);
 %     summary.firstframe_original=summary_1frame.firstframe_original; %
 %     this will be probably overwritten % - 2020-06-28 04:05:05 -   RC
 catch err
@@ -146,7 +130,7 @@ if ~isempty(options.h5path)
     
     for ichunk=1:size(chunksFirstLast,1) % this should be regular for loop as the inside DCIMG loading might be parallel already
         [movie_batch,~,summary_batch]=loadDCIMG(filePath,chunksFirstLast(ichunk,:),'binning',options.binning,...
-            'parallel',options.parallel,'verbose',0,'imshow',options.imshow);
+            'parallel',options.parallel,'verbose',0,'imshow',options.imshow, 'useDCIMGmex', options.useDCIMGmex);
         
         [~,summary_append]=h5append(h5path, movie_batch, options.dataset); % and that's enough an covers creation too. Don't convert to single yet. RC
         disps(sprintf('Chunk %d/%d loaded with a speed %.1fMB/s and saved with %.1fMB/s',...
@@ -164,7 +148,7 @@ else
     nframes_loaded=0;
     for ichunk=1:size(chunksFirstLast,1) % this should be regular for loop as the inside DCIMG loading might be parallel already
         [movie_batch,~,summary_batch]=loadDCIMG(filePath,chunksFirstLast(ichunk,:),'resize',true,'binning',options.binning,...
-            'parallel',options.parallel,'verbose',0,'imshow',options.imshow);
+            'parallel',options.parallel,'verbose',0,'imshow',options.imshow, 'useDCIMGmex', options.useDCIMGmex);
         
         movie(:,:,nframes_loaded+(1:size(movie_batch,3)))=movie_batch;
         nframes_loaded=nframes_loaded+size(movie_batch,3);
@@ -192,4 +176,28 @@ summary.function_path=mfilename('fullpath');
 summary.contact='Radek Chrapkiewicz (radekch@stanford.edu)';
 
 end  %%% END LOADDCIMGCHUNKS
+
+
+function options = DefaultOptions()
+    % Key parameters
+    options.binning=1; % replacing previous scale_factor
+
+    options.cropROI=[];
+    % ADVANCED: not recommended to change unless you are sure what you are doing:
+    options.chunkSize=[]; % on default empty and not overwriting the one found based on the available RAM size
+    options.firstnFrames=10;% loading this many frames to estimate the speed transfer. Should never exceed the nubmer of frames in the file!
+    options.maxRAM=0.1; % relative, factor outomatically adjusting the chunk size based on the available amount of RAM
+    options.parallel=true;
+
+    % Control display
+    options.verbose=true;
+    options.imshow=true; % for displaying the first frame after loading, disable on default
+
+    % Export data
+    options.h5path=[]; % if not empty doing convertion into h5 file instead of loading to memory (obsolete and deleted: options.saveh5 = false ) RC
+    options.dataset='mov';
+    
+    options.useDCIMGmex = false; %Alternative mex file for dcimg - Vasily
+end
+
 

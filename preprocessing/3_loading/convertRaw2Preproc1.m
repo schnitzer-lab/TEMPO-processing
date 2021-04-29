@@ -18,9 +18,11 @@ function [h5path,summary]=convertRaw2Preproc1(dcimgPath,varargin)
 
 % HISTORY
 % - 06-Oct-2020 23:09:13 - created by Radek Chrapkiewicz (radekch@stanford.edu)
+% - 2021-04-28 - added useDCIMGmex option for alternative mex file to read
+% .dcimg and moved default options to the separate function ( defaultOptions )
 
 %% OPTIONS (type 'help getOptions' for details)
-options=DefaultOptions(dcimgPath);
+options=defaultOptions(dcimgPath);
 
 %% VARIABLE CHECK
 if nargin>=2
@@ -118,7 +120,7 @@ if(~options.useMovieSpecs) summary=closeSummary(summary); end %Radek's way
 end  %%% END CONVERTRAW2PREPROC1
 
 
-function options =  DefaultOptions(dcimgPath)
+function options =  defaultOptions(dcimgPath)
     options.verbose=true;
     
     options.useMovieSpecs = false;

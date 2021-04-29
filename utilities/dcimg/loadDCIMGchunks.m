@@ -39,9 +39,12 @@ function [movie,summary]=loadDCIMGchunks(filePath,varargin)
 % - 2020-09-15 01:36:40 - bringing back frame range as an argument RC
 % - 2020-10-06 21:20:46 - calculating chunk size including binning value RC
 % - 2021-04-14 02:59:29 - added output type option  RC
+% - 2021-04-28 - added useDCIMGmex option for alternative mex file to read
+% .dcimg and moved default options to the separate function ( defaultOptions )
+
 
 %% OPTIONS
-    options = DefaultOptions();
+    options = defaultOptions();
 
 %% VARIABLE CHECK
 if nargin>=2
@@ -180,7 +183,7 @@ summary.contact='Radek Chrapkiewicz (radekch@stanford.edu)';
 end  %%% END LOADDCIMGCHUNKS
 
 
-function options = DefaultOptions()
+function options = defaultOptions()
     % Key parameters
     options.binning=1; % replacing previous scale_factor
     options.outputType='single'; %'uint16' % - 2021-04-14 02:59:29 -   RC

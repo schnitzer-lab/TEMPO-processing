@@ -39,6 +39,8 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 % - 2020-09-19 20:43:08 - turns on parallel only for longer chunks of the movie
 % - 2020-12-14 13:28:57 - cropping moved before resizing
 % - 2021-01-25 18:14:03 - adding Inf binning just to extract a time trace  RC
+% - 2021-04-28 - added useDCIMGmex option for alternative mex file to read
+% .dcimg and moved default options to the separate function ( defaultOptions )
 %
 % TODO
 % - 2020-09-13 17:07:37 - unify content of sequential vs parallel loop
@@ -46,7 +48,7 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 
 
 %% OPTIONS
-options = DefaultOptions();
+options = defaultOptions();
 
 
 %% VARIABLE CHECK
@@ -307,7 +309,7 @@ end % END of loadDCIMG
 
 
 
-function options = DefaultOptions()
+function options = defaultOptions()
     options.resize=false; % down sample spatially the file while loading? It speeds up loading especially combined with a parallel pool
     options.parallel=true; % for parallel computing
     options.binning=1; % default scale factor for spatial downsampling (binning). If 'Inf' then it's outputting just a mean value of the movie 

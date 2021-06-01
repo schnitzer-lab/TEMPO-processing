@@ -6,7 +6,7 @@ function ConvolutionalBandpassFilter(conv_trans, fps, f0, wp, wr, attn, rppl )
     xlim(minmax(ts_plot))
     ylim(minmax(conv_trans'))
     xlabel('time, s')
-    title(['\tau ~', num2str(round(length(conv_trans)/fps/2,1)), 's'])
+    title(['\tau ~', num2str(length(conv_trans)/fps/2, '%.2f'), 's'])
     grid
 
     %somewhat different from freqz(H), likely due to different computation

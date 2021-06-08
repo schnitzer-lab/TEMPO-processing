@@ -274,7 +274,7 @@ else
     
 end %% end choose if sequential of parallel
 %%%%%%%%%%%%%%%%%%%
-if(options.useDCIMGmex) dcimgmex('close', hdcimg); end
+if(options.useDCIMGmex), dcimgmex('close', hdcimg); end
     
 disps(sprintf('Loading DCIMG finished: %s',filepath));
 

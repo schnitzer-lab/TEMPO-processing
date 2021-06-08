@@ -48,7 +48,11 @@ if isfile(h5path) && options.skip
 else
     disps(sprintf('File does not %s exists, converting\n',h5path));
     disps('First generating time stamps');
+    try
     genTimestamps(dcimgPath);
+    catch
+        warning('No time stamps!')
+    end
     mkdirs(options.expPath);
     
     disps('Then copying metadata')

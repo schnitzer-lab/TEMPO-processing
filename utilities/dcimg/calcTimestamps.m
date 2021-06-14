@@ -7,7 +7,7 @@ function [fps,nDroppedFrames,summary]=calcTimestamps(timestamps,varargin)
 %[timestampsfpsnDroppedFrames,summary]= getTimestamps(timestampsS,'options',options) - passing options as a structure.
 %
 % INPUTS:
-% - dcimgFilePath - path to your dcimg file
+% - timestapms - vector
 %
 % OUTPUTS:
 % - fps - median frame rate from the regording

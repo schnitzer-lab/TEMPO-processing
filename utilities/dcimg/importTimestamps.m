@@ -13,6 +13,7 @@ function [timestampVec]=importTimestamps(timestampsPath)
 
 % HISTORY
 % - 31-Aug-2020 12:54:33 - created by Radek Chrapkiewicz (radekch@stanford.edu)
+% - 2021-06-14 11:24:55 - removing the last value as it was negative!  RC
 
 
 opts = delimitedTextImportOptions("NumVariables", 1);
@@ -31,5 +32,7 @@ tbl = readtable(timestampsPath, opts);
 
 %% Convert to output type
 timestampVec = tbl.timestamp;
+
+timestampVec=timestampVec(1:end-1); % - 2021-06-14 11:24:55 -   RC
 
 end  %%% END IMPORTTIMESTAMPS

@@ -8,6 +8,8 @@ function [info_cells] = h5saveMovieSpecs(h5filename, movie_specs, specspath)
     
     info_cells = cell(length(specs_cells),1);
     
+    rw.h5writeStruct(h5filename, [0], [specspath, '/', 'extra_specs/empty_spec'])
+    
     for i = 1:length(specs_cells) 
         %info_cells{i+1} = ...
             rw.h5writeStruct(h5filename, specs_cells{i}, [specspath, '/', char(specs_names(i))]);

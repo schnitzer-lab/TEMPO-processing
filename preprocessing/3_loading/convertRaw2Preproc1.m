@@ -42,6 +42,10 @@ disps(sprintf('Converting: %s',dcimgPath));
 
 h5path=fullfile(options.expPath,[fileName '.h5']);
 
+if(options.binning_postfix)
+    h5path=fullfile(options.expPath,[fileName, '_bin', num2str(options.binning),'.h5']);
+end
+
 if isfile(h5path) && options.skip
     disps(sprintf('File %s exists, skipping\n',h5path));
     return
@@ -130,6 +134,8 @@ function options =  defaultOptions(dcimgPath)
     options.skip=false;
     options.maxRAM = 0.1;
     options.parallel = true;
+    
+    options.binning_postfix = false;
     
     options.expPath="DEFAULT";
     

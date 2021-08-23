@@ -17,7 +17,7 @@ function [] = SaveAVI(M, path, varargin)
         end    
     end
     
-    if(options.adjust) M = plt.to01(M, options.quantile); end
+    if(options.adjust) M = plt.to01(M, options.saturate); end
     
     v = VideoWriter(path);
     v.FrameRate = options.fps;
@@ -32,10 +32,10 @@ function [] = SaveAVI(M, path, varargin)
 end
 
 function options =  DefaultOptions()
-    options.verbose=true;
+    options.verbose=false;
     options.overwrite = false;
     
     options.adjust = true;
-    options.quantile=1;
+    options.saturate=0;
     options.fps = 25;  
 end

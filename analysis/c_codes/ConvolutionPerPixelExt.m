@@ -51,10 +51,18 @@ function [status,cmdout,summary]=ConvolutionPerPixelExt(fullpath_in,...
     execution_started_tic = tic();
 %% CORE
     if (exist(fullpath_out, 'file') == 2) 
-        error("output file " + fullpath_out + " already exists"); 
+        if(options.delete) 
+            warning("output file " + fullpath_out + " already exists, deleting first");
+            delete(fullpath_out);
+        else    
+            error("output file " + fullpath_out + " already exists");
+        end
     end
     if (~exist(fileparts(fullpath_out), 'dir')) mkdir(fileparts(fullpath_out)); end
-        
+    
+    remove_mean_flag = '';
+    if(options.remove_mean) remove_mean_flag = '--remove_mean'; end
+    
     if(options.cmd ) 
        start_command = ['start ' options.exepath];
     else    
@@ -64,7 +72,7 @@ function [status,cmdout,summary]=ConvolutionPerPixelExt(fullpath_in,...
     cmd_call = ['set HDF5_DISABLE_VERSION_CHECK=' num2str(options.hdfversioncheck) ...
                 ' & ' start_command ' -i ' fullpath_in ' -d ' options.dataset ...
                 ' -f ' fullfilterpath ' -o ' fullpath_out ' --dataset_out ' options.dataset ...
-                ' -t ' num2str(options.num_cores) ' ' options.optimize_flag ];
+                ' -t ' num2str(options.num_cores) ' ' remove_mean_flag ' ' options.optimize_flag ];
 
     [status,cmdout] = system(cmd_call,'-echo');
     if(status) error("external routine failed"); end
@@ -85,10 +93,13 @@ end
 function options =  DefaultOptions()
     options.verbose=1;
     
+    options.delete=false;
+    
     options.exepath='../analysis/compiled/hdf5_movie_convolution/x64/Release/hdf5_movie_convolution.exe';
     options.hdfversioncheck = 2;
     options.num_cores = 1;
     options.dataset = '/mov';
+    options.remove_mean = false;
     options.optimize_flag = '--avx';
     options.cmd = false;
     options.nodata = false;

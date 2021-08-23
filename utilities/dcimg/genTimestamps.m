@@ -25,6 +25,7 @@ timestampPath=[dcimgFilePath,'.txt'];
 
 if isfile(timestampPath) && skip
     disp("Skipping genTimestamps, " + timestampPath + " exists"); 
+    return;
 end
 
 % options.reader_folderpath=fileparts(mfilename('fullpath'));

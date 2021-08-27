@@ -90,7 +90,15 @@ if ischar(fixed) % passing movie as filepth to h5 files
         num_frame_moving = dims_moving(end);
         
         if num_frame_fixed~=num_frame_moving
-            error('Number of frames are not equal');
+            warning('Number of frames are not equal');
+            % - 2021-08-27 14:26:31 - to remove errors in case recording have been stopped asynchronously   RC
+%             if num_frame_fixed<num_frame_moving
+%                 moving=moving(:,:,1:num_frame_fixed);
+%                 num_frame_moving=num_frame_fixed;
+%             else
+%                 fixed=fixed(:,:,1:num_frame_fixed);
+%                 num_frame_fixed=num_frame_moving;
+%             end
         end
         
         if isempty(options.TemplateFrame)

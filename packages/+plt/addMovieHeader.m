@@ -9,14 +9,14 @@ function Mh = addMovieHeader(M, varargin)
     
     H = zeros(round(movie_size.*[options.rel_size,1,1]));
     
-    fontsize_title = round(size(H,1)*3/7);
-    fontsize_fps = round(size(H,1)/3);
+    if(options.fontsize_title < 0) options.fontsize_title = round(size(H,1)*3/7); end
+    if(options.fontsize_fps < 0) options.fontsize_fps = round(size(H,1)/3); end
     %%
     
     h0 = zeros(round(movie_size(1:2).*[options.rel_size,1]));
 
-    h1 = insertText(h0, [size(H,2)*1/2 - length(options.title)*fontsize_title/3, 0], ...
-        options.title, 'TextColor', 'white', 'BoxOpacity', 0, 'FontSize', fontsize_title);
+    h1 = insertText(h0, [size(H,2)*1/2 - strlength(options.title)*options.fontsize_title*0.3, 0], ...
+        options.title, 'TextColor', [1,1,1]*options.text_intensity, 'BoxOpacity', 0, 'FontSize', options.fontsize_title);
 
     %%
     
@@ -28,7 +28,8 @@ function Mh = addMovieHeader(M, varargin)
             frame_text = frame_text + ",   " + num2str(round((i_f-1)/options.fps,2) + " s");
         end
 
-        h2 = insertText(h1, [0, size(H,1)*1/2], frame_text, 'TextColor', 'white', 'BoxOpacity', 0, 'FontSize', fontsize_fps);
+        h2 = insertText(h1, [0, size(H,1)*1/2], frame_text, ...
+            'TextColor', [1,1,1]*options.text_intensity, 'BoxOpacity', 0, 'FontSize', options.fontsize_fps);
         hg = rgb2gray(h2);
 
         H(:,:,i_f) = hg*(options.mmax - options.mmin) + options.mmin;
@@ -42,10 +43,14 @@ function options = defaultOptions(M)
     
     options.rel_size = 1/6;
     
-    options.mmin = mean(M(:), 'omitnan');
-    options.mmax = max(M(:));
+    options.mmin = mean(M(:), 'omitnan'); %min(M(:));
+    options.mmax = max(M(:))*0.8;
+    
+    options.text_intensity = 1;
     
     options.title = "";
+    options.fontsize_title = -1;
+    options.fontsize_fps = -1;
     
     options.fps = 1;
     options.frame0 = 1;

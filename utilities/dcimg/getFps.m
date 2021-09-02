@@ -38,6 +38,7 @@ switch getExt(filePath)
         fList=rdir(fullfile(folderPathMeta,'*-cG.dcimg.txt'));
         if isempty(fList)
             timeStampPath=[];
+            warning('No time stamp file');
             fps=parseFps(filePath);
             nDroppedFrames=[];
             return

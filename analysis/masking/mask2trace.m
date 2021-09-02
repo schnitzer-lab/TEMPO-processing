@@ -19,10 +19,11 @@ function [timeTrace,summary]=mask2trace(movie,mask,varargin)
 %
 % HISTORY
 % - 15-Dec-2020 17:20:18 - created by Radek Chrapkiewicz (radekch@stanford.edu)
+% - 2021-06-04 15:24:52 - 5x faster implementation  RC
 
 %% OPTIONS (type 'help getOptions' for details)
 options=struct; % add your options below 
-options.plot=true;
+options.plot=false;
 
 %% VARIABLE CHECK 
 if nargin>=3
@@ -34,32 +35,26 @@ summary=initSummary(options);
 %% CORE
 %The core of the function should just go here.
 
-mask=cast(mask,class(movie));
+% slow implementation:
+% mask=cast(mask,class(movie));
+% maskedMovie=mask.*movie;
+% timeTrace=sum(maskedMovie,[1,2]);
+% timeTrace=squeeze(timeTrace);
 
-maskedMovie=mask.*movie;
-timeTrace=sum(maskedMovie,[1,2]);
-timeTrace=squeeze(timeTrace);
+mask2D=to2D(mask);
+movie2D=to2D(movie);
+
+indPositive=mask2D>0;
+timeTrace=sum(movie2D(indPositive,:),1);
 
 if options.plot
     plot(timeTrace)
     xlabel('Frames (#)')
+    formatPlot
 end 
-formatPlot;
+
 
 
 %% CLOSING
 summary=closeSummary(summary);
 end  %%% END MASK2TRACE
-
-
-%%% Automatically generated using 'genMFile' function (by Radek Chrapkiewicz) with the following configuration:
-% summary=
-%              function: 'genMFile'
-%     executionStarted: 15-Dec-2020 17:19:39
-%    executionDuration: 39.4142
-%             computer: 'BFM'
-%                 user: 'Radek'
-%        input_options: [1×1 struct]
-%              contact: 'Radek Chrapkiewicz (radekch@stanford.edu)'
-%
-%

@@ -39,6 +39,8 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 % - 2020-09-19 20:43:08 - turns on parallel only for longer chunks of the movie
 % - 2020-12-14 13:28:57 - cropping moved before resizing
 % - 2021-01-25 18:14:03 - adding Inf binning just to extract a time trace  RC
+% - 2021-04-28 - added useDCIMGmex option for alternative mex file to read
+% .dcimg and moved default options to the separate function ( defaultOptions )
 %
 % TODO
 % - 2020-09-13 17:07:37 - unify content of sequential vs parallel loop
@@ -46,20 +48,7 @@ function [movie,totalframes,summary]=loadDCIMG(filepath,varargin)
 
 
 %% OPTIONS
-options.resize=false; % down sample spatially the file while loading? It speeds up loading especially combined with a parallel pool
-options.parallel=true; % for parallel computing
-options.binning=1; % default scale factor for spatial downsampling (binning). If 'Inf' then it's outputting just a mean value of the movie 
-options.outputType='single'; % 'uint16', 'double' - changing data type of the output movie but ONLY if you bin it spatially.
-
-% display options
-options.imshow=false; % for displaying the first frame after loading, disable on default
-options.verbose=1; % 0 - nothing passed to command window, 1 (default) passing messages about state of the execution.
-
-% not recommended to change below:
-options.transpose=true; % we always transposed the original file to make
-%it compatible with Matlab displays but it is swapping camera rows with columns
-options.cropROI=[]; % additional cropping of each frame provided in the format (x0,y0,width,height) such as given by imcrop.
-options.parallelLimit=200; % number of frames above which parallel computeing is used
+options = defaultOptions();
 
 
 %% VARIABLE CHECK
@@ -113,7 +102,13 @@ if options.verbose; fprintf('\n'); disps('Start'); end
 
 % loading first frame
 disps('Loading first frame and file info.')
-[framedata,totalframes]=  dcimgmatlab(startframe, filepath); % that's the mex file that should be on a path
+if(~options.useDCIMGmex)
+    [framedata,totalframes]=  dcimgmatlab(startframe, filepath); % that's the mex file that should be on a path
+else
+    hdcimg = dcimgmex('open', filepath);
+    totalframes = dcimgmex( 'getparam', hdcimg, 'NUMBEROF_FRAME' );
+    framedata = dcimgmex('readframe', hdcimg, startframe);
+end
 
 dcimgInfo=importDcimgHeader(filepath); % % - 2020-11-10 17:32:01 -   RC
 framesNumberHeader=dcimgInfo.totalFrames;
@@ -218,7 +213,11 @@ if options.parallel % for parallel computing
     
     parfor iFrame=1:numFrames % indexing starts from 0 for the mex file!!!
         % Read each frame into the appropriate frame in memory.
-        [framedata,~]=  dcimgmatlab(int32(iFrame+startframe-1), filepath);        
+        if(~options.useDCIMGmex)
+            [framedata,~]=  dcimgmatlab(int32(iFrame+startframe-1), filepath);        
+        else
+            framedata =  dcimgmex('readframe', hdcimg, int32(iFrame+startframe-1));
+        end
         if transpose, framedata=framedata'; end        
         if scaleFactor~=1 && scaleFactor~=0
             framedata=cast(framedata,outputType); % cast typing to preserve more information upon averaging
@@ -252,7 +251,13 @@ else
         end
         
         % Read each frame into the appropriate frame in memory.
-        [framedata,~]=  dcimgmatlab(frame, filepath);
+        
+        if(~options.useDCIMGmex)
+            [framedata,~]=  dcimgmatlab(frame, filepath);        
+        else
+            framedata =  dcimgmex('readframe', hdcimg, frame);
+        end
+        
         if options.transpose, framedata=framedata'; % transposing is needed for imshow orientation compatibility
         end
         
@@ -269,7 +274,8 @@ else
     
 end %% end choose if sequential of parallel
 %%%%%%%%%%%%%%%%%%%
-
+if(options.useDCIMGmex), dcimgmex('close', hdcimg); end
+    
 disps(sprintf('Loading DCIMG finished: %s',filepath));
 
 
@@ -303,6 +309,21 @@ end % END of loadDCIMG
 
 
 
+function options = defaultOptions()
+    options.resize=false; % down sample spatially the file while loading? It speeds up loading especially combined with a parallel pool
+    options.parallel=true; % for parallel computing
+    options.binning=1; % default scale factor for spatial downsampling (binning). If 'Inf' then it's outputting just a mean value of the movie 
+    options.outputType='single'; % 'uint16', 'double' - changing data type of the output movie but ONLY if you bin it spatially.
 
+    % display options
+    options.imshow=false; % for displaying the first frame after loading, disable on default
+    options.verbose=1; % 0 - nothing passed to command window, 1 (default) passing messages about state of the execution.
 
-
+    % not recommended to change below:
+    options.transpose=true; % we always transposed the original file to make
+    %it compatible with Matlab displays but it is swapping camera rows with columns
+    options.cropROI=[]; % additional cropping of each frame provided in the format (x0,y0,width,height) such as given by imcrop.
+    options.parallelLimit=200; % number of frames above which parallel computeing is used
+    
+    options.useDCIMGmex = false; %Alternative mex file for dcimg - Vasily
+end

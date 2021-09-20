@@ -19,7 +19,7 @@ function [] = SaveAVI(M, path, varargin)
     
     if(options.adjust) M = plt.to01(M, options.saturate); end
     
-    v = VideoWriter(path);
+    v = VideoWriter(path, 'Grayscale AVI');
     v.FrameRate = options.fps;
     open(v)
 

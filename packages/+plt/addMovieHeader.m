@@ -43,8 +43,8 @@ function options = defaultOptions(M)
     
     options.rel_size = 1/6;
     
-    options.mmin = mean(M(:), 'omitnan'); %min(M(:));
-    options.mmax = max(M(:))*0.8;
+    options.mmin = min(M(:), [], 'omitnan'); %mean(M(:), 'omitnan');%
+    options.mmax = max(M(:), [], 'omitnan');
     
     options.text_intensity = 1;
     

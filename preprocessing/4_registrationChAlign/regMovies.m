@@ -51,7 +51,7 @@ options.Threshold=false; % only hard cases where there is a lot of features that
 options.ThresholdValue=0;
 
 options.TemplateFrame=[]; 
-
+options.interp = 'linear';% imwarp interpolation method
 
 % display control
 options.plot=true;
@@ -196,7 +196,7 @@ summary.moving_frame=moving_frame;
 
 
 disp('Registering the template frame');
-[Reg,regMethod, regScore] = imageReg(fixed_frame, moving_frame);
+[Reg,regMethod, regScore] = imageReg(fixed_frame, moving_frame, options.interp);
 disp('Transformation found');
 
 reg_frame=Reg.RegisteredImage;
@@ -223,7 +223,7 @@ summary.angle=asin(transformation.T(2,1))*180/pi;
 
 disp('Applying affine transform the original template and moving frame');
 RegisteredImage = imwarp(summary.orig_moving_frame, movingRefObj, transformation,...
-    'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN);
+    'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN, 'interp', options.interp);
 [registered_cropped,fixed_cropped, corn] = postcropping(RegisteredImage,summary.orig_fixed_frame);
 
 summary.fixed_cropped=fixed_cropped;
@@ -273,7 +273,7 @@ if strcmpi(filetype,'mat')
     parfor i=1:num_frame % changed for regular for for testing  RC 2020-05-29
         moving_frame = fliplr(moving(:,:,i)); % this should be fliplr specifically ! % 2020-06-03 20:03:47 RC
         fixed_frame = fixed(:,:,i);        
-        [registeredimage,fixedframe] = applyReg2frame(fixed_frame,moving_frame,transformation,corn); % fixed missing transformation RC        
+        [registeredimage,fixedframe] = applyReg2frame(fixed_frame,moving_frame,transformation,corn, options.interp); % fixed missing transformation RC        
         registeredV(:,:,i) = registeredimage; % those matrices should be allocated before, otherwise it's taking long to increase the size % 2020-06-03 20:09:45 RC
         fixedV(:,:,i) = fixedframe;        
     end
@@ -352,10 +352,10 @@ end
 
 
 
-function [registeredimage,fixedframe,corn] = applyReg2frame(fixed, moving, transformation,corn)
+function [registeredimage,fixedframe,corn] = applyReg2frame(fixed, moving, transformation,corn, interp)
 fixedRefObj = imref2d(size(fixed));
 movingRefObj = imref2d(size(moving));
-RegisteredImage = imwarp(moving, movingRefObj, transformation, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN);
+RegisteredImage = imwarp(moving, movingRefObj, transformation, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN, 'interp', interp);
 
 [registeredimage,fixedframe,corn] = postcropping(RegisteredImage,fixed,corn);
 
@@ -369,7 +369,7 @@ sigma = std2(input);
 output = (input-avg)./sigma;
 end
 
-function [MOVINGREG,regMethod, regScore] = imageReg(FIXED,MOVING)
+function [MOVINGREG,regMethod, regScore] = imageReg(FIXED,MOVING, interp)
 %registerImages  Register grayscale images using auto-generated code from Registration Estimator app.
 %  [MOVINGREG] = registerImages(MOVING,FIXED) Register grayscale images
 %  MOVING and FIXED using auto-generated code from the Registration
@@ -431,10 +431,10 @@ end
 fixedRefObj = imref2d(size(FIXED));
 movingRefObj = imref2d(size(MOVING));
 
-[MOVINGREG, regMethod, regScore] = hybridreg(MOVING,movingRefObj,FIXED,fixedRefObj);
+[MOVINGREG, regMethod, regScore] = hybridreg(MOVING,movingRefObj,FIXED,fixedRefObj, interp);
 end
 
-function [MOVINGREG, regMethod, regScore] = hybridreg(MOVING,movingRefObj,FIXED,fixedRefObj)
+function [MOVINGREG, regMethod, regScore] = hybridreg(MOVING,movingRefObj,FIXED,fixedRefObj, interp)
 % function to try different registration methods and then ouput the best
 % one's transformation
 % improved version, 2020-06-06 by Jizhou Li
@@ -455,7 +455,7 @@ function [MOVINGREG, regMethod, regScore] = hybridreg(MOVING,movingRefObj,FIXED,
 % (1) Phase correlation
 tformPhaseCorr = imregcorr(MOVING,movingRefObj,FIXED,fixedRefObj,'transformtype','rigid','Window',true);
 transformation{1} = tformPhaseCorr;
-RegisteredImage{1} = imwarp(MOVING, movingRefObj, tformPhaseCorr, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN);
+RegisteredImage{1} = imwarp(MOVING, movingRefObj, tformPhaseCorr, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN, 'interp', interp);
 if  contains(lastwarn, 'Resulting registration could be poor')
     score(1) = 0;
 else
@@ -490,7 +490,7 @@ initTform.T(3,1:2) = [translationX, translationY];
 % Apply transformation
 tformMono = imregtform(MOVING,movingRefObj,FIXED,fixedRefObj,'rigid',optimizerMono,metricMono,'PyramidLevels',1,'InitialTransformation',initTform);
 transformation{2} = tformMono;
-RegisteredImage{2} = imwarp(MOVING, movingRefObj, tformMono, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN);
+RegisteredImage{2} = imwarp(MOVING, movingRefObj, tformMono, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN, 'interp', interp);
 if  contains(lastwarn, 'Resulting registration could be poor')
     score(2) = 0;
 else
@@ -511,7 +511,7 @@ optimizerMulti.MaximumIterations = 100;
 
 tformMulti = imregtform(MOVING,movingRefObj,FIXED,fixedRefObj,'rigid',optimizerMulti,metricMulti,'PyramidLevels',1,'InitialTransformation',initTform);
 transformation{3} = tformMulti;
-RegisteredImage{3} = imwarp(MOVING, movingRefObj, tformMulti, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN);
+RegisteredImage{3} = imwarp(MOVING, movingRefObj, tformMulti, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN, 'interp', interp);
 if  contains(lastwarn, 'Resulting registration could be poor')
     score(3) = 0;
 else
@@ -523,7 +523,7 @@ lastwarn("");
 % (4) Phase correlation + mono
 tformMono_PC= imregtform(MOVING,movingRefObj,FIXED,fixedRefObj,'rigid',optimizerMono,metricMono,'PyramidLevels',1,'InitialTransformation',tformPhaseCorr);
 transformation{4} = tformMono_PC;
-RegisteredImage{4} = imwarp(MOVING, movingRefObj, tformMono_PC, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN);
+RegisteredImage{4} = imwarp(MOVING, movingRefObj, tformMono_PC, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN, 'interp', interp);
 if  contains(lastwarn, 'Resulting registration could be poor')
     score(4) = 0;
 else
@@ -535,7 +535,7 @@ lastwarn("");
 % (5) Phase correlation + multi
 tformMulti_PC= imregtform(MOVING,movingRefObj,FIXED,fixedRefObj,'rigid',optimizerMulti,metricMulti,'PyramidLevels',1,'InitialTransformation',tformPhaseCorr);
 transformation{5} = tformMulti_PC;
-RegisteredImage{5} = imwarp(MOVING, movingRefObj, tformMono_PC, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN);
+RegisteredImage{5} = imwarp(MOVING, movingRefObj, tformMono_PC, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN, 'interp', interp);
 if  contains(lastwarn, 'Resulting registration could be poor')
     score(5) = 0;
 else

@@ -128,7 +128,7 @@ function options =  defaultOptions(dcimgPath)
     options.verbose=true;
     
     options.useMovieSpecs = false;
-    options.pixsize = 8/2048; %mm, from Radek
+    options.pixsize = 8/2048; %mm, from Radek, non-binned
     
     options.binning=8;
     options.skip=false;

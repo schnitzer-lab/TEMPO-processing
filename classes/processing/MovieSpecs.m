@@ -76,6 +76,11 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
             binning = obj.binning;
         end
         
+        function timebinning = AddBinningTime(obj,n)
+            obj.timebinning = obj.timebinning*n;
+            timebinning = obj.timebinning;
+        end
+        
         function [specs_cells, specs_names] = GetAllSpecs(obj)
             %GetAllSpecs - returs all required specs as two array - cell
             % array of actual specs and sting array of names. For data

@@ -30,7 +30,7 @@ function Mfull = catMoviesSpaced(Ms, axis, varargin)
 end
 
 function options = defaultOptions()
-    options.value = 0;
+    options.value = NaN;
     options.sapacer_size_rel = 0.1;
     
     options.spacer_size = -1;

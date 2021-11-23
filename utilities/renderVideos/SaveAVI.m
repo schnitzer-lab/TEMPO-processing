@@ -17,10 +17,16 @@ function [] = SaveAVI(M, path, varargin)
         end    
     end
     
-    if(options.adjust) M = plt.to01(M, options.saturate); end
+    if(options.saturate) M = plt.saturate(M, options.saturate); end
     
-    v = VideoWriter(path, 'Grayscale AVI');
+    v = VideoWriter(path, 'Indexed AVI');
+    
+    M = plt.to01(M);
+    M = round(M/max(M(:), [], 'omitnan')*(2^8-1));
+    M(isnan(M)) = options.nanvalue;
+    
     v.FrameRate = options.fps;
+    v.Colormap = options.colormap;
     open(v)
 
     for i=1:size(M, 3) 
@@ -34,6 +40,8 @@ end
 function options =  DefaultOptions()
     options.verbose=false;
     options.overwrite = false;
+    options.colormap = gray;
+    options.nanvalue = 0;
     
     options.adjust = true;
     options.saturate=0;

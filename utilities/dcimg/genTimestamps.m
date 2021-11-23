@@ -37,7 +37,7 @@ end
 
 reader_path=fullfile(options.reader_folderpath,options.reader_filename);
 
-system(['"',reader_path,'"',' ',dcimgFilePath]);
+system(['"',reader_path,'"',' ','"', dcimgFilePath,'"']);
 disps('File stamps generated')
 
 timestampPathNewName=[dcimgFilePath,'_0.txt']; % previously it was just '.txt' suffix % - 2021-06-14 10:42:50 -   RC

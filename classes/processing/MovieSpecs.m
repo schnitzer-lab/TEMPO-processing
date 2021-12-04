@@ -9,9 +9,7 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
     end
     
     properties (SetAccess = protected)
-        fps;
         history; % string that contains the history of data processing steps
-        pixsize;
         binning; % spatial downsampling factor > 1
         spaceorigin;
         timebinning;
@@ -19,6 +17,11 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
         sourcePath;
         
         extra_specs = containers.Map;
+    end
+    
+    properties (SetAccess = private)
+        pixsize; %use getPixSize function to account for binning
+        fps; %use getFps function to account for binning
     end
     
     methods
@@ -64,6 +67,23 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
                 n(n < 0) = length(history_array) + 1 + n(n < 0);
                 history_array = history_array(n);
             end
+        end
+        
+        function outlines = getAllenOutlines(obj)
+            if(obj.extra_specs.isKey("allenMapEdgeOutline"))
+                outlines = obj.extra_specs("allenMapEdgeOutline")/obj.binning;
+            else
+                warning("No brain regions outlines found");
+                outlines = [];
+            end
+        end
+        
+        function pixsize = getPixSize(obj)
+            pixsize = obj.pixsize*obj.binnig;
+        end
+        
+        function fps = getFps(obj)
+            fps = obj.fps/obj.timebinning;
         end
         
         function timeorigin = AddFrameDelay(obj, nframes)

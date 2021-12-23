@@ -315,7 +315,7 @@ else % h5 file
         parfor ii=1:realframe
             % Jizhou, you may have forgotten about flipping... - 2020-06-30 04:20:45 -   RC
             moving_frame = fliplr(data_moving(:,:,ii)); % this should be fliplr specifically RC
-            [registeredimage,fixedframe] = applyReg2frame(data_fixed(:,:,ii), moving_frame, transformation,corn);            
+            [registeredimage,fixedframe] = applyReg2frame(data_fixed(:,:,ii), moving_frame, transformation,corn, options.interp);            
             transformed_moving(:,:,ii) = registeredimage;
             transformed_fixed(:,:,ii) = fixedframe;            
         end

@@ -2,9 +2,9 @@
 addpath("../../../../_matlab_libs/deconvolution/")
 %%
 % 
-basepath = "F:\GEVI_Wave\Preprocessed\Auditory\m41\20210717\meas00\";
-postfix = "_bin8_reg_moco_cropMovie"; %
-channels = ["G","R"];
+% basepath = "F:\GEVI_Wave\Preprocessed\Anesthesia\m46\20211217\meas00\";
+% postfix = "_bin16_reg_moco_cropMovie"; %_fr1-33000
+% channels = ["G","R"];
 %%
 
 file1 = dir(fullfile(basepath, "/*" + "c" + channels(1) + postfix + ".h5"));
@@ -21,7 +21,7 @@ fullpathGm = movieApplyMask(fullpathGin, fullpath_maskManual);
 fullpathRm = movieApplyMask(fullpathRin, fullpath_maskManual);
 %%
 % [[1, 0]; [0.0725, 1]];
-crosstalk_matrix =  [[1, 0]; [0.079, 1]]; %0.079 for newer ASAP3, 0.108? for older ASAP2s with different filters %not sure this is correct, but it works for ASAP3 recordings
+crosstalk_matrix =  [[1, 0]; [0.079, 1]]; %0.079 for newer ASAP3, 0.1187 for older ASAP2s with different filters %not sure this is correct, but it works for ASAP3 recordings
 delay = 0;
 [fullpathGd, fullpathRd] = moviesDecrosstalk(fullpathGm, fullpathRm, crosstalk_matrix, ...
     'framedelay', delay, 'skip', true);
@@ -33,6 +33,7 @@ delay = 0;
 
 fullpathGbl = movieExpBaselineCorrection(fullpathGd, 'skip', true); %movieRemoveMean(fullpathGd); %
 fullpathRbl = movieExpBaselineCorrection(fullpathRd, 'skip', true); %movieRemoveMean(fullpathRd); %
+
 %%
 
 f0= 0.5; wp = 0.4; % Make sure that filter looks more or less like a delta-function, not like derivative; Something about filter design needs a fix
@@ -55,36 +56,61 @@ attn = 1e5;  rppl = 1e-2;
 
 %%
  
-fullpathGdFF = fullpathGhp; %movieDFF(fullpathGhp);
-fullpathRdFF = fullpathRhp; %movieDFF(fullpathRhp);
+% fullpathGdFF = movieDFF(fullpathGhp); %fullpathGhp; %
+% fullpathRdFF = movieDFF(fullpathRhp); %fullpathRhp;
 %%
 
 fullpathGhemo = ...
-    movieEstimateHemoGFilt(fullpathGdFF, fullpathRdFF, 'dt', 2, 'eps', .1, 'average_first', true);%, 'reg_func', @(z,n) mean(z));
+    movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, 'dt', 1.5, 'eps', .1, 'average_first', true,...
+        'skip', true);%, 'reg_func', @(z,n) mean(z));
 %%
 
-fullpathGnohemo = movieRemoveHemoComponents(fullpathGdFF, fullpathGhemo, 'divide', true);
+fullpathGnohemo = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, 'divide', true);
 fullpathGnhDFF = movieDFF(fullpathGnohemo);
-fullpathRnhDFF = movieDFF(fullpathRdFF);
+% fullpathRfDFF = movieDFF(fullpathGhemo);
+%%
+%%
+
+delete(fullpathGm);
+delete(fullpathRm);
+delete(fullpathGd);
+delete(fullpathRd);
+
+% delete(fullpathGhp);
+delete(fullpathRhp);
+
+delete(fullpathGnohemo);
+%%
+
+% movieDownsample(fullpathGnhDFF, 1, 4)
 %%
 df = 0.2;
 
-movieMultitaperExternal(fullpathGnohemo, 'df', df, 'outdir', fullfile(basepath, "/PSD/"), ...
-    'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_fft.exe",...
-    'f0plot', f0, 'tol',  1e-4, 'num_cores', 16, 'skip', false);
+% movieMultitaperExternal(fullpathGnohemo, 'df', df, 'outdir', fullfile(basepath, "/PSD/"), ...
+%     'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_fft.exe",...
+%     'f0plot', f0, 'tol',  1e-4, 'num_cores', 16, 'skip', true);
+% 
+% movieMultitaperExternal(fullpathGdFF, 'df', df, 'outdir', fullfile(basepath, "/PSD/"), ...
+%     'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_fft.exe",...
+%     'f0plot', f0, 'tol',  1e-4, 'num_cores', 16, 'skip', true);
+% movieMultitaperExternal(fullpathRdFF, 'df', df, 'outdir', fullfile(basepath, "/PSD/"), ...
+%     'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_fft.exe",...
+%     'f0plot', f0, 'tol',  1e-4, 'num_cores', 16, 'skip', true);
+% movieMultitaperExternal(fullpathRfDFF, 'df', df, 'outdir', fullfile(basepath, "/PSD/"), ...
+%     'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_fft.exe",...
+%     'f0plot', f0, 'tol',  1e-4, 'num_cores', 16, 'skip', true);
+% movieMultitaperExternal(fullpathGnhDFF, 'df', df, 'outdir', fullfile(basepath, "/PSD/"), ...
+%     'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_fft.exe",...
+%     'f0plot', f0, 'tol',  1e-4, 'num_cores', 16, 'skip', true);
 
-movieMultitaperExternal(fullpathGnhDFF, 'df', df, 'outdir', fullfile(basepath, "/PSD/"), ...
-    'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_fft.exe",...
-    'f0plot', f0, 'tol',  1e-4, 'num_cores', 16, 'skip', false);
-
-
-movieMultitaperExternal(fullpathGhp, 'df', df, 'outdir', fullfile(basepath, "/PSD/"),...
-    'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_fft.exe", ...
-    'f0plot', f0, 'tol',  1e-4, 'num_cores', 16, 'skip', true);
-
-movieMultitaperExternal(fullpathRhp, 'df', df, 'outdir', fullfile(basepath, "/PSD/"),...
-    'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_fft.exe", ...
-    'f0plot', f0, 'tol',  1e-4, 'num_cores', 16, 'skip', true);
+% 
+% movieMultitaperExternal(fullpathGhp, 'df', df, 'outdir', fullfile(basepath, "/PSD/"),...
+%     'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_fft.exe", ...
+%     'f0plot', f0, 'tol',  1e-4, 'num_cores', 16, 'skip', true);
+% 
+% movieMultitaperExternal(fullpathRhp, 'df', df, 'outdir', fullfile(basepath, "/PSD/"),...
+%     'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_fft.exe", ...
+%     'f0plot', f0, 'tol',  1e-4, 'num_cores', 16, 'skip', true);
 
 %%
 

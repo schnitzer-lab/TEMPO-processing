@@ -79,7 +79,7 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
         end
         
         function pixsize = getPixSize(obj)
-            pixsize = obj.pixsize*obj.binnig;
+            pixsize = obj.pixsize*obj.binning;
         end
         
         function fps = getFps(obj)

@@ -60,12 +60,21 @@ else
     [metadata]=importLvMetaData(summaryLVmeta.LVfolder);
     summary.LVmetadata=metadata;
     
+     %For some old recordings no info in metadata
+    if(options.hardware_binning > 1)
+        metadata.hardwareBinning = options.hardware_binning;
+    end
+    
     sowtwarebinning=options.binning;
     if isfield(metadata,'hardwareBinning')
         sowtwarebinning=options.binning/metadata.hardwareBinning;
         if metadata.hardwareBinning==1
             disps('No binning detected, sticking to default software binning');
         else
+            if(sowtwarebinning < 1)
+                warning("desired binning is less than hardwareBinning; sowtwarebinning set to 1");
+                sowtwarebinning = 1;
+            end
             disps(sprintf('Found %d hardware binning, changing the software binning to %.2f',metadata.hardwareBinning,sowtwarebinning))
         end        
     else 
@@ -107,7 +116,7 @@ else
         
         st = dbstack; functionname = st.name;                      
         movie_specs = MovieSpecs(functionname, fps, options.pixsize,... 
-                                 sowtwarebinning, [1,1], 1, 1, dcimgPath, extra_specs);
+                                 options.binning, [1,1], 1, 1, dcimgPath, extra_specs);
         rw.h5saveMovieSpecs(h5path, movie_specs);
         
         summary=closeSummary(summary);
@@ -136,6 +145,7 @@ function options =  defaultOptions(dcimgPath)
     options.parallel = true;
     
     options.binning_postfix = false;
+    options.hardware_binning = 1; %will replace the metadata value
     
     options.expPath="DEFAULT";
     

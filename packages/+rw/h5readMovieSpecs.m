@@ -19,6 +19,9 @@ function movie_specs = h5readMovieSpecs(h5filename, specspath)
         names = fieldnames(specs_struct.extra_specs);
         values = struct2cell(specs_struct.extra_specs);
         for i_e = 1:length(names)                
+            if isa(values{i_e}, 'cell') %so that strings are are not symbol-by-symbol
+                values{i_e} = cell2mat(values{i_e});
+            end
             movie_specs.extra_specs(names{i_e}) = values{i_e};
         end
     end

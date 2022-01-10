@@ -10,8 +10,8 @@ function signalSpectrogram(m, w, dw, nw, varargin)
     st = flip(st, 1);
 
     fs = (0:(size(st, 1)-1))/(size(st, 1)-1)*options.fps/2;
-    ts = ((0:(size(st,2)-1))*(w-dw) + (w-dw)/2 + options.frame0 - 1)/options.fps;
-    ts0 = ( (0:(length(m)-1)) + options.frame0 - 1)/options.fps;
+    ts = ((0:(size(st,2)-1))*(w-dw) + (w-dw)/2 + options.frame0 - 1)/options.fps; % timestamps for spectrogram intervals
+    ts0 = ( (0:(length(m)-1)) + options.frame0 - 1)/options.fps; % timestamps for individual frames
 
     frange = find(fs >= options.f0, 1):(size(st, 1));
 
@@ -34,7 +34,7 @@ function signalSpectrogram(m, w, dw, nw, varargin)
     %%
 
     subplot( 4,4,[(2:4) + 4*3 ])
-    plot(ts0, m); xlim(minmax(ts));
+    plot(ts0, m); xlim([min(ts0), max(ts)]);
     xlabel("s"); ylabel('signal');
     grid on;
     

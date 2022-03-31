@@ -158,6 +158,12 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
                 error("sourcePath must be a char array")
             end
         end
+        
+        function cpObj = copyElement(obj)
+            cpObj = copyElement@matlab.mixin.Copyable(obj);
+            cpObj.extra_specs = ...
+                containers.Map(obj.extra_specs.keys,obj.extra_specs.values);
+        end
     end
 end
 

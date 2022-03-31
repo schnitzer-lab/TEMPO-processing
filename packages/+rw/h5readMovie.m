@@ -7,6 +7,8 @@ function [movie, movie_specs] = h5readMovie(h5filename, varargin)
     end
     
     movie_specs = rw.h5readMovieSpecs(h5filename);
+    movie_specs.AddFrameDelay(options.frame_start-1);
+    
     movie = h5read(h5filename, options.dataset, ...
         [1, 1, options.frame_start], [Inf, Inf, options.frames_num]);
 end

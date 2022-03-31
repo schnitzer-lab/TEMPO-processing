@@ -18,11 +18,11 @@ function [info_cells] = h5saveMovieSpecs(h5filename, movie_specs, varargin)
     
     for i = 1:length(specs_cells)
         dataset_spec = [options.specspath, '/', char(specs_names(i))];
-        if(~options.rewrite)
+        if(~options.rewrite || strcmp(dataset_spec, [dataset_extra, '/empty_spec']))
             if(rw.h5checkDatasetExists(h5filename, dataset_spec)) continue; end
         end
         %info_cells{i+1} = ...
-            rw.h5writeStruct(h5filename, specs_cells{i}, dataset_spec);
+        rw.h5writeStruct(h5filename, specs_cells{i}, dataset_spec);
     end
 end
 

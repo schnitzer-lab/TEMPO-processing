@@ -6,6 +6,12 @@ function result = h5readStruct(file_name, dataset_name)
     if(~isempty(f_info.Datasets))
         for name_dataset = string({f_info.Datasets.Name})
             result.(name_dataset) = h5read(file_name, dataset_name + "/" + name_dataset);
+            
+            %so that strings are are not symbol-by-symbol cell array 
+            % as default in matlab's h5postprocessstrings
+            if isa(result.(name_dataset), 'cell') 
+                result.(name_dataset) = cell2mat(result.(name_dataset));
+            end
         end
     end
     if(~isempty(f_info.Groups))

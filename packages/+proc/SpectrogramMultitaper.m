@@ -43,9 +43,21 @@ function st = SpectrogramMultitaper(x, w, varargin)
     for i_t = 1:n_widows
 %         disp(i_t)
         xrange = (1+(i_t-1)*(w - options.overlap ) ):(w + (i_t-1)*(w - options.overlap ) );
-        st(:,i_t) = ...
-            pmtm(x(xrange), options.nw, w, 'DropLastTaper', options.DropLastTaper); 
+        
+        if(~any(isnan(x(xrange))))
+            z = pmtm(x(xrange), options.nw, w, ...
+               'DropLastTaper', options.DropLastTaper);
         % in matlab 2020b one can do: 'Tapers','sine'
+            if(options.correct1f)
+                fs = (1:length(z))';
+                rf = robustfit(log(fs), log(z));
+                zfit = exp(rf(1))*(fs.^rf(2));
+                z = z./zfit;
+            end
+            st(:,i_t) = z; 
+        else
+            st(:,i_t) = NaN(length(st(:,i_t)),1);
+        end
     end
 
 end
@@ -54,5 +66,6 @@ end
 function options =  DefaultOptions(w)
     options.overlap = floor(w/2);
     options.nw = 1;
+    options.correct1f = false; %correct for 1/f^a specral decay
     options.DropLastTaper = false;
 end

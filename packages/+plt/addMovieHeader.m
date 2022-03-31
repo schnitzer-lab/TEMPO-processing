@@ -23,7 +23,7 @@ function Mh = addMovieHeader(M, varargin)
     for i_f = 1:size(H,3)
 
         
-        frame_text = "frame " + num2str(i_f*options.dframe + options.frame0 -1);
+        frame_text = "frame " + num2str((i_f-1)*options.dframe +1 + options.frame0 -1);
 
         if(~isempty(options.extra_labels)) frame_text = options.extra_labels(i_f) + " " + frame_text; end
         

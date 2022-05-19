@@ -2,9 +2,12 @@
 % addpath("../../../../_matlab_libs/deconvolution/")
 %%
 
-% basepath = "N:\GEVI_Wave_Monique\Preprocessed\Anesthesia\mAstr5299uk\20210919\meas01\";
-% postfix = "_cr_mc_down8s_moco_cropMovie"; %_fr1-33000
+% basepath = "P:\GEVI_Wave\Preprocessed\Anesthesia\m56\20220125\meas00";
+% postfix = "_bin8_reg_moco_cropMovie"; %_fr1-33000
 % channels = ["G","R"];
+%%
+
+analysis_drive = "N:";
 %%
 
 file1 = dir(fullfile(basepath, "/*" + "c" + channels(1) + postfix + ".h5"));
@@ -14,17 +17,19 @@ fullpathGin = fullfile(file1.folder, file1.name);
 fullpathRin = fullfile(file2.folder, file2.name);
 %%
 
-% fullpath_maskManual = fullpathGin(1:(end-3)) + "_maskManual.bmp";
-% 
-% fullpathGm = movieApplyMask(fullpathGin, fullpath_maskManual);
-% fullpathRm = movieApplyMask(fullpathRin, fullpath_maskManual);
+fullpath_maskManual = fullpathGin(1:(end-3)) + "_maskManual.bmp";
+ 
+fullpathGm = movieApplyMask(fullpathGin, fullpath_maskManual);
+fullpathRm = movieApplyMask(fullpathRin, fullpath_maskManual);
 
-fullpathGm = fullpathGin;
-fullpathRm = fullpathRin;
+% fullpathGm = fullpathGin;
+% fullpathRm = fullpathRin;
 %%
-% [[1, 0]; [0.0725, 1]];
-% crosstalk_matrix =  [[1, 0]; [0, 1]];
-crosstalk_matrix =  [[1, 0]; [0.066, 1]]; 
+
+% h5path1_crop = movieCrop(h5path1_mc, box);
+%%
+
+crosstalk_matrix =  [[1, 0]; [0.066, 1]]; %0.066 [[1, 0]; [0, 1]];
 %i used to use 0.079 for newer ASAP3 but 0.65-0.68 seems to work much better; 
 %0.1 for older ASAP2s with different filters 
 %not sure this is correct, but it works for ASAP3 recordings
@@ -34,46 +39,65 @@ delay = 0;
 % fullpathGd = fullpathGin; fullpathRd = fullpathRin;
 %%
 
-fullpathGbl = movieRemoveMean(fullpathGd, 'skip', true);
-fullpathRbl = movieRemoveMean(fullpathRd, 'skip', true); 
+%fullpathGbl = movieRemoveMean(fullpathGd, 'skip', true);
+%fullpathRbl = movieRemoveMean(fullpathRd, 'skip', true); 
 
-% fullpathGbl = movieExpBaselineCorrection(fullpathGd, 'skip', true); %movieRemoveMean(fullpathGd); %
-% fullpathRbl = movieExpBaselineCorrection(fullpathRd, 'skip', true); %movieRemoveMean(fullpathRd); %
+fullpathGbl = movieExpBaselineCorrection(fullpathGd, 'skip', true); 
+fullpathRbl = movieExpBaselineCorrection(fullpathRd, 'skip', true);
 
 %%
 
-f0= 0.5; wp = 0.4; % Make sure that filter looks more or less like a delta-function, not like derivative; Something about filter design needs a fix
+f0= 0.5; wp = 0.25; % Make sure that filter looks more or less like a delta-function, not like derivative; Something about filter design needs a fix
 attn = 1e5;  rppl = 1e-2; 
 
-[fullpathGhp, ~] =movieFilterExternalHighpass(...
-    fullpathGbl, f0, wp,...
-    'attn', attn, 'rppl', rppl, ...
+options_highpass = struct( 'attn', attn, 'rppl', rppl,  'skip', true, ...
     'filtersdir', "P:\GEVI_Wave\ConvolutionFilters\", ...
-    'outdir', basepath, 'skip', true, ...
     'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_convolution.exe");
 
-[fullpathRhp, ~] = movieFilterExternalHighpass(...
-    fullpathRbl, f0, wp, ...
-    'attn', attn, 'rppl', rppl, ...
-    'filtersdir', "P:\GEVI_Wave\ConvolutionFilters\", ...
-    'outdir', basepath, 'skip', true, ...
-    'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_convolution.exe");
+fullpathGhp = movieFilterExternalHighpass(fullpathGbl, f0, wp, options_highpass);
+movieSavePreviewVideos(fullpathGhp, 'title', 'filtered')
+
+fullpathRhp = movieFilterExternalHighpass(fullpathRbl, f0, wp, options_highpass);
+movieSavePreviewVideos(fullpathRhp, 'title', 'filtered')
 
 %%
- 
-% fullpathGdFF = movieDFF(fullpathGhp); %fullpathGhp; %
-% fullpathRdFF = movieDFF(fullpathRhp); %fullpathRhp;
-%%
 
-fullpathGhemo = ...
-    movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, 'dt', 2, 'eps', 0.1, 'average_first', true,...
-        'skip', true);%, 'reg_func', @(z,n) mean(z));
+fullpathGhemo = movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, ...
+    'dt', 5, 'eps', .1, 'average_first', true, 'skip', true);%, 'reg_func', @(z,n) mean(z));
+movieSavePreviewVideos(fullpathGhemo, 'title', 'hemo estimated')
 %%
 
 fullpathGnohemo = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, 'divide', true);
-% fullpathGnhDFF = movieDFF(fullpathGnohemo);
-% fullpathRfDFF = movieDFF(fullpathGhemo);
+movieSavePreviewVideos(fullpathGnohemo, 'title', 'G unmixed')
+
+fullpathGnhDFF = movieDFF(fullpathGnohemo);
+movieSavePreviewVideos(fullpathGnhDFF, 'title', 'G unmixed dF/F')
+
+fullpathRfDFF = movieDFF(fullpathRhp);
+movieSavePreviewVideos(fullpathRfDFF, 'title', 'R dF/F')
 %%
+
+fullpaths_mean = movieMeanTraces([string(fullpathGnhDFF), string(fullpathRfDFF)], 'space', true);
+    
+options_spectrogram = struct('f0', 2, 'timewindow', 5, 'df', 0.75, ...
+    'processingdir', fullfile(basepath, "\processing\meanTraceSpectrogram\"));
+movieMeanTraceSpectrogram(fullpaths_mean(1), options_spectrogram);
+movieMeanTraceSpectrogram(fullpaths_mean(2), options_spectrogram);
+%%
+
+for f_out = [string(fullpathGnhDFF), string(fullpathRfDFF)]
+    
+    [filedir, ~, fileext, ~, channel, ~] = filenameParts(f_out);
+    filedir_new = fullfile(analysis_drive, extractAfter(filedir,2));
+    if(~isfolder(filedir_new)) mkdir(filedir_new); end
+
+    fullpath_new = fullfile(filedir_new, channel+"_unmixed_dFF" + fileext);
+    
+    if(~isfile(fullpath_new))
+        disp("copying "+fullpath_new);
+        copyfile(f_out, fullpath_new);
+    end
+end
 %%
 
 if(~strcmp(fullpathGin, fullpathGm))
@@ -85,13 +109,10 @@ end
 delete(fullpathGd);
 delete(fullpathRd);
 
-% delete(fullpathGhp);
-% delete(fullpathRhp);
+delete(fullpathGhp);
+delete(fullpathRhp);
 
-% delete(fullpathGnohemo);
-%%
-
-% movieDownsample(fullpathGnhDFF, 1, 4)
+delete(fullpathGnohemo);
 %%
 df = 0.2;
 

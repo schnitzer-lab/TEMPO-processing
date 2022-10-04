@@ -7,10 +7,10 @@ function [] = SaveAVI(M, path, varargin)
         options=getOptions(options,varargin);
     end
     
-    if (exist([path '.avi'], 'file') == 2) 
+    if (isfile(path)) 
         if( options.overwrite )
             warning("output file " + path + " already exists, deleting first"); 
-            delete([path '.avi']);
+            delete(path);
         else
             warning("output file " + path + " already exists, existing SaveAVI"); 
             return;
@@ -19,11 +19,10 @@ function [] = SaveAVI(M, path, varargin)
     
     if(options.saturate) M = plt.saturate(M, options.saturate); end
     
-    v = VideoWriter(path, 'Indexed AVI');
+    v = VideoWriter(char(path), 'Indexed AVI');
     
-    M = plt.to01(M);
-    M = round(M/max(M(:), [], 'omitnan')*(2^8-1));
     M(isnan(M)) = options.nanvalue;
+    M = round(plt.to01(M)*(2^8-1));
     
     v.FrameRate = options.fps;
     v.Colormap = options.colormap;

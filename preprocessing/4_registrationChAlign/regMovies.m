@@ -60,6 +60,8 @@ options.verbose=1; % 0 - supress displaying state of execution
 
 options.dataset='/mov';
 
+options.docrop = true;
+options.skip = false;
 %% VARIABLE CHECK
 
 if nargin>=3
@@ -114,6 +116,11 @@ if ischar(fixed) % passing movie as filepth to h5 files
 
         suff_obj_moving=Suffix(moving);
         registeredV=suff_obj_moving.change(fname_Suffix);
+        
+        if( isfile(fixedV) &&  isfile(registeredV) && options.skip)
+            disp("regMovies: Output file exists. Skipping: " + fixedV);
+            return;
+        end
     else
         error('Filetype %s not supported',ext);
     end
@@ -224,7 +231,16 @@ summary.angle=asin(transformation.T(2,1))*180/pi;
 disp('Applying affine transform the original template and moving frame');
 RegisteredImage = imwarp(summary.orig_moving_frame, movingRefObj, transformation,...
     'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN, 'interp', options.interp);
-[registered_cropped,fixed_cropped, corn] = postcropping(RegisteredImage,summary.orig_fixed_frame);
+if(options.docrop)
+    [registered_cropped,fixed_cropped, corn] = postcropping(RegisteredImage,summary.orig_fixed_frame);
+else
+    registered_cropped=RegisteredImage;
+    fixed_cropped=summary.orig_fixed_frame;
+    corn = [1,1; size(registered_cropped,2), 1; ...
+            flip(size(registered_cropped)); 1, size(registered_cropped,1) ];
+    fixed_cropped(isnan(fixed_cropped)) = 0;
+    registered_cropped(isnan(registered_cropped)) = 0;
+end
 
 summary.fixed_cropped=fixed_cropped;
 summary.registered_cropped=registered_cropped;
@@ -273,7 +289,7 @@ if strcmpi(filetype,'mat')
     parfor i=1:num_frame % changed for regular for for testing  RC 2020-05-29
         moving_frame = fliplr(moving(:,:,i)); % this should be fliplr specifically ! % 2020-06-03 20:03:47 RC
         fixed_frame = fixed(:,:,i);        
-        [registeredimage,fixedframe] = applyReg2frame(fixed_frame,moving_frame,transformation,corn, options.interp); % fixed missing transformation RC        
+        [registeredimage,fixedframe] = applyReg2frame(fixed_frame,moving_frame,transformation,corn, options.interp, options.docrop ); % fixed missing transformation RC        
         registeredV(:,:,i) = registeredimage; % those matrices should be allocated before, otherwise it's taking long to increase the size % 2020-06-03 20:09:45 RC
         fixedV(:,:,i) = fixedframe;        
     end
@@ -282,7 +298,7 @@ if strcmpi(filetype,'mat')
     
 else % h5 file
     
-    % create the files, registeredV,fixedV
+    % create the files, registeredV,fixedV 
     if isfile(registeredV)
         disp('Founded a registeredV file, deleting')
         delete(registeredV);
@@ -315,7 +331,7 @@ else % h5 file
         parfor ii=1:realframe
             % Jizhou, you may have forgotten about flipping... - 2020-06-30 04:20:45 -   RC
             moving_frame = fliplr(data_moving(:,:,ii)); % this should be fliplr specifically RC
-            [registeredimage,fixedframe] = applyReg2frame(data_fixed(:,:,ii), moving_frame, transformation,corn, options.interp);            
+            [registeredimage,fixedframe] = applyReg2frame(data_fixed(:,:,ii), moving_frame, transformation,corn, options.interp, options.docrop);            
             transformed_moving(:,:,ii) = registeredimage;
             transformed_fixed(:,:,ii) = fixedframe;            
         end
@@ -352,13 +368,17 @@ end
 
 
 
-function [registeredimage,fixedframe,corn] = applyReg2frame(fixed, moving, transformation,corn, interp)
+function [registeredimage,fixedframe,corn] = applyReg2frame(fixed, moving, transformation,corn, interp, docrop)
 fixedRefObj = imref2d(size(fixed));
 movingRefObj = imref2d(size(moving));
 RegisteredImage = imwarp(moving, movingRefObj, transformation, 'OutputView', fixedRefObj, 'SmoothEdges', true, 'FillValues', NaN, 'interp', interp);
 
-[registeredimage,fixedframe,corn] = postcropping(RegisteredImage,fixed,corn);
-
+if(docrop)
+    [registeredimage,fixedframe,corn] = postcropping(RegisteredImage,fixed,corn);
+else
+    registeredimage = RegisteredImage;
+    fixedframe = fixed;
+end
 end
 
 

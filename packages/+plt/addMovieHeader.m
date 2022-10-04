@@ -16,8 +16,8 @@ function Mh = addMovieHeader(M, varargin)
     h0 = zeros(round(movie_size(1:2).*[options.rel_size,1]));
 
     h1 = insertText(h0, [size(H,2)*1/2 - strlength(options.title)*options.fontsize_title*0.3, 0], ...
-        options.title, 'TextColor', [1,1,1]*options.text_intensity, 'BoxOpacity', 0, 'FontSize', options.fontsize_title);
-
+        options.title, 'TextColor', [1,1,1], 'BoxOpacity', 0, 'FontSize', options.fontsize_title);
+    
     %%
     
     for i_f = 1:size(H,3)
@@ -28,28 +28,38 @@ function Mh = addMovieHeader(M, varargin)
         if(~isempty(options.extra_labels)) frame_text = options.extra_labels(i_f) + " " + frame_text; end
         
         if(options.fps ~= 1)
-            frame_text = frame_text + ",   " + num2str(round((i_f-1)/options.fps,2) + " s");
+            frame_text = sprintf('%.2f', (i_f-1)/options.fps) + " s" + ",   " + frame_text;
         end
 
         h2 = insertText(h1, [0, size(H,1)*1/2], frame_text, ...
-            'TextColor', [1,1,1]*options.text_intensity, 'BoxOpacity', 0, 'FontSize', options.fontsize_fps);
-        hg = rgb2gray(h2);
+            'TextColor', [1,1,1], 'BoxOpacity', 0, 'FontSize', options.fontsize_fps);
+        hg = imbinarize(rgb2gray(h2));%;
 
-        H(:,:,i_f) = hg*(options.mmax - options.mmin) + options.mmin;
+        H(:,:,i_f) = hg*(options.text_value - options.background_value) + options.background_value;
     end
     %%
     
     Mh = cat(1, H,M);
+    %%
+    
+    if(~isempty(options.pxsize))
+        ny = round(1/options.pxsize);
+        dx = ceil(ny/7/2); dy = dx; %1:7 aspect ratio of a scale bar
+        S = repmat(options.background_value, [dx*5, size(M, 2)]);
+        S((end-3*dx):(end-dx), dy:(dy+ny)) = options.text_value;
+        % 1mm scalebar in the left lower corner
+        Mh = cat(1, Mh, repmat(S, [1,1,size(Mh,3)]));
+    end
 end
 
 function options = defaultOptions(M)
     
     options.rel_size = 1/6;
     
-    options.mmin = min(M(:), [], 'omitnan'); %mean(M(:), 'omitnan');%
-    options.mmax = max(M(:), [], 'omitnan');
-    
-    options.text_intensity = 1;
+%     options.mmin = min(M(:), [], 'omitnan'); %mean(M(:), 'omitnan');%
+%     options.mmax = max(M(:), [], 'omitnan');
+    options.background_value = mean(M(:), 'omitnan');
+    options.text_value = min(M(:), [], 'omitnan');
     
     options.title = "";
     options.fontsize_title = -1;
@@ -58,5 +68,6 @@ function options = defaultOptions(M)
     options.fps = 1;
     options.frame0 = 1;
     options.dframe = 1;
+    options.pxsize = [];
     options.extra_labels = [];
 end

@@ -51,7 +51,15 @@ function st = SpectrogramMultitaper(x, w, varargin)
             if(options.correct1f)
                 fs = (1:length(z))';
                 rf = robustfit(log(fs), log(z));
-                zfit = exp(rf(1))*(fs.^rf(2));
+%                 zfit = exp(rf(1))*(fs.^rf(2));
+                
+                g = -double(rf(2)); a = double(exp(rf(1)));
+                baseline_func = @(f0, x) a./(x.^g + f0^g);  
+                fit_options = fitoptions('Method','NonlinearLeastSquares',...
+                                'StartPoint', 1, 'lower',[0]);
+                baseline_fit=fit(fs, double(z), baseline_func, fit_options);
+                zfit = baseline_fit(fs);
+                
                 z = z./zfit;
             end
             st(:,i_t) = z; 

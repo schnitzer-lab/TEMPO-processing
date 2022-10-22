@@ -12,6 +12,10 @@ function result = h5readStruct(file_name, dataset_name)
             if isa(result.(name_dataset), 'cell') 
                 result.(name_dataset) = cell2mat(result.(name_dataset));
             end
+            %in R2021 they are now read as single-symbol string arrays...
+            if (isa(result.(name_dataset), 'string'))
+                result.(name_dataset) = char(strjoin(result.(name_dataset), ''));
+            end
         end
     end
     if(~isempty(f_info.Groups))

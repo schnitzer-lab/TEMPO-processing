@@ -94,6 +94,18 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
         function binning = AddBinning(obj,n)
             obj.binning = obj.binning*n;
             binning = obj.binning;
+        end    
+
+        function s = AddSpatialCropping(obj,p)
+            if(length(p) ~= 2 || any(p < 0) ||  any( floor(p) ~= p) )
+                error("spaceorigin should be an array of two round numbers > 0")
+            end
+            obj.spaceorigin = (obj.spaceorigin) + (p - [1,1])*obj.binning;
+            s = obj.getSpaceOrign();
+        end
+
+        function s = getSpaceOrign(obj)
+            s = (obj.spaceorigin - [1,1])/obj.binning + [1,1];
         end
         
         function timebinning = AddBinningTime(obj,n)

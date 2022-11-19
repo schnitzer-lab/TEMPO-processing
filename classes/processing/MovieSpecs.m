@@ -69,9 +69,11 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
             end
         end
         
-        function outlines = getAllenOutlines(obj)
+        function outlines = getAllenOutlines(obj, outlines_nums)
             if(obj.extra_specs.isKey("allenMapEdgeOutline"))
-                outlines = obj.extra_specs("allenMapEdgeOutline")/obj.binning;
+                raw_outlines = obj.extra_specs("allenMapEdgeOutline");
+                if(nargin < 2) outlines_nums = 1:size(raw_outlines, 3); end
+                outlines = raw_outlines(:,:,outlines_nums)/obj.binning;
             else
                 warning("No brain regions outlines found");
                 outlines = [];

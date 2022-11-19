@@ -121,6 +121,8 @@ else
         
         summary=closeSummary(summary);
         h5save(h5path, summary,  functionname);
+        movieAddTimestampsTable(h5path);
+        movieAddFramestampsTable(h5path);
     end
 end
 

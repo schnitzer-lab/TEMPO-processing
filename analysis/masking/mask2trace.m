@@ -45,7 +45,7 @@ mask2D=to2D(mask);
 movie2D=to2D(movie);
 
 indPositive=mask2D>0;
-timeTrace=sum(movie2D(indPositive,:),1);
+timeTrace=mean(movie2D(indPositive,:),1, 'omitnan');
 
 if options.plot
     plot(timeTrace)

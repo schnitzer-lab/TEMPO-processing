@@ -1,5 +1,5 @@
-
-% recording_name = "Visual\m16\20210319\meas01";
+% 
+% recording_name = "Whiskers\m14\20210621\meas00";
 % 
 % channels = ["G","R"];
 % 

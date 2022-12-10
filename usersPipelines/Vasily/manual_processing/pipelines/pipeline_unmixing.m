@@ -2,7 +2,7 @@
 % addpath("../../../../_matlab_libs/deconvolution/")
 %%
 
-% recording_name = "Visual\m16\20210319\meas01";
+% recording_name = "Whiskers\m20\20210621\meas00";
 % postfix_in = "_bin8_reg_moco"; %_fr1-33000
 % channels = ["G","R"];
 % 
@@ -34,7 +34,7 @@ fullpathRin = fullfile(folder_processing, file2.name);
 
 [filedir, filename, fileext, basefilename, channel, ~] = filenameParts(fullpathGin);
 final_file = fullfile(folder_preprocessed,...
-    filename + "_masked_fr20-Inf_decross_expBlC_highpassCPPf0=1.5valid_nohemoS_dFF.h5");
+    filename + "_fr20-Inf_decross_expBlC_highpassCPPf0=0.5valid_nohemoS_dFF.h5");
 
 if(isfile(final_file)) error("File exists, ending " + final_file); end
 %%
@@ -43,23 +43,23 @@ if(~strcmp(folder_preprocessed, folder_processing))
     if(~isfolder(folder_processing)) mkdir(folder_processing); end
     if(~isfile(fullpathGin)) copyfile(fullpathGpreproc, fullpathGin); end
     if(~isfile(fullpathRin)) copyfile(fullpathRpreproc, fullpathRin); end
-    copyfile(fullfile(file2.folder, "alignment_images"), fullfile(folder_processing, "alignment_images"));
+%     copyfile(fullfile(file2.folder, "alignment_images"), fullfile(folder_processing, "alignment_images"));
 end
 %%
-
-if(~exist('fullpath_maskManual_forall','var') == 1 || ~isfile(fullpath_maskManual_forall))
-    fullpath_maskManual = fullfile(folder_processing, 'alignment_images', file1.name(1:(end-3))) + "_maskManual.bmp";
-%     fullpath_maskManual = fullpathGin{1}(1:(end-3)) + "_maskManual.bmp";
-    if(~isfile(fullpath_maskManual)) error("Mask file missing: " + fullpath_maskManual); end 
-else
-    fullpath_maskManual = fullpath_maskManual_forall;
-end
+% if(~exist('fullpath_maskManual_forall','var') == 1 || ~isfile(fullpath_maskManual_forall))
+%     fullpath_maskManual = fullfile(folder_processing, 'alignment_images', file1.name(1:(end-3))) + "_maskManual.bmp";
+% %     fullpath_maskManual = fullpathGin{1}(1:(end-3)) + "_maskManual.bmp";
+%     if(~isfile(fullpath_maskManual)) error("Mask file missing: " + fullpath_maskManual); end 
+% else
+%     fullpath_maskManual = fullpath_maskManual_forall;
+% end
  
-fullpathGm = movieApplyMask(fullpathGin, fullpath_maskManual);
-fullpathRm = movieApplyMask(fullpathRin, fullpath_maskManual);
+% fullpathGm = movieApplyMask(fullpathGin, fullpath_maskManual);
+% fullpathRm = movieApplyMask(fullpathRin, fullpath_maskManual);
 % 
-% fullpathGm = fullpathGin;
-% fullpathRm = fullpathRin;
+fullpathGm = fullpathGin;
+fullpathRm = fullpathRin;
+
 %%
 % 
 % box_crop = mm.getCropBoxNaN(rw.h5readMovie(fullpathGm));
@@ -84,9 +84,9 @@ crosstalk_matrix =  [[1, 0]; [0.066, 1]]; %0.066 [[1, 0]; [0, 1]];
 %0.1 for older ASAP2s with different filters 
 %not sure this is correct, but it works for ASAP3 recordings
 delay = 0;
-% [fullpathGd, fullpathRd] = moviesDecrosstalk(fullpathGct, fullpathRct, crosstalk_matrix, ...
-%     'framedelay', delay, 'skip', true);
-fullpathGd = fullpathGm; fullpathRd = fullpathRm;
+[fullpathGd, fullpathRd] = moviesDecrosstalk(fullpathGct, fullpathRct, crosstalk_matrix, ...
+    'framedelay', delay, 'skip', true);
+% fullpathGd = fullpathGct; fullpathRd = fullpathRct;
 %%
 
 %fullpathGbl = movieRemoveMean(fullpathGd, 'skip', true);
@@ -98,8 +98,8 @@ fullpathRbl = movieExpBaselineCorrection(fullpathRd, 'skip', true);
 
 % Make sure that filter resonable, if not increase wp or decrease attn;
 % f0 ~0.7Hz+-0.3 for anesthesia, ~1.5 +- 0.5Hz for awake
-% f0 = 0.5; wp = 0.25; 
-f0 = 1.5; wp = 0.5; 
+f0 = 0.5; wp = 0.25; 
+% f0 = 1.5; wp = 0.5; 
 attn = 1e5;  rppl = 1e-2; 
 
 options_highpass = struct( 'attn', attn, 'rppl', rppl,  'skip', true, ...
@@ -114,19 +114,18 @@ fullpathRhp = movieFilterExternalHighpass(fullpathRbl, f0, wp, options_highpass)
 movieSavePreviewVideos(fullpathRhp, 'title', 'filtered')
 %%
 
-
-% options_filt_anesthesia = ...
-%     struct('skip', true, 'dt', 4, 'naverage', 17, ...
-%            'max_delay', 10*1e-3, 'max_var', 2, ...
-%            'eps', 1e-5); %, 'df_reg', 5
-options_filt_visual = ...
-    struct('skip', true, 'dt', 2, 'naverage', 35, ...
-           'max_delay', 10*1e-3, 'max_var', 2.5, ...
+options_filt_anesthesia = ...
+    struct('skip', true, 'dt', 4, 'naverage', 17, ...
+           'max_delay', 10*1e-3, 'max_var', 2, ...
            'eps', 1e-5); %, 'df_reg', 5
+% options_filt_visual = ...
+%     struct('skip', true, 'dt', 2, 'naverage', 35, ...
+%            'max_delay', 10*1e-3, 'max_var', 2.5, ...
+%            'eps', 1e-5); %, 'df_reg', 5
 
 %dt = 2s+ for asap3 cortex, dt = 1s for hippocampal data (noisy)
 fullpathGhemo = ...
-    movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_filt_visual);
+    movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_filt_anesthesia);
 %options.anesthesia = struct({})
 %%
 

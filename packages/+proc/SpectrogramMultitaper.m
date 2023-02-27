@@ -46,7 +46,7 @@ function st = SpectrogramMultitaper(x, w, varargin)
         
         if(~any(isnan(x(xrange))))
             z = pmtm(x(xrange), options.nw, w, ...
-               'DropLastTaper', options.DropLastTaper);
+                    'DropLastTaper', options.DropLastTaper);
         % in matlab 2020b one can do: 'Tapers','sine'
             if(options.correct1f)
                 fs = (1:length(z))';

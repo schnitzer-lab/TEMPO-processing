@@ -9,8 +9,8 @@ function Mh = addMovieHeader(M, varargin)
     
     H = zeros(round(movie_size.*[options.rel_size,1,1]));
     
-    if(options.fontsize_title < 0) options.fontsize_title = round(size(H,1)*3/7); end
-    if(options.fontsize_fps < 0) options.fontsize_fps = round(size(H,1)/3); end
+    if(options.fontsize_title < 0) options.fontsize_title = round(size(H,1)*3/7)+1; end
+    if(options.fontsize_fps < 0) options.fontsize_fps = round(size(H,1)/3)+1; end
     %%
     
     h0 = zeros(round(movie_size(1:2).*[options.rel_size,1]));
@@ -23,12 +23,12 @@ function Mh = addMovieHeader(M, varargin)
     for i_f = 1:size(H,3)
 
         
-        frame_text = "frame " + num2str((i_f-1)*options.dframe +1 + options.frame0 -1);
+        frame_text = "frame " + num2str(round((i_f-1)*options.dframe +1 + options.frame0 -1));
 
         if(~isempty(options.extra_labels)) frame_text = options.extra_labels(i_f) + " " + frame_text; end
         
         if(options.fps ~= 1)
-            frame_text = sprintf('%.2f', (i_f-1)/options.fps) + " s" + ",   " + frame_text;
+            frame_text = sprintf('%.2f', (i_f-1)*options.dframe/options.fps) + " s" + ",   " + frame_text;
         end
 
         h2 = insertText(h1, [0, size(H,1)*1/2], frame_text, ...
@@ -46,7 +46,7 @@ function Mh = addMovieHeader(M, varargin)
         ny = round(1/options.pxsize);
         dx = ceil(ny/7/2); dy = dx; %1:7 aspect ratio of a scale bar
         S = repmat(options.background_value, [dx*5, size(M, 2)]);
-        S((end-3*dx):(end-dx), dy:(dy+ny)) = options.text_value;
+        S((end-3*dx):(end-dx), dy:min(size(S,2), dy+ny)) = options.text_value;
         % 1mm scalebar in the left lower corner
         Mh = cat(1, Mh, repmat(S, [1,1,size(Mh,3)]));
     end

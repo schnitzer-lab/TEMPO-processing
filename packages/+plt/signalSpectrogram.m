@@ -23,10 +23,10 @@ function signalSpectrogram(m, w, dw, nw, varargin)
                   find(fs <= options.flims(2), 1, 'last');
 
 
-    subplot(4,4,[2:4,(2:4) + 4, (2:4) + 4*2 ])
+    ax = subplot(4,4,[2:4,(2:4) + 4, (2:4) + 4*2 ])
     st= flip(st,1);
     imagesc(ts, fs(frange_plot), st(frange_plot, :)); 
-
+    
     grid on;
     set(gca,'GridColor',[1 1 1]) 
 %     set(gca,'xticklabel',[], 'yticklabel', [])
@@ -37,6 +37,9 @@ function signalSpectrogram(m, w, dw, nw, varargin)
            quantile(st(frange_clim,:), options.q(2), 'all')])
     if(~options.correct1f) set(gca,'ColorScale','log'); end
     colormap('jet');
+    
+    cb = colorbar;
+    cb.Position(1) = ax.Position(1) + ax.Position(3) + 0.01;
     % axis image
     title(options.title, 'Interpreter', 'none');
 

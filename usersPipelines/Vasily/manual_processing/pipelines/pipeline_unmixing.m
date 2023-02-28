@@ -1,14 +1,13 @@
-% clear
-% addpath("../../../../_matlab_libs/deconvolution/")
-%%
-
-% recording_name = "Whiskers\m20\20210621\meas00";
-% postfix_in = "_bin8_reg_moco"; %_fr1-33000
-% channels = ["G","R"];
 % 
-% basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
-% basefolder_processing = "C:\GEVI_Wave\Preprocessed_temp\";
-% basefolder_output = "N:\GEVI_Wave\Preprocessed\";
+recording_name = "Visual\m14\20210619\meas00";%"Visual\m40\20210824\meas00";%"Visual\m14\20210619\meas00";
+postfix_in1 = "cG_bin8_mc";
+postfix_in2 = "cR_bin8_mc_reg";
+
+basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
+basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
+basefolder_output = "N:\GEVI_Wave\Preprocessed\";    
+
+frame_range = [20, inf];
 %%
 
 folder_preprocessed = fullfile(basefolder_preprocessed, recording_name);
@@ -16,8 +15,8 @@ folder_processing = fullfile(basefolder_processing, recording_name);
 folder_output = fullfile(basefolder_output, recording_name);
 %%
 
-file1 = dir(fullfile(folder_preprocessed, "/*" + "c" + channels(1) + postfix_in + ".h5"));
-file2 = dir(fullfile(folder_preprocessed, "/*" + "c" + channels(2) + postfix_in + ".h5"));
+file1 = dir(fullfile(folder_preprocessed, "/*" + postfix_in1 + ".h5"));
+file2 = dir(fullfile(folder_preprocessed, "/*" + postfix_in2 + ".h5"));
 
 if(isempty(file1)) 
     error("Unmixing:fileNotFound", "Green channel .h5 file not found")
@@ -28,55 +27,43 @@ end
 fullpathGpreproc = fullfile(file1.folder, file1.name);
 fullpathRpreproc = fullfile(file2.folder, file2.name);
 
-fullpathGin = fullfile(folder_processing, file1.name);
-fullpathRin = fullfile(folder_processing, file2.name);
+[~, ~, ext1, basefilename1, channel1, ~] = filenameParts(fullpathGpreproc);
+fullpathGin = fullfile(folder_processing, file1.name);%basefilename1+channel1+"_preprocessed"+ext1);
+[~, ~, ext2, basefilename2, channel2, ~] = filenameParts(fullpathRpreproc);
+fullpathRin = fullfile(folder_processing, file2.name);%basefilename2+channel2+"_preprocessed"+ext2);
 %%
 
 [filedir, filename, fileext, basefilename, channel, ~] = filenameParts(fullpathGin);
 final_file = fullfile(folder_preprocessed,...
-    filename + "_fr20-Inf_decross_expBlC_highpassCPPf0=0.5valid_nohemoS_dFF.h5");
-
-if(isfile(final_file)) error("File exists, ending " + final_file); end
+    filename + "*_decross_expBlC_hpf0=1.5v_nohemoS_dFF.h5");
+result = dir(final_file);
+if(~isempty(result)) error("File exists, ending " + fullfile(result.folder, result.name)); end
 %%
 
 if(~strcmp(folder_preprocessed, folder_processing))
+    disp("copying data to: "+folder_processing)
     if(~isfolder(folder_processing)) mkdir(folder_processing); end
     if(~isfile(fullpathGin)) copyfile(fullpathGpreproc, fullpathGin); end
     if(~isfile(fullpathRin)) copyfile(fullpathRpreproc, fullpathRin); end
-%     copyfile(fullfile(file2.folder, "alignment_images"), fullfile(folder_processing, "alignment_images"));
+    copyfile(fullfile(file2.folder, "alignment_images"), fullfile(folder_processing, "alignment_images"));
 end
 %%
-% if(~exist('fullpath_maskManual_forall','var') == 1 || ~isfile(fullpath_maskManual_forall))
-%     fullpath_maskManual = fullfile(folder_processing, 'alignment_images', file1.name(1:(end-3))) + "_maskManual.bmp";
-% %     fullpath_maskManual = fullpathGin{1}(1:(end-3)) + "_maskManual.bmp";
-%     if(~isfile(fullpath_maskManual)) error("Mask file missing: " + fullpath_maskManual); end 
-% else
-%     fullpath_maskManual = fullpath_maskManual_forall;
-% end
- 
-% fullpathGm = movieApplyMask(fullpathGin, fullpath_maskManual);
-% fullpathRm = movieApplyMask(fullpathRin, fullpath_maskManual);
-% 
-fullpathGm = fullpathGin;
-fullpathRm = fullpathRin;
 
-%%
-% 
-% box_crop = mm.getCropBoxNaN(rw.h5readMovie(fullpathGm));
-% fullpathGcs = movieCrop(fullpathGm, box_crop);
-% fullpathRcs = movieCrop(fullpathRm, box_crop);
-
-fullpathGcs = fullpathGm;
-fullpathRcs = fullpathRm;
-%%
-
-frames_drop = 20;
-
-fullpathGct = movieExtractFrames(fullpathGcs, [frames_drop, Inf]);
-fullpathRct = movieExtractFrames(fullpathRcs, [frames_drop, Inf]);
+fullpathGex = movieExtractFrames(fullpathGin, frame_range);
+fullpathRex = movieExtractFrames(fullpathRin, frame_range);
 
 % fullpathGct = fullpathGcs;
-% fullpathRct = fullpathRcs;
+% fullpathRct = fullpathRd;
+%%
+
+fullpathGor = movieRemoveOutlierFrames(fullpathGex, 'n_sd', 5, 'dt', 10);
+fullpathRor = movieRemoveOutlierFrames(fullpathRex, 'n_sd', 5, 'dt', 10);
+%%
+
+% for movies where cameras weren't started synchroniously 
+% (i.e. left on internal trigger) - find delay throug mean traces xcorr (hemo frequency)
+fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, 'min_lag_frames', 0.5);
+fullpathGdl = fullpathGor;
 %%
 
 crosstalk_matrix =  [[1, 0]; [0.066, 1]]; %0.066 [[1, 0]; [0, 1]];
@@ -84,22 +71,19 @@ crosstalk_matrix =  [[1, 0]; [0.066, 1]]; %0.066 [[1, 0]; [0, 1]];
 %0.1 for older ASAP2s with different filters 
 %not sure this is correct, but it works for ASAP3 recordings
 delay = 0;
-[fullpathGd, fullpathRd] = moviesDecrosstalk(fullpathGct, fullpathRct, crosstalk_matrix, ...
+[fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, crosstalk_matrix, ...
     'framedelay', delay, 'skip', true);
 % fullpathGd = fullpathGct; fullpathRd = fullpathRct;
 %%
 
-%fullpathGbl = movieRemoveMean(fullpathGd, 'skip', true);
-%fullpathRbl = movieRemoveMean(fullpathRd, 'skip', true); 
-
-fullpathGbl = movieExpBaselineCorrection(fullpathGd, 'skip', true); 
-fullpathRbl = movieExpBaselineCorrection(fullpathRd, 'skip', true);
+fullpathGbl = movieExpBaselineCorrection(fullpathGdx, 'skip', true); 
+fullpathRbl = movieExpBaselineCorrection(fullpathRdx, 'skip', true);
 %%
 
 % Make sure that filter resonable, if not increase wp or decrease attn;
 % f0 ~0.7Hz+-0.3 for anesthesia, ~1.5 +- 0.5Hz for awake
-f0 = 0.5; wp = 0.25; 
-% f0 = 1.5; wp = 0.5; 
+% f0 = 0.5; wp = 0.25; 
+f0 = 1.5; wp = 0.5; 
 attn = 1e5;  rppl = 1e-2; 
 
 options_highpass = struct( 'attn', attn, 'rppl', rppl,  'skip', true, ...
@@ -114,46 +98,73 @@ fullpathRhp = movieFilterExternalHighpass(fullpathRbl, f0, wp, options_highpass)
 movieSavePreviewVideos(fullpathRhp, 'title', 'filtered')
 %%
 
-options_filt_anesthesia = ...
-    struct('skip', true, 'dt', 4, 'naverage', 17, ...
-           'max_delay', 10*1e-3, 'max_var', 2, ...
-           'eps', 1e-5); %, 'df_reg', 5
-% options_filt_visual = ...
-%     struct('skip', true, 'dt', 2, 'naverage', 35, ...
-%            'max_delay', 10*1e-3, 'max_var', 2.5, ...
+% options_filt_anesthesia = ...
+%     struct('skip', true, 'dt', 3, 'average_mm', 0.5, ...
+%            'max_delay', 20*1e-3, 'max_amp_rel', 1.2, ...
 %            'eps', 1e-5); %, 'df_reg', 5
-
-%dt = 2s+ for asap3 cortex, dt = 1s for hippocampal data (noisy)
+options_filt_visual = ...
+    struct('skip', true, 'dt', 2, 'average_mm', 1, ...
+           'max_delay', 20*1e-3, 'max_amp_rel', 1.5, ...
+           'eps', 1e-5);
+ 
 fullpathGhemo = ...
-    movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_filt_anesthesia);
-%options.anesthesia = struct({})
+    movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_filt_visual);
+
+moviesSavePreviewVideos([fullpathGhemo, fullpathRhp], ...
+    'titles', ["reference filt", "reference ch"])
 %%
 
-movieSavePreviewVideos(fullpathGhemo, 'title', 'hemo estimated')
+fullpathGnh = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, 'divide', false);
+
+moviesSavePreviewVideos([fullpathGnh, fullpathGhemo, fullpathGhp], 'titles', ...
+    ["unmixed", "reference filt", "voltage ch"])
 %%
 
-fullpathGnohemo = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, 'divide', false);
-movieSavePreviewVideos(fullpathGnohemo, 'title', 'G unmixed')
-%%
-
-fullpathGnhDFF = movieDFF(fullpathGnohemo);
-movieSavePreviewVideos(fullpathGnhDFF, 'title', 'G unmixed dF/F')
+fullpathGnhDFF = movieDFF(fullpathGnh);
+movieSavePreviewVideos(fullpathGnhDFF, 'title', 'G unmixed dF/F', 'mask', true)
 
 fullpathRfDFF = movieDFF(fullpathRhp);
-movieSavePreviewVideos(fullpathRfDFF, 'title', 'R dF/F')
+movieSavePreviewVideos(fullpathRfDFF, 'title', 'R dF/F', 'mask', true)
 %%
 
+%%
+
+% regression-based hemodynamics estimation
+% set f0 to the heartbeat
+% f0 = 12.25; wp = 1.5; 
+% f0 = 9.6; wp = 1.5; 
+% attn = 1e5;  rppl = 1e-2; 
+% 
+% options_bandpass = struct( 'attn', attn, 'rppl', rppl,  'skip', true, ...
+%     'filtersdir', "P:\GEVI_Wave\ConvolutionFilters\", ...
+%     'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_convolution.exe",...
+%     'num_cores', 22);   
+% fullpathGhbp = movieFilterExternalBandpass(fullpathGhp, f0, wp, options_bandpass);
+% fullpathRhbp = movieFilterExternalBandpass(fullpathRhp, f0, wp, options_bandpass);
+% 
+% fullpathGhemo = movieEstimateHemoGReg(fullpathGhbp, fullpathRhbp, ...
+%     'naverage', 1, 'fullpath_rfull', fullpathRhp, 'naverage', 1); % update to handle averaging correctly
+% 
+% fullpathGnhReg = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, 'postfix', '_nohemoReg', 'divide', false);
+% fullpathGnhRegDFF = movieDFF(fullpathGnhReg);
+% 
+% movieSavePreviewVideos(fullpathGnhRegDFF, 'title', 'G unmixed dF/F')
+% delete(fullpathGnhReg)
+% delete(fullpathGhbp)
+% delete(fullpathRhbp)
+%%
+ 
 % specs = rw.h5readMovieSpecs(fullpathGhp); h5save(fullpathGhp,  specs.fps, '/fps' );
-% fullpathGumxf = unmixMoviesFast(char(fullpathGhp), char(fullpathRhp), [], 'MouseState','anesthesia'); %filename?
+% fullpathGumxf = unmixMoviesFast(char(fullpathGhp), char(fullpathRhp), [], ...
+% 'MouseState','anesthesia'); %filename?
 % specs.AddToHistory("unmixMoviesFast"); rw.h5saveMovieSpecs(fullpathGumxf, specs);
-% movieSavePreviewVideos(fullpathGumxf, 'title', 'G unmxFast');
-
-% movieDFF(fullpathGumxf);
+% % movieSavePreviewVideos(fullpathGumxf, 'title', 'G unmxFast');
+% 
+% fullpathGumxfDFF = movieDFF(fullpathGumxf);
+% % delete(fullpathGumxf)
 %%
 
-% delete(fullpathGumxf)
 %%
-
 fullpaths_mean = movieMeanTraces([string(fullpathGnhDFF), string(fullpathRfDFF)], 'space', true);
     
 options_spectrogram = struct('f0', 2, 'timewindow', 4, 'df', 0.75, ...
@@ -191,30 +202,33 @@ if(~strcmp(folder_processing, folder_output))
 end
 %%
 
-
 if(~strcmp(fullpathGin, fullpathGpreproc)) delete(fullpathGin); end
 if(~strcmp(fullpathRin, fullpathRpreproc)) delete(fullpathRin); end
 
-if(~strcmp(fullpathGm, fullpathGin)) delete(fullpathGm); end
-if(~strcmp(fullpathRm, fullpathRin)) delete(fullpathRm); end
+if(~strcmp(fullpathGex, fullpathGin)) delete(fullpathGex); end
+if(~strcmp(fullpathRex, fullpathRin)) delete(fullpathRex); end
 
-if(~strcmp(fullpathGcs, fullpathGin)) delete(fullpathGcs); end
-if(~strcmp(fullpathRcs, fullpathRin)) delete(fullpathRcs); end
+if(~strcmp(fullpathGor, fullpathGex)) delete(fullpathGor); end
+if(~strcmp(fullpathRor, fullpathRex)) delete(fullpathRor); end
 
-if(~strcmp(fullpathGct, fullpathGin)) delete(fullpathGct); end
-if(~strcmp(fullpathRct, fullpathRin)) delete(fullpathRct); end
+if(~strcmp(fullpathGdl, fullpathGor)) delete(fullpathGdl); end
+if(~strcmp(fullpathRdl, fullpathRor)) delete(fullpathRdl); end
 
-if(~strcmp(fullpathGd, fullpathGin)) delete(fullpathGd); end
-if(~strcmp(fullpathRd, fullpathRin)) delete(fullpathRd); end
+if(~strcmp(fullpathGdx, fullpathGdl)) delete(fullpathGdx); end
+if(~strcmp(fullpathRdx, fullpathRdl)) delete(fullpathRdx); end
 
-if(~strcmp(fullpathGbl, fullpathGin)) delete(fullpathGbl); end
-if(~strcmp(fullpathRbl, fullpathRin)) delete(fullpathRbl); end
+if(~strcmp(fullpathGbl, fullpathGdx)) delete(fullpathGbl); end
+if(~strcmp(fullpathRbl, fullpathRdx)) delete(fullpathRbl); end
 
-delete(fullpathGhp); delete(fullpathRhp);
-delete(fullpathGhemo); delete(fullpathGnohemo);
+if(~strcmp(fullpathGdx, fullpathGhp)) delete(fullpathGhp); end
+if(~strcmp(fullpathRdx, fullpathRhp)) delete(fullpathRhp); end
+
+delete(fullpathGhemo); 
+delete(fullpathGnh);
 %%
 
 if(~strcmp(folder_preprocessed, folder_processing))
+    disp("copying data to: "+folder_preprocessed)
     allfiles = dir(folder_processing);
     cellfun(@(n) movefile(fullfile(folder_processing, n),  folder_preprocessed), {allfiles(3:end).name})
 end

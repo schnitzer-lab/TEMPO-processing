@@ -1,5 +1,5 @@
 % 
-recording_name = "Visual\m14\20210619\meas00";%"Visual\m40\20210824\meas00";%"Visual\m14\20210619\meas00";
+recording_name = "Spontaneous\mCtrl12\20201122\meas01";%"Visual\m14\20210619\meas00";
 postfix_in1 = "cG_bin8_mc";
 postfix_in2 = "cR_bin8_mc_reg";
 
@@ -132,7 +132,7 @@ movieSavePreviewVideos(fullpathRfDFF, 'title', 'R dF/F', 'mask', true)
 % regression-based hemodynamics estimation
 % set f0 to the heartbeat
 % f0 = 12.25; wp = 1.5; 
-% f0 = 9.6; wp = 1.5; 
+% f0 = 11.25; wp = 1.5; 
 % attn = 1e5;  rppl = 1e-2; 
 % 
 % options_bandpass = struct( 'attn', attn, 'rppl', rppl,  'skip', true, ...
@@ -153,18 +153,7 @@ movieSavePreviewVideos(fullpathRfDFF, 'title', 'R dF/F', 'mask', true)
 % delete(fullpathGhbp)
 % delete(fullpathRhbp)
 %%
- 
-% specs = rw.h5readMovieSpecs(fullpathGhp); h5save(fullpathGhp,  specs.fps, '/fps' );
-% fullpathGumxf = unmixMoviesFast(char(fullpathGhp), char(fullpathRhp), [], ...
-% 'MouseState','anesthesia'); %filename?
-% specs.AddToHistory("unmixMoviesFast"); rw.h5saveMovieSpecs(fullpathGumxf, specs);
-% % movieSavePreviewVideos(fullpathGumxf, 'title', 'G unmxFast');
-% 
-% fullpathGumxfDFF = movieDFF(fullpathGumxf);
-% % delete(fullpathGumxf)
-%%
 
-%%
 fullpaths_mean = movieMeanTraces([string(fullpathGnhDFF), string(fullpathRfDFF)], 'space', true);
     
 options_spectrogram = struct('f0', 2, 'timewindow', 4, 'df', 0.75, ...
@@ -228,12 +217,12 @@ delete(fullpathGnh);
 %%
 
 if(~strcmp(folder_preprocessed, folder_processing))
-    disp("copying data to: "+folder_preprocessed)
+    disp("moving processed data to: "+folder_preprocessed)
     allfiles = dir(folder_processing);
     cellfun(@(n) movefile(fullfile(folder_processing, n),  folder_preprocessed), {allfiles(3:end).name})
 end
 %%
 
-currentfile = mfilename('fullpath') + ".m"; %"C:\Users\Vasily\repos\VoltageImagingAnalysis\usersPipelines\Vasily\manual_processing\pipelines\pipeline_preprocessing.m"
+currentfile = mfilename('fullpath') + ".m"; 
 copyfile(currentfile, folder_preprocessed)
 

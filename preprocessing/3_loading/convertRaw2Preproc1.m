@@ -82,7 +82,7 @@ else
     end
     
     disps('And actual convertion');
-    [~,summary.loadDCIMG]=loadDCIMGchunks(dcimgPath,[],...
+    [~,summary.loadDCIMG]=loadDCIMGchunks(dcimgPath, options.frameRange,...
         'binning',sowtwarebinning, 'h5path',h5path, 'maxRAM', options.maxRAM,...
         'parallel', options.parallel, 'useDCIMGmex', options.useDCIMGmex);
     disps('Analyzing frame rate')
@@ -109,24 +109,27 @@ else
         h5save(h5path,dcimgPath,'/sourcePath');
         h5save(h5path,convertionDate);
         h5save(h5path,fileInfo(1).date,'/recordingDate');
+        summary=closeSummary(summary);
+        h5save(h5path, summary,  functionname);
     else %Vasily's way
+        
         % for consistency with Radek's code:
         extra_specs = containers.Map({'hardwareBinning', 'convertionDate', 'recordingDate'},...
                                      {metadata.hardwareBinning, convertionDate, fileInfo(1).date}); 
-        
-        st = dbstack; functionname = st.name;                      
-        movie_specs = MovieSpecs(functionname, fps, options.pixsize,... 
-                                 options.binning, [1,1], 1, 1, dcimgPath, extra_specs);
-        rw.h5saveMovieSpecs(h5path, movie_specs);
-        
-        summary=closeSummary(summary);
-        h5save(h5path, summary,  functionname);
+        frame0 = 1;
+        if(~isempty(options.frameRange)) frame0 = options.frameRange(1); end
+        specs = MovieSpecs(fps, 1, frame0, ...
+                           options.pixsize, options.binning, [1,1], ...
+                           dcimgPath, {}, {}, ...
+                           extra_specs);
+
+        specs.AddToHistory(functionCallStruct({'dcimgPath', 'options'}));
+        rw.h5saveMovieSpecs(h5path, specs);
+
         movieAddTimestampsTable(h5path);
         movieAddFramestampsTable(h5path);
     end
 end
-
-
 
 %% CLOSING
 disps('Done');
@@ -148,7 +151,8 @@ function options =  defaultOptions(dcimgPath)
     
     options.binning_postfix = false;
     options.hardware_binning = 1; %will replace the metadata value
-    
+    options.frameRange = [];
+
     options.expPath="DEFAULT";
     
     options.useDCIMGmex = false; %Alternative mex file for dcimg - Vasily

@@ -2,18 +2,18 @@
 % parpool('Threads');
 %%
 
-recording_name = "Visual\m40\20210824\meas00";
-
-channels = ["G","R"];
-
-binning = 8;
-maxRAM = 0.1;
-unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not accounted for.
-
-basefolder_raw = "\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";%
-basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
-basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-basefolder_output = "P:\GEVI_Wave\Preprocessed\";
+% recording_name = "Spontaneous\mCtrl12\20201122\meas01";
+% 
+% channels = ["G","R"];
+% 
+% basefolder_raw = "\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% 
+% basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
+% basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
+% basefolder_output = "P:\GEVI_Wave\Preprocessed\";
+% 
+% binning = 8;
+% maxRAM = 0.1;
+% unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not accounted for.
 %%
 
 folder_raw = fullfile(basefolder_raw, recording_name);
@@ -50,9 +50,9 @@ options_dcimgtoh5 = struct('expPath', char(folder_converted), ...
 
 fullpaths_mean = movieMeanTraces([string(h5path1), string(h5path2)]);
     
-movieMeanTraceSpectrogram(fullpaths_mean(1), 'f0', 2, 'timewindow', 10, 'df', 0.75, ...
+movieMeanTraceSpectrogram(fullpaths_mean(1), 'f0', 2, 'timewindow', 5, 'df', 0.75, ...
     'processingdir', fullfile(folder_converted, "\processing\meanTraceSpectrogram\"));
-movieMeanTraceSpectrogram(fullpaths_mean(2), 'f0', 2, 'timewindow', 10, 'df', 0.75, ...
+movieMeanTraceSpectrogram(fullpaths_mean(2), 'f0', 2, 'timewindow', 5, 'df', 0.75, ...
     'processingdir', fullfile(folder_converted, "\processing\meanTraceSpectrogram\"));
 %%
 
@@ -76,17 +76,18 @@ end
 [h5path2_mc, shiftsfile2] = movieSimpleMoco(h5path2_p, 'impute_nan', true);
 %%
 
-[h5path1_reg, h5path2_reg, summary_or] = regMovies(char(h5path1_mc), char(h5path2_mc), ...
-     'BandPass', true, 'BandPx', [2,10], 'interp', 'linear', ...
-     'docrop', false, 'maxRAM', maxRAM, 'skip', true);
-    %%
-
-s = rw.h5readMovieSpecs(h5path1_mc); 
-s.AddToHistory('regMovies');
-rw.h5saveMovieSpecs(h5path1_reg, s);
+warning('fix regMovies!')
+options_reg= struct('BandPass', true, 'BandPx', [2,10], 'interp', 'linear', ...
+     'docrop', false, 'maxRAM', maxRAM, 'skip', true); 
+[h5path1_reg, h5path2_reg, summary_or] = ...
+    regMovies(char(h5path1_mc), char(h5path2_mc), options_reg);
+delete(h5path1_reg)
+%%
 
 s = rw.h5readMovieSpecs(h5path2_mc); 
-s.AddToHistory('regMovies');
+s.AddToHistory('regMovies', ...
+    mergeStructs({struct('fixed', char(h5path1_mc), 'moving', char(h5path2_mc)), ...
+        options_reg, struct('callDateTimeAutomatic', char(datetime()), 'callFilenameAutomatic', 'VoltageImagingAnalysis\preprocessing\4_registrationChAlign\regMovies.m')}));
 rw.h5saveMovieSpecs(h5path2_reg, s);
 %%
 
@@ -98,7 +99,6 @@ movieMakeMask(h5path1_mc); movieMakeMask(h5path2_reg);
 %%
 
 % if(~strcmp(h5path2_imp, h5path2_reg)) delete(h5path2_reg); end
-if(~strcmp(h5path1_reg, h5path1_mc)) delete(h5path1_reg); end
 if(~strcmp(h5path2_mc, h5path2_reg)) delete(h5path2_mc); end
 if(~strcmp(h5path1_p,  h5path1))     delete(h5path1_p); end
 if(~strcmp(h5path2_p,  h5path2))     delete(h5path2_p); end

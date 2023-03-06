@@ -2,18 +2,18 @@
 % parpool('Threads');
 %%
 
-% recording_name = "Spontaneous\mCtrl12\20201122\meas01";
-% 
-% channels = ["G","R"];
-% 
-% basefolder_raw = "\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% 
-% basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
-% basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-% basefolder_output = "P:\GEVI_Wave\Preprocessed\";
-% 
-% binning = 8;
-% maxRAM = 0.1;
-% unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not accounted for.
+recording_name = "Anesthesia\m16\20210628\meas00";
+
+channels = ["G","R"];
+
+basefolder_raw = "\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% 
+basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
+basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
+basefolder_output = "P:\GEVI_Wave\Preprocessed\";
+
+binning = 8;
+maxRAM = 0.1;
+unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not accounted for.
 %%
 
 folder_raw = fullfile(basefolder_raw, recording_name);
@@ -105,9 +105,11 @@ if(~strcmp(h5path2_p,  h5path2))     delete(h5path2_p); end
 %%
 
 if(~strcmp(folder_output, folder_processing))
-    disp("copying data to: "+folder_output)
+    disp("moving preprocessed data to: "+folder_output)
+    if(~isdir(folder_output)) mkdir(folder_output); end
     allfiles = dir(folder_processing);
-    cellfun(@(n) movefile(fullfile(folder_processing, n),  fullfile(folder_output, n)), {allfiles(3:end).name})
+    cellfun(@(n) movefile(fullfile(folder_processing, n),  fullfile(folder_output, n)), ...
+        {allfiles(3:end).name})
 end
 %%
 

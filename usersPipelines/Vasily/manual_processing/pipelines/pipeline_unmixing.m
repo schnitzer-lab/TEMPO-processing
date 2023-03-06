@@ -1,13 +1,21 @@
+
+% recording_name = "Anesthesia\m7\20210420\meas01";%"Visual\m14\20210619\meas00";
+% postfix_in1 = "cG_bin8_fr18000-78000_mc";
+% postfix_in2 = "cR_bin8_fr18000-78000_mc_reg";
 % 
-recording_name = "Spontaneous\mCtrl12\20201122\meas01";%"Visual\m14\20210619\meas00";
-postfix_in1 = "cG_bin8_mc";
-postfix_in2 = "cR_bin8_mc_reg";
-
-basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
-basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-basefolder_output = "N:\GEVI_Wave\Preprocessed\";    
-
-frame_range = [20, inf];
+% mouse_state = "anesthesia";
+% skip_if_final_exists = false;
+% 
+% basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
+% basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
+% basefolder_output = "N:\GEVI_Wave\Analysis\";    
+% 
+% crosstalk_matrix =  [[1, 0]; [0.095, 1]]; %0.066 [[1, 0]; [0, 1]];
+% % i used to use 0.079 for newer ASAP3 but 0.65-0.68 seems to work much better; 
+% % 0.1 for older ASAP2s with different filters 
+% % 0.09 for very old ace recordings seems good - based on m14 visual v1
+% % not sure this is correct, but it works for ASAP3 recordings
+% frame_range = [20, inf];
 %%
 
 folder_preprocessed = fullfile(basefolder_preprocessed, recording_name);
@@ -35,9 +43,15 @@ fullpathRin = fullfile(folder_processing, file2.name);%basefilename2+channel2+"_
 
 [filedir, filename, fileext, basefilename, channel, ~] = filenameParts(fullpathGin);
 final_file = fullfile(folder_preprocessed,...
-    filename + "*_decross_expBlC_hpf0=1.5v_nohemoS_dFF.h5");
+    filename + "*_nohemoS_dFF.h5");
 result = dir(final_file);
-if(~isempty(result)) error("File exists, ending " + fullfile(result.folder, result.name)); end
+if(~isempty(result)) 
+    if(skip_if_final_exists)
+        error("Final file exists, ending " + fullfile(result.folder, result.name)); 
+    else
+        warning("Final file exists and will be owerwritten " + fullfile(result.folder, result.name)); 
+    end
+end
 %%
 
 if(~strcmp(folder_preprocessed, folder_processing))
@@ -64,12 +78,9 @@ fullpathRor = movieRemoveOutlierFrames(fullpathRex, 'n_sd', 5, 'dt', 10);
 % (i.e. left on internal trigger) - find delay throug mean traces xcorr (hemo frequency)
 fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, 'min_lag_frames', 0.5);
 fullpathGdl = fullpathGor;
+% fullpathRdl = fullpathRor;
 %%
 
-crosstalk_matrix =  [[1, 0]; [0.066, 1]]; %0.066 [[1, 0]; [0, 1]];
-%i used to use 0.079 for newer ASAP3 but 0.65-0.68 seems to work much better; 
-%0.1 for older ASAP2s with different filters 
-%not sure this is correct, but it works for ASAP3 recordings
 delay = 0;
 [fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, crosstalk_matrix, ...
     'framedelay', delay, 'skip', true);
@@ -81,9 +92,14 @@ fullpathRbl = movieExpBaselineCorrection(fullpathRdx, 'skip', true);
 %%
 
 % Make sure that filter resonable, if not increase wp or decrease attn;
-% f0 ~0.7Hz+-0.3 for anesthesia, ~1.5 +- 0.5Hz for awake
-% f0 = 0.5; wp = 0.25; 
-f0 = 1.5; wp = 0.5; 
+if mouse_state == "anesthesia"
+    f0 = 0.5; wp = 0.25; 
+elseif mouse_state == "awake"
+   f0 = 1.5; wp = 0.5; 
+else
+    error('state must be "anesthesia" or "awake"');
+end
+
 attn = 1e5;  rppl = 1e-2; 
 
 options_highpass = struct( 'attn', attn, 'rppl', rppl,  'skip', true, ...
@@ -98,17 +114,20 @@ fullpathRhp = movieFilterExternalHighpass(fullpathRbl, f0, wp, options_highpass)
 movieSavePreviewVideos(fullpathRhp, 'title', 'filtered')
 %%
 
-% options_filt_anesthesia = ...
-%     struct('skip', true, 'dt', 3, 'average_mm', 0.5, ...
-%            'max_delay', 20*1e-3, 'max_amp_rel', 1.2, ...
-%            'eps', 1e-5); %, 'df_reg', 5
-options_filt_visual = ...
-    struct('skip', true, 'dt', 2, 'average_mm', 1, ...
-           'max_delay', 20*1e-3, 'max_amp_rel', 1.5, ...
-           'eps', 1e-5);
- 
+if mouse_state == "anesthesia"
+    options_hfilt = ...
+        struct('skip', true, 'dt', 2, 'average_mm', 2, ...
+               'max_delay', 20*1e-3, 'max_amp_rel', 1.2, 'eps', 1e-5);
+elseif mouse_state == "awake"
+    options_hfilt = ...
+        struct('skip', true, 'dt', 1, 'average_mm', 2, ...
+               'max_delay', 20*1e-3, 'max_amp_rel', 1.2, 'eps', 1e-5);
+else
+    error('state must be "anesthesia" or "awake"');
+end
+
 fullpathGhemo = ...
-    movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_filt_visual);
+    movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_hfilt);
 
 moviesSavePreviewVideos([fullpathGhemo, fullpathRhp], ...
     'titles', ["reference filt", "reference ch"])

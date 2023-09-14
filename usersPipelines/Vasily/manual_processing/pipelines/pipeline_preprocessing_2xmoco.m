@@ -1,79 +1,73 @@
     
 % parpool('Threads');
 %%
-
-recording_name = "Anesthesia\m16\20210628\meas00";
-
-channels = ["G","R"];
-
-basefolder_raw = "\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% 
-basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
-basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-basefolder_output = "P:\GEVI_Wave\Preprocessed\";
-
-binning = 8;
-maxRAM = 0.1;
-unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not accounted for.
+% recording_name = "Spontaneous\m53\20220509\meas01";%"Visual\m14\20210619\meas00";
+% postfix_in1 = "cG_bin8";
+% postfix_in2 = "cR_bin8";
+% 
+% basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
+% basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
+% basefolder_output = "P:\GEVI_Wave\Preprocessed\";
+% 
+% maxRAM = 0.1;
 %%
 
-folder_raw = fullfile(basefolder_raw, recording_name);
-folder_output = fullfile(basefolder_output, recording_name);
-folder_processing = fullfile(basefolder_processing, recording_name);
 folder_converted = fullfile(basefolder_converted, recording_name);
+folder_processing = fullfile(basefolder_processing, recording_name);
+folder_output = fullfile(basefolder_output, recording_name);
 %%
 
-if(isempty(dir(fullfile(folder_raw, '*G.dcimg'))))
-    error("File not found: "+fullfile(folder_raw, '*G.dcimg'))
+file1 = dir(fullfile(folder_converted, "/*" + postfix_in1 + ".h5"));
+file2 = dir(fullfile(folder_converted, "/*" + postfix_in2 + ".h5"));
+
+if(isempty(file1)) 
+    error("Preprocessing:fileNotFound", "Green channel .h5 file not found")
+elseif isempty(file2)
+    error("Preprocessing:fileNotFound", "Red channel .h5 file not found")
 end
-
-basefilename = dir(fullfile(folder_raw, '*G.dcimg')).name(1:(end-7));
-extention = ".dcimg";
 %%
-                  
-final_file = fullfile(folder_output,...
-    basefilename + channels(2) + "_bin" + string(binning) + "_mc_reg.h5");
-if(isfile(final_file)) error("File exists, ending " + final_file); end
-%%
+               
 
-options_dcimgtoh5 = struct('expPath', char(folder_converted), ...
-    'binning', binning, 'hardware_binning', unaccounted_hardware_binning,...
-    'parallel', false, 'maxRAM', maxRAM*binning*binning, 'skip', true, ...
-    'useMovieSpecs', true, 'useDCIMGmex', true, 'binning_postfix', true); 
+fullpathGconv = fullfile(file1.folder, file1.name);
+fullpathRconv = fullfile(file2.folder, file2.name);
 
-[h5path1,summary1] = ...
-    convertRaw2Preproc1(char(fullfile(folder_raw, basefilename+channels(1)+extention)), ...
-                        options_dcimgtoh5);
-[h5path2,summary2] = ...
-    convertRaw2Preproc1(char(fullfile(folder_raw, basefilename+channels(2)+ extention)), ...
-                        options_dcimgtoh5);
+[~, ~, ext1, basefilename1, channel1, ~] = filenameParts(fullpathGconv);
+fullpathGin = fullfile(folder_processing, file1.name);%basefilename1+channel1+"_preprocessed"+ext1);
+[~, ~, ext2, basefilename2, channel2, ~] = filenameParts(fullpathRconv);
+fullpathRin = fullfile(folder_processing, file2.name);%basefilename2+channel2+"_preprocessed"+ext2);
 %%
 
-fullpaths_mean = movieMeanTraces([string(h5path1), string(h5path2)]);
-    
-movieMeanTraceSpectrogram(fullpaths_mean(1), 'f0', 2, 'timewindow', 5, 'df', 0.75, ...
-    'processingdir', fullfile(folder_converted, "\processing\meanTraceSpectrogram\"));
-movieMeanTraceSpectrogram(fullpaths_mean(2), 'f0', 2, 'timewindow', 5, 'df', 0.75, ...
-    'processingdir', fullfile(folder_converted, "\processing\meanTraceSpectrogram\"));
+[filedir, filename, fileext, basefilename, channel, ~] = filenameParts(fullpathRconv);
+final_file = fullfile(folder_output, filename + "*_mc_reg.h5");
+result = dir(final_file);
+if(~isempty(result)) 
+    if(skip_if_final_exists)
+        error("Final file exists, ending " + fullfile(result.folder, result.name)); 
+    else
+        warning("Final file exists and will be owerwritten " + fullfile(result.folder, result.name)); 
+    end
+end
 %%
 
 moviesCompareTimestamps(folder_converted);
 %%
 
-[~,fn1, ext] = fileparts(h5path1); h5path1_p = fullfile(folder_processing, [fn1,ext]);
-[~,fn2, ext] = fileparts(h5path2); h5path2_p = fullfile(folder_processing, [fn2,ext]);
-
 if(~strcmp(folder_converted, folder_processing))
     disp("copying data to: "+folder_processing)
     if(~isfolder(folder_processing)) mkdir(folder_processing); end
-    if(~isfile(h5path1_p)) copyfile(h5path1,  h5path1_p); end
-    if(~isfile(h5path2_p)) copyfile(h5path2,  h5path2_p); end
+    if(~isfile(fullpathGin)) copyfile(fullpathGconv,  fullpathGin); end
+    if(~isfile(fullpathRin)) copyfile(fullpathRconv,  fullpathRin); end
     copyfile(fullfile(folder_converted, "LVMeta"),  fullfile(folder_processing,"LVMeta"))
     copyfile(fullfile(folder_converted, "processing"),  fullfile(folder_processing,"processing"))
 end
 %%
 
-[h5path1_mc, shiftsfile1] = movieSimpleMoco(h5path1_p, 'impute_nan', true);
-[h5path2_mc, shiftsfile2] = movieSimpleMoco(h5path2_p, 'impute_nan', true);
+% h5path1_p = movieExtractFrames(h5path1, [1500, 1800]*120, 'outdir', folder_processing);
+% h5path2_p = movieExtractFrames(h5path2, [1500, 1800]*120, 'outdir', folder_processing);
+%%
+
+[h5path1_mc, shiftsfile1] = movieSimpleMoco(fullpathGin, 'impute_nan', true);
+[h5path2_mc, shiftsfile2] = movieSimpleMoco(fullpathRin, 'impute_nan', true);
 %%
 
 warning('fix regMovies!')
@@ -100,8 +94,8 @@ movieMakeMask(h5path1_mc); movieMakeMask(h5path2_reg);
 
 % if(~strcmp(h5path2_imp, h5path2_reg)) delete(h5path2_reg); end
 if(~strcmp(h5path2_mc, h5path2_reg)) delete(h5path2_mc); end
-if(~strcmp(h5path1_p,  h5path1))     delete(h5path1_p); end
-if(~strcmp(h5path2_p,  h5path2))     delete(h5path2_p); end
+if(~strcmp(fullpathGin,  fullpathGconv))     delete(fullpathGin); end
+if(~strcmp(fullpathRin,  fullpathRconv))     delete(fullpathRin); end
 %%
 
 if(~strcmp(folder_output, folder_processing))

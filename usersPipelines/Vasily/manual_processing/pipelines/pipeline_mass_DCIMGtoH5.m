@@ -3,19 +3,19 @@ clear;
 close all;
 %%
 
-recording_names = [...
-    "Visual\m14\20210322\meas00"];...
-%      [rw.readlines("N:\GEVI_Wave\filelists\filelist_visual_asap3.txt")];
+recording_names = ["Spontaneous\m0101\20230815\meas0"+string(0:2), ...
+                   "Spontaneous\m0104\20230815\meas0"+string(4:6), ...
+                   "Spontaneous\m0105\20230815\meas0"+string(0:3)];
+%     [rw.readlines("N:\GEVI_Wave\filelists\filelist_anesthesia_ace.txt")];
 
+channels = ["G","R"];
+
+basefolder_raw = "R:\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% 
+basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
 
 binning = 8;
 maxRAM = 0.1;
 unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not accounted for.
-
-basefolder_raw = "\\VoltageRaw\DCIMG\GEVI_Wave\Raw\";
-basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
-
-channels = ["G","R"];
 %%
 
 MEs = {};

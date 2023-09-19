@@ -50,7 +50,7 @@ if isfile(h5path) && options.skip
     disps(sprintf('File %s exists, skipping\n',h5path));
     return
 else
-    disps(sprintf('File does not %s exists, converting\n',h5path));
+    disps(sprintf('File does not %s exist, converting\n',h5path));
     disps('First generating time stamps');
     genTimestamps(dcimgPath, options.skip);
     mkdirs(options.expPath);

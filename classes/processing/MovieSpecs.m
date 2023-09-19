@@ -57,6 +57,7 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
 
         function history_array = GetHistory(obj,n)
             if(nargin > 1)
+                if(n<0) n = length(obj.history)-abs(n)+1; end % e.g., n=-1 means last
                 history_array = obj.history{n};
             else
                 history_array = obj.history;
@@ -182,9 +183,15 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
         end
         
         function ttl_signal = getTTLTrace(obj, nT)
+            if(~obj.extra_specs.isKey('timestamps_table')) 
+                ttl_signal = [];
+                return;
+            end
             timestamps_table = obj.extra_specs('timestamps_table');
             ttl_column = find(string(strsplit(obj.extra_specs('timestamps_table_names'), ';')) == "behavior_ttl");
             ttl_signal = timestamps_table(obj.timeorigin:(obj.timeorigin + nT-1), ttl_column);
+
+%             if(isempty(ttl_signal)) ttl_signal = zeros(nT,1); end
         end       
         %%
         

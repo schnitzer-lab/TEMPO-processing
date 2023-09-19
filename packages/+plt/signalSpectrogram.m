@@ -5,10 +5,16 @@ function signalSpectrogram(m, w, dw, nw, varargin)
         options = getOptions(options, varargin);
     end
 
+    %%
 
-    st = proc.SpectrogramMultitaper(m, w, 'overlap', dw, 'nw',nw, ...
-        'correct1f', options.correct1f);
-    st = flip(st, 1);
+    st = proc.SpectrogramMultitaper(m, w, 'overlap', dw, 'nw', nw);
+    %%
+
+    if(~isempty(options.normalizeq))
+        baseline = quantile(st, options.normalizeq, 2);
+        st = (st)./baseline;
+    end  
+    %%
 
     fs = (0:(size(st, 1)-1))/(size(st, 1)-1)*options.fps/2;
     ts = ((0:(size(st,2)-1))*(w-dw) + (w-dw)/2 + options.frame0 - 1)/options.fps; % timestamps for spectrogram intervals
@@ -21,21 +27,37 @@ function signalSpectrogram(m, w, dw, nw, varargin)
                   find(fs <= options.flims(2), 1, 'last');
     frange_clim = find(fs >= options.f0 & fs >= options.flims(1), 1):...
                   find(fs <= options.flims(2), 1, 'last');
+    %%
+    
+    if(options.fillnan)
+        for i_f = 1:size(st,1)
+            st(i_f,:) = interp1(ts(~isnan(st(i_f,:))), st(i_f,~isnan(st(i_f,:))), ts);
+        end
+    end
+    st(fs < options.f0, :) = NaN;
+    %%
 
+    if(options.dotraces)
+        ax = subplot(4,4,[2:4,(2:4) + 4, (2:4) + 4*2 ]);
+    else
+        ax = subplot(1,1,1);
+    end
 
-    ax = subplot(4,4,[2:4,(2:4) + 4, (2:4) + 4*2 ])
-    st= flip(st,1);
-    imagesc(ts, fs(frange_plot), st(frange_plot, :)); 
+    im = imagesc(ts, fs, st); 
+    set(im, 'AlphaData', ~isnan(st));
     
     grid on;
     set(gca,'GridColor',[1 1 1]) 
+    set(gca,'YDir','normal')
 %     set(gca,'xticklabel',[], 'yticklabel', [])
     
     xlim([min(ts0), max(ts)]);
-%     ylim(minmax(fs));
+    ylim([min(options.flims(1)), max(options.flims(2))]);
+
     caxis([quantile(st(frange_clim,:), options.q(1), 'all'), ...
            quantile(st(frange_clim,:), options.q(2), 'all')])
-    if(~options.correct1f) set(gca,'ColorScale','log'); end
+%     if(isempty(options.normalizeq)) set(gca,'ColorScale','log'); end
+    set(gca,'ColorScale','log')
     colormap('jet');
     
     cb = colorbar;
@@ -43,40 +65,44 @@ function signalSpectrogram(m, w, dw, nw, varargin)
     % axis image
     title(options.title, 'Interpreter', 'none');
 
+    if(~options.dotraces)
+        xlabel("s"); ylabel("Hz");
+    end
     %%
 
-    subplot( 4,4,[(2:4) + 4*3 ])
-    plot(ts0, m); xlim([min(ts0), max(ts)]);
-    xlabel("s"); ylabel('signal');
-    grid on;
+    if(options.dotraces)
+    %%
+        subplot( 4,4,[(2:4) + 4*3 ])
+        plot(ts0, m); xlim([min(ts0), max(ts)]);
+        xlabel("s"); ylabel('signal');
+        grid on;
+        
+        xlim([min(ts0), max(ts)]);
+        %%
+        
+        subplot( 4,4,[1, 1+4, 1+4*2])
     
-    xlim([min(ts0), max(ts)]);
-    %%
+    %     nw0 = nw*length(m)/w;
+    %     z = pmtm(m, nw0); %out of memory for really long traces (n ~4e5) 
+        z = sum(st,2,'omitnan' );
     
-    subplot( 4,4,[1, 1+4, 1+4*2])
-
-
-%     nw0 = nw*length(m)/w;
-
-%     z = pmtm(m, nw0); %out of memory for really long traces (n ~4e5) 
-    z = sum(st,2,'omitnan' );
-
-    fs = (0:(length(z)-1))/(length(z)-1)*options.fps/2;
-    frange_plot = find(fs >= options.flims(1), 1): ...
-                  find(fs <= options.flims(2), 1, 'last');
-    frange_clim = find(fs >= options.f0 & fs >= options.flims(1), 1):...
-                  find(fs <= options.flims(2), 1, 'last');
-
-    if(~options.correct1f) semilogy(fs(frange_plot), z(frange_plot)); 
-    else plot(fs(frange_plot), z(frange_plot)); end
-
-    xlim(minmax(fs(frange_plot))); ylim(minmax(z(frange_clim)').*[1, 2])
-    xlabel("Hz"); ylabel('averaged spectrogram');
-    set(gca,'xaxisLocation','top');
-    set(gca,'yaxisLocation','right');
-    set(gca,'XDir','reverse'); camroll(90);
-    grid on;
+        fs = (0:(length(z)-1))/(length(z)-1)*options.fps/2;
+        frange_plot = find(fs >= options.flims(1), 1): ...
+                      find(fs <= options.flims(2), 1, 'last');
+        frange_clim = find(fs >= options.f0 & fs >= options.flims(1), 1):...
+                      find(fs <= options.flims(2), 1, 'last');
+        semilogy(fs(frange_plot), z(frange_plot))
+%         if(isempty(options.normalizeq)) semilogy(fs(frange_plot), z(frange_plot)); 
+%         else plot(fs(frange_plot), z(frange_plot)); end
+    
+        xlim(minmax(fs(frange_plot))); ylim(minmax(z(frange_clim)').*[1, 2])
+        xlabel("Hz"); ylabel('averaged spectrogram');
+        set(gca,'xaxisLocation','top');
+        set(gca,'yaxisLocation','right');
+        camroll(90);
+        grid on;
     %%
+    end
 end
 
 function options = defaultOptions()
@@ -87,7 +113,10 @@ function options = defaultOptions()
     options.f0 = 0; % minimum frequency to take into account for caxis limits
     options.q = [0.5, 1]; %quantiles for caxis limits
     options.title = "Spectrogram";
-    options.correct1f = false;
+%     options.correct1f = false;
+    options.normalizeq = [];
+    options.dotraces = true;
+    options.fillnan = false;
 end
 
 

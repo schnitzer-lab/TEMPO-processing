@@ -78,15 +78,12 @@ function [status,cmdout,summary]=ConvolutionPerPixelExt(fullpath_in,...
     if(status) error("external routine failed"); end
 
     %% summary
-    st = dbstack; functionname = st.name;
     if(~options.nodata) 
         movie_specs = rw.h5readMovieSpecs(fullpath_in);
-        movie_specs.AddToHistory(functionname);
+        movie_specs.AddToHistory(functionCallStruct(...
+            {'fullpath_in', 'fullfilterpath', 'fullpath_out', 'options'}));
         rw.h5saveMovieSpecs(fullpath_out, movie_specs);
-    end
-	summary = MakeSummary(options, execution_started, execution_started_tic);
-    h5save( fullpath_out, summary,  functionname);
-    
+    end   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -104,16 +101,4 @@ function options =  DefaultOptions()
     options.cmd = false;
     options.nodata = false;
 end
-
-
-function summary = MakeSummary(options, execution_started, tic_started)
-    if(nargin > 2)
-        summary.execution_duration=toc(tic_started);
-    end
-    summary.input_options=options;
-    summary.execution_started=execution_started;
-    summary.function_path=mfilename('fullpath');
-    summary.contact='Vasily'; % in case of problems or suggestions
-end
-
 

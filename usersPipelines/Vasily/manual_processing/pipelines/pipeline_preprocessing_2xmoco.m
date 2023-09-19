@@ -1,7 +1,8 @@
     
 % parpool('Threads');
 %%
-% recording_name = "Spontaneous\m53\20220509\meas01";%"Visual\m14\20210619\meas00";
+
+% recording_name = "Spontaneous\mv0104\20230815\meas04";%"Spontaneous\mv0104\20230815\meas04" %(short 22s recording for tests);
 % postfix_in1 = "cG_bin8";
 % postfix_in2 = "cR_bin8";
 % 
@@ -10,6 +11,7 @@
 % basefolder_output = "P:\GEVI_Wave\Preprocessed\";
 % 
 % maxRAM = 0.1;
+% skip_if_final_exists = true;
 %%
 
 folder_converted = fullfile(basefolder_converted, recording_name);

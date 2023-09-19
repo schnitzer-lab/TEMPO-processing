@@ -134,7 +134,6 @@ else % array loaded in memory
     options.TemplateFrame=num_frame_fixed; % which frame to take as a template ? on default the last one.
     fixed_frame = fixed(:,:,options.TemplateFrame);
     moving_frame = fliplr(moving(:,:,options.TemplateFrame));
-    
 end
 
 num_frame = num_frame_fixed;
@@ -152,8 +151,10 @@ summary.orig_fixed_frame=fixed_frame;
 summary.orig_moving_frame=moving_frame;
 
 summary.sim_metrics_before = evalRegQualityMetrics(fixed_frame, moving_frame, 'BandPass',false);
+%%
 
-
+fixed_frame = imputeNaNS(fixed_frame); 
+moving_frame = imputeNaNS(moving_frame);
 %% 1. Estimation of the transformation
 
 if options.plot
@@ -200,7 +201,7 @@ end
 
 summary.fixed_frame=fixed_frame;
 summary.moving_frame=moving_frame;
-
+%%
 
 disp('Registering the template frame');
 [Reg,regMethod, regScore] = imageReg(fixed_frame, moving_frame, options.interp);

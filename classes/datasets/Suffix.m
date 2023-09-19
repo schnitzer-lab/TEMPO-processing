@@ -127,11 +127,11 @@ classdef Suffix
             % nested function 
             function suffcheck()
                 if ~Suffix.is(suff)
-                    error('That''s not a valid Suffix')
+                    warning('That''s not a valid Suffix')
                 end
                 [hasSuffix]=Suffix.has(fpath);
                 if hasSuffix
-                    error('This file name has already a valid Suffix. Conider Suffix replacement');
+                    warning('This file name has already a valid Suffix. Conider Suffix replacement');
                 end
             end
         end

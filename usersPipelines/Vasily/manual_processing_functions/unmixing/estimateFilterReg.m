@@ -16,6 +16,7 @@ function [w,Wall] = estimateFilterReg(x1, x2, dn, dn_overlap, varargin)
             min([linspace(0, options.max_delay*pi, dn/2), pi, ...
                  linspace(options.max_delay*pi, 0, dn/2) ], ...
                 options.max_phase)';
+        options.max_phase(options.max_phase>pi) = pi;
     end
     
     nt = length(x1);
@@ -55,9 +56,15 @@ function [w,Wall] = estimateFilterReg(x1, x2, dn, dn_overlap, varargin)
         s(a_large&in_flim) = options.max_amp*(s(a_large&in_flim)./abs(s(a_large&in_flim)));
     end
 
-    phase_too_large = abs(angle(s)) > options.max_phase;
-    s(phase_too_large & abs(angle(s)) >= pi/2) = 0;
-    s(phase_too_large) = abs(s(phase_too_large)).*cos(angle(s(phase_too_large)));
+    % projecting s(f) on max_phase(f) direction if phase is too big
+    phase_too_large_p = angle(s) >  options.max_phase;
+    phase_too_large_n = angle(s) < -options.max_phase;
+    s(phase_too_large_p) = abs(s(phase_too_large_p)).*...
+        max(cos(angle(s(phase_too_large_p))-options.max_phase(phase_too_large_p)), 0).*...
+        exp(1.i*options.max_phase(phase_too_large_p));
+    s(phase_too_large_n) = abs(s(phase_too_large_n)).*...
+        max(cos(-angle(s(phase_too_large_n))-options.max_phase(phase_too_large_n)), 0).*...
+        exp(-1.i*options.max_phase(phase_too_large_n));
 %     s(phase_too_large) = 0;
 
     w = real(ifft(s));

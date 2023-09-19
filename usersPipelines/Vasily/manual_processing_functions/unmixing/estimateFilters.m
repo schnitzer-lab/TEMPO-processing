@@ -15,17 +15,22 @@ function Wxy = estimateFilters(Mg, Mr, dn, dn_overlap, varargin)
     Mr = reshape(Mr, [nx*ny, size(Mr,3)]);
 
 %     ppm = ParforProgressbar(nx*ny, 'title', 'estimateFilters: parfor progress');
+    
+
+
     parfor i_s = 1:(nx*ny)
         if(all(Mg(i_s,:) == 0) || all(Mr(i_s,:) == 0)) 
             Wxy(i_s, :) = nan(size(Wxy(i_s, :) )); 
             continue; 
-        end
+        end    
+        
 %         max_amp = options.max_amp_rel*abs(hilbert(Mr(i_s,:)')\hilbert(Mg(i_s,:)'));
+%         options.fref = [];
 
         Wxy(i_s, :) = estimateFilterReg(Mg(i_s,:)', Mr(i_s,:)', ...
             dn, dn_overlap, 'eps', options.eps,...
             'fref', options.fref, 'max_amp_rel', options.max_amp_rel, 'flim_max', options.flim_max, ....
-            'max_phase', options.max_phase, 'max_delay', options.max_delay); %ppm.increment();
+            'max_phase', options.max_phase, 'max_delay', options.max_delay); % , 'max_amp', max_amp % ppm.increment();
     end
 %     delete(ppm);
     

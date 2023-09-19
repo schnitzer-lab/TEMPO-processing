@@ -60,7 +60,7 @@ function fullpath_out = movieExtractRegionTrace(fullpath_movie, regions, varargi
     
     fig_traces = plt.getFigureByName("movieExtractRegionTrace: mean traces");
     plt.tracesComparison([m,m_reg], 'fps', specs.getFps(), 'fw', 0.25,...
-        'labels', ["initial", "region"]);
+        'labels', ["initial", "region"], 'spacebysd', 3);
     %%
     
     disp("movieExtractRegionTrace: saving")

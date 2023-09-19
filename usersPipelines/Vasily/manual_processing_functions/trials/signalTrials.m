@@ -1,4 +1,4 @@
-function [X_trials, window_stim] = signalTrials(X, ttl, varargin)
+function [X_trials, window_stim, intervals_stim] = signalTrials(X, ttl, varargin)
     %%
     
     options = defaultOptions();
@@ -36,7 +36,10 @@ function [X_trials, window_stim] = signalTrials(X, ttl, varargin)
     window_length = length(window_stim);
     
     X_trials = zeros([size(intervals{2},1)-2*options.drop, size(X,1), window_length]);
-
+    ttl_trials = zeros([size(intervals{2},1)-2*options.drop, size(X,1), window_length]);
+    
+    intervals_stim = intervals{2}((options.drop+1):(size(intervals{2},1)-options.drop),:);
+    
     for i_s = (1+options.drop):(size(intervals{2}, 1)-options.drop) 
         f_start = intervals{2}(i_s,2)-iti+...
                  (intervals{2}(i_s,3)-sti)*options.align_to_end;

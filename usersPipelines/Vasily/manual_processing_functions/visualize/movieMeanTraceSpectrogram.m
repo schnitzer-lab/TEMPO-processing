@@ -23,7 +23,7 @@ function movieMeanTraceSpectrogram(fullpath, varargin)
 
 %     [M, specs] = rw.h5readMovie(fullpath);
     specs = rw.h5readMovieSpecs(fullpath);
-    m =  rw.h5getMeanTrace(fullpath, 'ncols_read', options.ncols_read ); %squeeze(sum(M,[1,2], 'omitnan'));
+    m =  rw.h5getMeanTrace(fullpath, 'nframes_read', options.nframes_read ); %squeeze(sum(M,[1,2], 'omitnan'));
 %     clear('M');
     %%
 
@@ -36,7 +36,7 @@ function movieMeanTraceSpectrogram(fullpath, varargin)
 
     plt.signalSpectrogram(m, w, dw, nw, 'fps', specs.getFps(), 'f0', options.f0, 'frame0', specs.timeorigin, ...
         'title', "Spectrogram of the mean trace" + ...
-        " (dt=" +  num2str(options.timewindow) + "s, df=" + num2str(options.df) + "Hz)", 'correct1f', options.correct1f );
+        " (dt=" +  num2str(options.timewindow) + "s, df=" + num2str(options.df) + "Hz)");%, 'correct1f', options.correct1f );
 
     sgtitle({basepath, basefilename + postfix}, ...
         'FontSize', 12, 'interpreter', 'none');
@@ -53,8 +53,8 @@ function options = defaultOptions(basepath)
     options.overlap = 0.5;
     options.f0 = 0;
     options.df = 0.5;
-    options.ncols_read = Inf;
-    options.correct1f = false;
+    options.nframes_read = Inf;
+    %options.correct1f = false;
     
     options.processingdir = fullfile(basepath, "\processing\meanTraceSpectrogram\");
     options.skip = true;

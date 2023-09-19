@@ -38,6 +38,7 @@ function [lag, r, lags, xc] = xcorrLagFFT(x1, x2, upsample, maxlag, positive)
     lags = lags - floor((2+length(x1))/2);
 
     xc = xc(abs(lags) < maxlag);
+    lags = lags(abs(lags) < maxlag);
     if(~positive)
         [~, ind0] = max(abs(xc));
     else

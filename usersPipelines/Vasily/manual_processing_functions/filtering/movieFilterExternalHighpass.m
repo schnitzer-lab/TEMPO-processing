@@ -16,7 +16,7 @@ function fullpath_out_valid = ...
     movie_specs = rw.h5readMovieSpecs(fullpath);
     %%
     
-    paramssummary = ['f0=', num2str(f0)];
+    paramssummary = ['f0=', num2str(f0), 'wp', num2str(wp)];
     paramssummary_complete = ['highpass', paramssummary, ...
         'attn=', num2str(options.attn), 'rppl=',num2str(options.rppl), 'fps=', num2str(movie_specs.getFps())];
 

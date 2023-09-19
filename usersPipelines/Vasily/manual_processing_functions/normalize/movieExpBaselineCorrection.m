@@ -35,7 +35,11 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     
     disp("movieExpBaselineCorrection: fitting for the mean trace")
     ts = (1:size(Min, 3))';
-    meanmovie = double(squeeze(mean(Min, [1,2], 'omitnan')));
+
+    nan_mask = ones(size(Min, [1,2]));
+    if(~isempty(specs.getMask())) nan_mask(specs.getMask() == 0) = NaN; end
+
+    meanmovie = double(squeeze(mean(Min.*nan_mask, [1,2], 'omitnan')));
 
     % a - baseline fluorescence (F0); b1 - bleaching timescale; c1 - fraction of bleaching; c2 - first order approximation to slower dynamics
     baseline = @(a, b1, c1, c2, x) a.*(1 + c1.*exp(-x./b1) - c2.*x);  

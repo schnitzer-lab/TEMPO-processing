@@ -51,19 +51,20 @@ function [fullpath_out,lag] = ...
     %%
     
     if(options.lag_estimator == "phase")
-        nfft = 2^(ceil(log2((specs.getFps()/2) / 0.25))); %0.25Hz bin
+        nfft = 2^(ceil(log2((specs.getFps()/2) / 1))); %1Hz bin
         noverlap = round(nfft/2); 
-        cohxy = mscohere(m_in(options.ndrop:(end)), m_ref((options.ndrop):end), ...
-            hann(nfft),noverlap,nfft);
+%         cohxy = mscohere(m_in(options.ndrop:(end)), m_ref((options.ndrop):end), ...
+%             hann(nfft),noverlap,nfft);
         pxy = cpsd(m_in(options.ndrop:(end)), m_ref((options.ndrop):end), ...
             hann(nfft),noverlap,nfft); % Plot estimate
     
         fs = linspace(0,specs.getFps()/2, length(pxy));
-        pxy(cohxy < 0.1) = NaN;
+%         pxy(cohxy < 0.1) = NaN; % then unwrapping woudn't work
         pxy(fs < options.f0) = NaN;
         
         relative_phase = unwrap(angle(pxy))/2/pi;
-        coefs = robustfit(fs, relative_phase);
+        %%
+        coefs = robustfit(fs, relative_phase, 'welsch', 1, 'on');
         lag = -coefs(2)*specs.getFps();
 %%
         fig_phase = plt.getFigureByName("movieCompensateDelay: phase");
@@ -81,7 +82,7 @@ function [fullpath_out,lag] = ...
     if(options.lag_estimator == "xcorr")
         %%
         [lag, r, lags, xc] = ...
-            xcorrLagFFT(m_in(options.ndrop:end), m_ref(options.ndrop:end), 50, Inf, true);
+            xcorrLagFFT(m_in(options.ndrop:end), m_ref(options.ndrop:end), 50, specs.getFps(), true);
         %%
     
         fig_mean = plt.getFigureByName("moviesCompensateDelay: mean traces initial");

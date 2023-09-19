@@ -31,7 +31,7 @@ function fullpaths_out = movieMeanTraces(fullpaths, varargin)
     xs = [];
     labels = [];
     for i_f = 1:length(fullpaths)
-        x = rw.h5getMeanTrace(fullpaths(i_f), 'ncols_read', options.ncols_read );
+        x = rw.h5getMeanTrace(fullpaths(i_f), 'nframes_read', options.nframes_read );
         
         if(i_f > 1)
             if(length(x) < size(xs,1))
@@ -78,7 +78,7 @@ function options = defaultOptions(basepath)
     
     options.f0 = 0.5;
     options.fw = 0.2;
-    options.ncols_read = Inf;
+    options.nframes_read = Inf;
     options.skip = true;
     
     options.space = false;

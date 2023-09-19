@@ -16,6 +16,11 @@ function [conv_trans] = makeFilterHighpass(filterpath, f0, wp, varargin)
     gd = grpdelay(H); %TODO
     conv_trans = impz(H); %same as cell2mat({H.Numerator}')' for FIR filters 
     
+% %     to design a casual filter
+%     H = design(designSpecs, 'equiripple', 'minphase', true)
+%     conv_trans = impz(H);
+%     conv_trans = [zeros(length(conv_trans)-1,1); conv_trans]
+    
     if(options.verbose) disp("makeFilterBandpass: Filter created"); end
     
     writematrix(conv_trans, filterpath);

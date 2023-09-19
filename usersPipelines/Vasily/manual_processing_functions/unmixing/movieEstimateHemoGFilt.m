@@ -1,4 +1,4 @@
-function [fullpath_out, fullpathWxy_out, fullpathW0_out]  = ...
+    function [fullpath_out, fullpathWxy_out, fullpathW0_out]  = ...
     movieEstimateHemoGFilt(fullpath_g, fullpath_r, varargin)
     
 %     [basepath, basefilename, ext, postfix] = filenameSplit(fullpath_r, '_');
@@ -200,10 +200,10 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     mr_filt = squeeze(mean(Mr_filt,[1,2],'omitnan'));
     mg_nohemo  = squeeze(mean(Mg-Mr_filt, [1,2],'omitnan'));
     
-    plt.tracesComparison([mg, mr, mr_filt, mg_nohemo, mg-mr*(mr\mg)], ...
-        'labels',["ch1", "ch2", "hemo_toch1", "umx filter", "umx regression"] + " (mean)",...
+    plt.tracesComparison([mg, mr*(mr\mg), mr_filt, mg-mr*(mr\mg), mg_nohemo], ...
+        'labels',["ch1", "ch2", "hemo_toch1", "umx regression", "umx filter"] + " (mean)",...
         'fps', specs.getFps(), 'fw', 0.5, ...
-        'nomean', false, 'spacebysd', 2.5);
+        'nomean', false, 'spacebysd', 3);
     
     saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".png"))
     saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".fig"))
@@ -212,7 +212,9 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     
     fig_filt= plt.getFigureByName("movieEstimateHemoGFilt: Spatially-averaged filter");
     
-    w =  squeeze(mean(Wxy, [1,2], 'omitnan'));
+    nan_mask = ones(size(Wxy, [1,2]));
+    if(~isempty(specs.getMask())) nan_mask(specs.getMask() == 0) = NaN; end
+    w =  squeeze(mean(Wxy.*nan_mask, [1,2], 'omitnan'));
 
     zw = fft(w);
     fs = linspace(0,specs.getFps, length(zw));
@@ -228,8 +230,14 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     subplot(2,1,2)
     hold on;
     xline(options.fref, '--');
+    xline(options.flim_max, '-.');    
     hold off;
 
+%     yyaxis right
+%     a = angle(zw); % fftshift needed
+%     dt = (unwrap(mod(angle(zw)-pi/2, pi)+pi/2)-pi)/2/pi/specs.getFps()*1e3;
+%       plot(fs,dt');    ylim([-0.2,0.2])
+    
     saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filter" + ".png"))
     saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filter" + ".fig"))
 end

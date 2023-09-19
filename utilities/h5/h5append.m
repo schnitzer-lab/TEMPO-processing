@@ -29,7 +29,7 @@ function [info_h5,summary]=h5append(filename,movie,varargin)
 %% OPTIONS (Biafra style, type 'help getOptions' for details) or: https://github.com/schnitzer-lab/VoltageImagingAnalysis/wiki/'options':-structure-with-function-configuration
 options.contact='Radek Chrapkiewicz (radekch@stanford.edu)';
 options.dataset='mov'; %default dataset tname
-options.verbose=1;
+options.verbose=0;
 
 movieSize=size(movie); % unsually checking something here to define default chunk size
 if length(movieSize)<3

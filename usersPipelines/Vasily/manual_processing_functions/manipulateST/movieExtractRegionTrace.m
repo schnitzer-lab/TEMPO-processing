@@ -1,4 +1,4 @@
-function fullpath_out = movieExtractRegionTrace(fullpath_movie, regions, varargin)
+function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, regions, varargin)
     
     [basepath, filename, ext, basefilename, channel, postfix] = ...
         filenameParts(fullpath_movie);
@@ -7,24 +7,35 @@ function fullpath_out = movieExtractRegionTrace(fullpath_movie, regions, varargi
     if(~isempty(varargin))
         options = getOptions(options, varargin);
     end
+    %%
 
-    postfix_new = "_"+strjoin(string(regions),'+')+"trace";
+    if(~iscell(regions)) regions = num2cell(regions); end
     %%
     
-    if (~isfolder(options.outdir)) mkdir(options.outdir); end
-    if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
+    postfix_new_all = "_"+cellfun(@(s) strjoin(string(s),'+'), regions)+"trace";
+    filename_out_all = basefilename+channel+postfix+postfix_new_all;
+    fullpath_out_all = fullfile(options.outdir, filename_out_all + ext);
 
-    filename_out = basefilename+channel+postfix+postfix_new;
-    fullpath_out = fullfile(options.outdir, filename_out + ext);
-    
-    if (isfile(fullpath_out))
+    if (all(isfile(fullpath_out_all)))
         if(options.skip)
-            disp("movieExtractRegionTrace: Output file exists. Skipping: " + fullpath_out)
+            disp("movieExtractRegionTrace: All output files exist. Skipping: " + strjoin(fullpath_out_all, ', '))
             return;
         else
-            warning("movieExtractRegionTrace: Output file exists. Deleting: " + fullpath_out);
-            delete(fullpath_out);
+            warning("movieExtractRegionTrace: Output files exist. Deleting: " + strjoin(fullpath_out_all, ', '));
+            arrayfun(@(p) delete(p) , fullpath_out_all(isfile(fullpath_out_all)));
         end     
+    end
+
+    if (~isfolder(options.outdir)) mkdir(options.outdir); end
+    if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
+    %%
+    
+    specs = rw.h5readMovieSpecs(fullpath_movie);
+    if(isempty(specs.getAllenOutlines()))
+        error("movieExtractRegionTrace: no allen outlines found: " + fullpath_movie)
+    end
+    if(isempty(specs.getMask()))
+        warning("movieExtractRegionTrace: no mask found: " + fullpath_movie)
     end
     %%
     
@@ -39,55 +50,76 @@ function fullpath_out = movieExtractRegionTrace(fullpath_movie, regions, varargi
         M = M.*repmat(mask, [1,1,size(M,3)]);
     end
     %%
+    
+    for i_r = 1:length(regions)
+    %% 
+    
+        region = regions{i_r};
+        postfix_new = postfix_new_all(i_r);
+        filename_out = filename_out_all(i_r);
+        fullpath_out = fullpath_out_all(i_r);
+        if(isfile(fullpath_out) && options.skip) continue; end       
+    %%
 
-    if(isstring(regions) || ischar(regions))
-        regions = options.regions_map(regions);
+        disp("movieExtractRegionTrace: extracting trace " + postfix_new);
+
+        if(isstring(region) || ischar(region))
+            region = options.regions_map(region);
+        end    
+        %%
+    
+        fig_roi = plt.getFigureByName("movieExtractRegionTrace: selected roi");
+        
+        contours= cell(length(region),1);
+        for i_c = 1:length(region)
+            contours{i_c} = specs.getAllenOutlines(region(i_c));
+        end
+        if(isempty(contours{1}))
+            error("movieExtractRegionTrace: no region " + strjoin(string(region),"+") + " found")
+        end
+        
+        [m_reg, mask_reg] = ...
+           movieRegion2Trace(M, contours, 'switchxy', false, 'plot', true);
+        mask_full = (~any(isnan(M), 3)) & mask_reg;
+
+        
+        %%
+        
+        disp("movieExtractRegionTrace: plotting")
+        
+        fig_traces = plt.getFigureByName("movieExtractRegionTrace: mean traces");
+        plt.tracesComparison([m,m_reg], 'fps', specs.getFps(), 'fw', 0.25,...
+            'labels', ["initial", "region"], 'spacebysd', 3);
+        drawnow;
+        %%
+        
+        disp("movieExtractRegionTrace: saving")
+        
+        specs_out = copy(specs);
+        specs_out.AddToHistory(functionCallStruct({'fullpath_movie','regions','options'}));
+        specs_out.AddBinning(sqrt(sum(mask_full, 'all')));
+    
+        if(specs.extra_specs.isKey("F0"))
+            A = specs.extra_specs("F0");
+            specs_out.extra_specs("F0") =  mean(A(mask_full), 'all');
+        elseif(specs.extra_specs.isKey("expBaseline_A"))
+            A = specs.extra_specs("expBaseline_A");
+            specs_out.extra_specs("expBaseline_A") =  mean(A(mask_full), 'all');
+        elseif(specs.extra_specs.isKey("mean_substracted")) 
+            A = specs.extra_specs("mean_substracted");
+            specs_out.extra_specs("mean_substracted") =  mean(A(mask_full), 'all');
+        end
+        %%
+        
+        rw.h5saveMovie(fullpath_out, reshape(m_reg, [1,1,length(m_reg)]), specs_out);
+        %%
+        
+        saveas(fig_roi, fullfile(options.diagnosticdir, filename_out + "_masking.png"))
+        saveas(fig_roi, fullfile(options.diagnosticdir, filename_out + "_masking.fig"))
+        saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "_traces.png"))
+        saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "_traces.fig"))
+        %%
     end
-
-    %%
-
-    fig_roi = plt.getFigureByName("movieExtractRegionTrace: selected roi");
-    
-    contours= cell(length(regions),1);
-    for i_c = 1:length(regions)
-        contours{i_c} = specs.getAllenOutlines(regions(i_c));
-    end
-    
-    [m_reg, mask_reg] = ...
-       movieRegion2Trace(M, contours, 'switchxy', false, 'plot', true);
-    mask_full = (~any(isnan(M), 3)) & mask_reg;
-    %%
-    
-    fig_traces = plt.getFigureByName("movieExtractRegionTrace: mean traces");
-    plt.tracesComparison([m,m_reg], 'fps', specs.getFps(), 'fw', 0.25,...
-        'labels', ["initial", "region"], 'spacebysd', 3);
-    %%
-    
-    disp("movieExtractRegionTrace: saving")
-    
-    specs_out = copy(specs);
-    specs_out.AddToHistory(functionCallStruct({'fullpath_movie','regions','options'}));
-    specs_out.AddBinning(sqrt(sum(mask_full, 'all')));
-
-    if(specs.extra_specs.isKey("F0"))
-        A = specs.extra_specs("F0");
-        specs_out.extra_specs("F0") =  mean(A(mask_full), 'all');
-    elseif(specs.extra_specs.isKey("expBaseline_A"))
-        A = specs.extra_specs("expBaseline_A");
-        specs_out.extra_specs("expBaseline_A") =  mean(A(mask_full), 'all');
-    elseif(specs.extra_specs.isKey("mean_substracted")) 
-        A = specs.extra_specs("mean_substracted");
-        specs_out.extra_specs("mean_substracted") =  mean(A(mask_full), 'all');
-    end
-    %%
-    
-    rw.h5saveMovie(fullpath_out, reshape(m_reg, [1,1,length(m_reg)]), specs_out);
-    %%
-    
-    saveas(fig_roi, fullfile(options.diagnosticdir, filename_out + "_masking.png"))
-    saveas(fig_roi, fullfile(options.diagnosticdir, filename_out + "_masking.fig"))
-    saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "_traces.png"))
-    saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "_traces.fig"))
 end
 %%
 
@@ -95,6 +127,7 @@ function options = defaultOptions(basepath)
     
     options.diagnosticdir = basepath + "\diagnostic\extractRegionTrace\";
     options.outdir = basepath;
+    
     options.skip = true;
 
     options.regions_map = containers.Map(...

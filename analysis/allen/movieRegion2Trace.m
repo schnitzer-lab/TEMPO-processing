@@ -7,7 +7,11 @@ function [trace, mask] = movieRegion2Trace(movie,contours,varargin)
         options=getOptions(options,varargin(1:end)); % CHECK IF NUMBER OF THE OPTION ARGUMENT OK!
     end
     
-    if(options.plot) imshow(std(movie,[],3), []); hold on; end
+    if(options.plot) 
+        movie_2d = std(movie,[],3);
+        im = imshow(movie_2d, []); hold on; 
+        set(im, 'AlphaData', ~isnan(movie_2d) );
+    end
     if(~iscell(contours)) contours = {contours}; end
 
     mask = zeros(size(movie,[1,2]));

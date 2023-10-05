@@ -59,7 +59,7 @@ function options = defaultOptions(M)
 %     options.mmin = min(M(:), [], 'omitnan'); %mean(M(:), 'omitnan');%
 %     options.mmax = max(M(:), [], 'omitnan');
     options.background_value = mean(M(:), 'omitnan');
-    options.text_value = min(M(:), [], 'omitnan');
+    options.text_value = -max(abs(M(:)), [], 'omitnan');
     
     options.title = "";
     options.fontsize_title = -1;

@@ -52,6 +52,7 @@ options.ThresholdValue=0;
 
 options.TemplateFrame=[]; 
 options.interp = 'linear';% imwarp interpolation method
+options.shifts0 = [0,0];
 
 % display control
 options.plot=true;
@@ -204,7 +205,7 @@ summary.moving_frame=moving_frame;
 %%
 
 disp('Registering the template frame');
-[Reg,regMethod, regScore] = imageReg(fixed_frame, moving_frame, options.interp);
+[Reg,regMethod, regScore] = imageReg(fixed_frame, moving_frame, options.interp, options.shifts0);
 disp('Transformation found');
 
 reg_frame=Reg.RegisteredImage;

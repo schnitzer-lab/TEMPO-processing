@@ -10,6 +10,8 @@
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 % basefolder_output = "P:\GEVI_Wave\Preprocessed\";
 % 
+% shifts0 = [20,0]; % pix, between R and G channel due to cameras misalignment
+%
 % maxRAM = 0.1;
 % skip_if_final_exists = true;
 %%
@@ -51,7 +53,7 @@ if(~isempty(result))
 end
 %%
 
-moviesCompareTimestamps(folder_converted);
+% moviesCompareTimestamps(folder_converted);
 %%
 
 if(~strcmp(folder_converted, folder_processing))
@@ -74,7 +76,7 @@ end
 
 warning('fix regMovies!')
 options_reg= struct('BandPass', true, 'BandPx', [2,10], 'interp', 'linear', ...
-     'docrop', false, 'maxRAM', maxRAM, 'skip', true); 
+     'docrop', false, 'maxRAM', maxRAM, 'skip', true, shifts0 = shifts0); 
 [h5path1_reg, h5path2_reg, summary_or] = ...
     regMovies(char(h5path1_mc), char(h5path2_mc), options_reg);
 delete(h5path1_reg)

@@ -14,6 +14,8 @@ basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
 basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 basefolder_output = "P:\GEVI_Wave\Preprocessed\";
 
+shifts0 = [20,0]; % pix, between R and G channel due to cameras misalignment
+
 maxRAM = 0.1;
 % parpool('Threads');
 %%

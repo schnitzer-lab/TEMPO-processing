@@ -28,18 +28,6 @@ function moviePlotTraceStim(fullpath_movie, regions, varargin)
     for i_r = 1:length(regions)
         region_name = regions{i_r};
         if(ischar(region_name)) region_name = string(region_name); end
-        
-        %%
-        fullpath_out = fullfile(options.processingdir, filename+"_"+string(region_name)+"_stim"+"_"+options.align_to+".h5");
-        if(isfile(fullpath_out))
-            if(options.skip)
-                disp("moviePlotTraceStim: output file exists. Skipping: " + fullpath_out)
-                return;
-            else
-                warning("moviePlotTraceStim: output file exists. Deleting: " + fullpath_out);
-                delete(fullpath_out);
-            end   
-        end
 
         %%
         fig_roi = plt.getFigureByName('roi');
@@ -60,12 +48,27 @@ function moviePlotTraceStim(fullpath_movie, regions, varargin)
                         'switchxy', false, 'plot', true);
             end
         end
+        
+        %%        
+        fullpath_out = fullfile(options.processingdir, filename+"_"+string(region_name)+"_stim"+"_"+options.align_to+".h5");
+        if(isfile(fullpath_out))
+            if(options.skip)
+                disp("moviePlotTraceStim: output file exists. Skipping: " + fullpath_out)
+                return;
+            else
+                warning("moviePlotTraceStim: output file exists. Deleting: " + fullpath_out);
+                delete(fullpath_out);
+            end   
+        end
+
+        %%
+
         saveas(fig_roi, fullfile(options.processingdir, filename+"_"+region_name+"_roi.fig"))
         saveas(fig_roi, fullfile(options.processingdir, filename+"_"+region_name+"_roi.png"))
     
         ttl_signal = specs.getTTLTrace(size(M,3));
         %%
-        
+        %%
         fig_traces = plt.getFigureByName("moviePlotTraceStim: traces"); clf;
         
         plt.tracesComparison([ttl_signal/2,  m_reg/std(m_reg)], ...
@@ -198,7 +201,7 @@ function moviePlotTraceStim(fullpath_movie, regions, varargin)
         
         
 %         cs = [0,500];%
-        cs = quantile( wt_plot(:)*100, [0.005,0.998], 'all');%
+        cs = quantile( wt_plot(:)*100, [0.01,0.99], 'all');%
         hpc = pcolor(ts1, frq1*specs.getFps(),  wt_plot*100); 
         set(hpc, 'EdgeColor', 'none');
         ax_spec = gca();
@@ -216,7 +219,7 @@ function moviePlotTraceStim(fullpath_movie, regions, varargin)
         ylabel('Frequency (Hz)', 'FontSize', 15)
         % xticks(-2:0.25:2); xlim([-1.25,1.25]);
         colormap('jet')
-        % set(gca, 'ColorScale', 'Log')
+%         set(gca, 'ColorScale', 'Log')
         
         title({basepath, filename + " " + region_name}, 'Interpreter', 'none', 'FontSize', 12)
         fig_spec.Position = [fig_spec.Position(1:2), 500,400];

@@ -3,7 +3,8 @@ clear;
 close all;
 %%
 
-recording_names =  ["\Anesthesia\mv0104\20230926\meas"+arrayfun(@(k) string(num2str(k,'%02.f')), 0:24)];
+recording_names =  ["\Visual\ms2102\20231020\meas"+arrayfun(@(k) string(num2str(k,'%02.f')), 0:1),...
+                    "\Visual\ms2103\20231021\meas"+arrayfun(@(k) string(num2str(k,'%02.f')), 0:1)];
 %     [rw.readlines("N:\GEVI_Wave\filelists\filelist_anesthesia_ace.txt")];
 
 channels = ["G","R"];
@@ -20,15 +21,17 @@ unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not a
 
 shifts0 = [20,0]; % pix, between R and G channel due to cameras misalignment
 
-mouse_state = "anesthesia";% "awake"; %"anesthesia"
+mouse_state = "awake";% "awake"; %"anesthesia"
 crosstalk_matrix =  [[1, 0]; [0.07, 1]]; %[[1, 0]; [0.095, 1]]; %
 frame_range = [20, inf];
 
-% parpool('Threads');
+%%
+
+parpool('Threads');
 %%
 
 MEs_conv = {};
-for i_f = [10,11,13,16,20,21]+1%1:length(recording_names)
+for i_f = 1:length(recording_names)
     %%
     recording_name = recording_names(i_f);
     

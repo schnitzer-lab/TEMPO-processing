@@ -149,6 +149,13 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
             obj.extra_specs('frange_valid') = frange;
         end
 
+        function frange = getFrequencyRange(obj, ind)
+            frange = obj.extra_specs('frange_valid');
+            if(nargin > 1)
+                frange = frange(ind);
+            end
+        end
+
         function outlines = getAllenOutlines(obj, outlines_nums)
             if(obj.extra_specs.isKey("allenMapEdgeOutline"))
                 raw_outlines = obj.extra_specs("allenMapEdgeOutline");

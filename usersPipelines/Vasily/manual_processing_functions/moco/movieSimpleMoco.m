@@ -68,7 +68,12 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
 
         if(options.impute_nan) 
             Mf = imputeNaNT(Mf); 
-        else
+
+            if(any(isnan(Mf(:))))
+                warning("movieSimpleMoco: constant shift")
+                Mf = imputeNaNS(Mf);
+            end
+         else
             nan_mask = (nan_mask | any(isnan(Mf),3));
             Mf(repmat(nan_mask, [1,1,size(Mf,3)])) = 0;
         end

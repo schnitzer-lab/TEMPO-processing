@@ -85,7 +85,7 @@ fullpathGor = movieRemoveOutlierFrames(fullpathGex, 'n_sd', 5, 'dt', 10);
 fullpathRor = movieRemoveOutlierFrames(fullpathRex, 'n_sd', 5, 'dt', 10);
 %%
 
-% for movies where cameras wer en't started synchroniously 
+% for movies where cameras weren't started synchroniously 
 % (i.e. left on internal trigger) - find delay throug mean traces xcorr (hemo frequency)
 fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, ...
     'min_lag_frames', 0.5, 'lag_estimator', 'phase' , 'f0', 30); % 'lag_estimator' , 'xcorr' % 'lag_estimator', 'phase' , 'f0', 30
@@ -101,6 +101,8 @@ delay = 0;
 
 fullpathGbl = movieExpBaselineCorrection(fullpathGdx, 'skip', true); 
 fullpathRbl = movieExpBaselineCorrection(fullpathRdx, 'skip', true);
+% fullpathGbl = movieRemoveMean(fullpathGdx, 'skip', true); 
+% fullpathRbl = movieRemoveMean(fullpathRdx, 'skip', true);
 %%
 
 % Make sure that filter resonable, if not increase wp or decrease attn;
@@ -126,13 +128,14 @@ fullpathRhp = movieFilterExternalHighpass(fullpathRbl, f0_hp, wp, options_highpa
 movieSavePreviewVideos(fullpathRhp, 'title', 'filtered')
 %%
 
+
 if mouse_state == "anesthesia"
     options_hfilt = ...
-        struct('skip', true, 'dt', 2, 'average_mm', 1, ...
+        struct('skip', true, 'dt', 2, 'average_mm', 2, ...
                'max_amp_rel', 1.1, 'flim_max', 20, 'max_delay', 30e-3, 'eps', 1e-8);
 elseif mouse_state == "awake"
     options_hfilt = ...
-        struct('skip', true, 'dt', 1, 'average_mm', 1, ...
+        struct('skip', true, 'dt', 1, 'average_mm', 2, ...
                'max_amp_rel', 1.1, 'flim_max', 20, 'eps', 1e-8);
 else
     error('state must be "anesthesia" or "awake"');

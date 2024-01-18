@@ -1,15 +1,20 @@
 
-clear;
-close all;
+% clear;
+% close all;
 %%
 
-recording_names =  ["\Visual\ms2102\20231020\meas"+arrayfun(@(k) string(num2str(k,'%02.f')), 0:1),...
-                    "\Visual\ms2103\20231021\meas"+arrayfun(@(k) string(num2str(k,'%02.f')), 0:1)];
+% basefolder_raw = "\\Bfm\b\Michelle_temp\GEVI_Wave\Raw\";
+% files = dir(basefolder_raw + "\Visual\**\meas*");
+% recording_names = arrayfun(@(f) string(fullfile(f.folder, f.name)), files);
+% recording_names = erase(recording_names, basefolder_raw);
+%%
+recording_names =  ["Visual\m58\20220125\meas00", "Visual\m59\20220125\meas00"];
+%                     "\Visual\ms2103\20231021\meas"+arrayfun(@(k) string(num2str(k,'%02.f')), 0:1)];
 %     [rw.readlines("N:\GEVI_Wave\filelists\filelist_anesthesia_ace.txt")];
 
 channels = ["G","R"];
 
-basefolder_raw = "R:\GEVI_Wave\Raw\";
+basefolder_raw = "\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
 basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
@@ -19,7 +24,7 @@ binning = 8;
 maxRAM = 0.1;
 unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not accounted for.
 
-shifts0 = [20,0]; % pix, between R and G channel due to cameras misalignment
+shifts0 = [0,0]; %[20,0]; % pix, between R and G channel due to cameras misalignment
 
 mouse_state = "awake";% "awake"; %"anesthesia"
 crosstalk_matrix =  [[1, 0]; [0.07, 1]]; %[[1, 0]; [0.095, 1]]; %

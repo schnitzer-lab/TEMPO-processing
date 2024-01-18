@@ -73,7 +73,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
 
     disp("movieRemoveOutlierFrames: plotting")
     
-    m_out = squeeze(mean(M,[1,2],'omitnan'));
+    m_out = squeeze(sum(M,[1,2],'omitnan'));
 
     fig_traces = plt.getFigureByName("movieRemoveOutlierFrames: mean traces");
     plt.tracesComparison([m,m_out],...

@@ -25,7 +25,7 @@
 % st = proc.SpectrogramMultitaper(x, w, 'overlap', dw);
 % imagesc(st);  set(gca,'ColorScale','log')
 %
-function st = SpectrogramMultitaper(x, w, varargin)
+function [st,f,t] = SpectrogramMultitaper(x, w, varargin)
 
     options = DefaultOptions(w);
     if nargin>=2
@@ -45,8 +45,8 @@ function st = SpectrogramMultitaper(x, w, varargin)
         xrange = (1+(i_t-1)*(w - options.overlap ) ):(w + (i_t-1)*(w - options.overlap ) );
         
         if(~any(isnan(x(xrange))))
-            z = pmtm(x(xrange), options.nw, w, ...
-                    'DropLastTaper', options.DropLastTaper);
+            [z,f] = pmtm(x(xrange), options.nw, w, ...
+                    'DropLastTaper', options.DropLastTaper, options.fps);
         % in matlab 2020b one can do: 'Tapers','sine'
             if(options.correct1f)
                 fs = (1:length(z))';
@@ -67,7 +67,10 @@ function st = SpectrogramMultitaper(x, w, varargin)
             st(:,i_t) = NaN(length(st(:,i_t)),1);
         end
     end
-
+    
+%     f = (0:(size(st, 1)-1))/(size(st, 1)-1)*specs.getFps()/2;
+    t = ((0:(size(st,2)-1))*(w-options.overlap) + (w-options.overlap)/2)'; % timestamps for spectrogram intervals
+    if(~isempty(options.fps)) t = t/options.fps; end
 end
 
 
@@ -76,4 +79,6 @@ function options =  DefaultOptions(w)
     options.nw = 1;
     options.correct1f = false; %correct for 1/f^a specral decay
     options.DropLastTaper = false;
+    
+    options.fps = [];
 end

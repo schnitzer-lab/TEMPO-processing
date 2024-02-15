@@ -32,14 +32,28 @@ function movieMeanTraceSpectrogram(fullpath, varargin)
     dw = round(w*options.overlap);
     nw = options.df*w/specs.getFps()/2;
 
+    [st,fs,ts] = proc.SpectrogramMultitaper(m, w, 'overlap', dw, 'nw', nw, 'fps', specs.getFps());
+    
+    ts = ts + (specs.timeorigin-1)/specs.getFps();
+    
+    st(fs < specs.getFrequencyRange(1) | fs > specs.getFrequencyRange(2), :) = [];
+    fs(fs < specs.getFrequencyRange(1) | fs > specs.getFrequencyRange(2)) = [];  
+    %%
+    
     fig = plt.getFigureByName("movieMeanTraceSpectrogram");
+%     sgtitle({basepath, basefilename + postfix}, ...
+%         'FontSize', 12, 'interpreter', 'none');
 
-    plt.signalSpectrogram(m, w, dw, nw, 'fps', specs.getFps(), 'f0', options.f0, 'frame0', specs.timeorigin, ...
-        'title', "Spectrogram of the mean trace" + ...
-        " (dt=" +  num2str(options.timewindow) + "s, df=" + num2str(options.df) + "Hz)");%, 'correct1f', options.correct1f );
-
-    sgtitle({basepath, basefilename + postfix}, ...
-        'FontSize', 12, 'interpreter', 'none');
+    options_spectrogram = struct('q', [0.001, 0.999], 'flims_plot', [0, specs.getFps()/2], ...
+        'trace', m, 'trace_ts', ((0:(length(m)-1)) + (specs.timeorigin-1))'/specs.getFps(), ...
+        'spectra', mean(st, 2, 'omitnan'), 'spectra_fs', fs, ...
+        'title', [basepath, basefilename + postfix,...
+            "Spectrogram of the mean trace"+" (dt=" +  num2str(options.timewindow) + ...
+            "s, df=" + num2str(options.df) + "Hz)"]);
+        
+    plt.signalSpectrogram(st, ts, fs, options_spectrogram);
+    
+    %%
 
     saveas(fig, fullfile(options.processingdir, basefilename + postfix + ".png"));
     saveas(fig, fullfile(options.processingdir, basefilename + postfix + ".fig"));
@@ -49,10 +63,10 @@ end
 
 function options = defaultOptions(basepath)
     
-    options.timewindow = 5;
+    options.timewindow = 2;
     options.overlap = 0.5;
     options.f0 = 0;
-    options.df = 0.5;
+    options.df = 1;
     options.nframes_read = Inf;
     %options.correct1f = false;
     

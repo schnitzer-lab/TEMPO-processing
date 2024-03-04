@@ -150,7 +150,11 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
         end
 
         function frange = getFrequencyRange(obj, ind)
-            frange = obj.extra_specs('frange_valid');
+            if(isKey(obj.extra_specs, 'frange_valid'))
+                frange = obj.extra_specs('frange_valid');
+            else
+                frange = [0, obj.fps];
+            end
             if(nargin > 1)
                 frange = frange(ind);
             end
@@ -187,6 +191,14 @@ classdef MovieSpecs < SimpleHandle & matlab.mixin.Copyable
                 warning("No mask found");
                 mask = [];
             end
+        end
+        
+        function mask_nan = getMaskNaN(obj, movie_size)
+            if(nargin < 2) movie_size = []; end
+            
+            mask = obj.getMask(movie_size);
+            mask_nan = nan(size(mask));
+            mask_nan(logical(mask)) = 1;
         end
         
         function ttl_signal = getTTLTrace(obj, nT)

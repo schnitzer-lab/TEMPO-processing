@@ -76,7 +76,7 @@ end
 
 warning('fix regMovies!')
 options_reg= struct('BandPass', true, 'BandPx', [2,10], 'interp', 'linear', ...
-     'docrop', false, 'maxRAM', maxRAM, 'skip', true, shifts0 = shifts0); 
+     'docrop', false, 'maxRAM', maxRAM, 'skip', true, 'shifts0', shifts0); 
 [h5path1_reg, h5path2_reg, summary_or] = ...
     regMovies(char(h5path1_mc), char(h5path2_mc), options_reg);
 delete(h5path1_reg)

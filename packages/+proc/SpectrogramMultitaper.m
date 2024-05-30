@@ -56,7 +56,7 @@ function [st,f,t] = SpectrogramMultitaper(x, w, varargin)
     end
     
 %     f = (0:(size(st, 1)-1))/(size(st, 1)-1)*specs.getFps()/2;
-    t = ((0:(size(st,2)-1))*(w-options.overlap) + (w-options.overlap)/2)'; % timestamps for spectrogram intervals
+    t = ((0:(size(st,2)-1))*(w-options.overlap) + (w)/2)'; % timestamps for spectrogram intervals
     if(~isempty(options.fps)) t = t/options.fps; end
 end
 

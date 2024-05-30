@@ -22,7 +22,7 @@ function movie_mean = h5getMeanTrace(h5filename, varargin)
             movie_current = movie_current.*nan_mask; %(:,i_c:(i_c+nrows_read-1));
         end
 
-        movie_total(i_c:(i_c+nframes_read-1)) = sum(movie_current, [1,2], 'omitnan');
+        movie_total(i_c:(i_c+nframes_read-1)) = mean(movie_current, [1,2], 'omitnan');
     end
 
 %     xy_size = prod(movie_size(1:2));

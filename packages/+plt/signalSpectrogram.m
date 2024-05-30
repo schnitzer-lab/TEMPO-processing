@@ -30,21 +30,17 @@ function signalSpectrogram(st, ts, fs, varargin)
     end
     %%
     
-    ax_spectrogram = []; ax_trace = []; ax_spectra = [];
+    ax_spectrogram = options.ax_spectrogram; ax_trace = []; ax_spectra = [];
     
-    if(isempty(options.trace) && isempty(options.spectra))
+    if(isempty(options.trace) && isempty(options.spectra) && isempty(ax_spectrogram))
         ax_spectrogram = subplot(1,1,1);
-        ax_trace = [];
-        ax_spectra = [];
-    elseif(~isempty(options.trace) && isempty(options.spectra))
+    elseif(~isempty(options.trace) && isempty(options.spectra) && isempty(ax_trace))
         ax_spectrogram = subplot(4,4,[1:4,(1:4) + 4, (1:4) + 4*2 ]); 
-        ax_trace = subplot(4,4,[(1:4) + 4*3 ]);
-        ax_spectra = [];     
-    elseif(isempty(options.trace) && ~isempty(options.spectra))
+        ax_trace = subplot(4,4,[(1:4) + 4*3 ]);   
+    elseif(isempty(options.trace) && ~isempty(options.spectra) && isempty(ax_spectra))
         ax_spectrogram = subplot(4,4,[2:4,(2:4) + 4, (2:4) + 4*2, (2:4) + 4*3]);  
-        ax_trace = [];
         ax_spectra = subplot(4,4,[1,1 + 4, 1 + 4*2, 1 + 4*3]);          
-    elseif(~isempty(options.trace) && ~isempty(options.spectra))
+    elseif(~isempty(options.trace) && ~isempty(options.spectra) && isempty(ax_trace) && isempty(ax_spectra))
         ax_spectrogram = subplot(4,4,[2:4,(2:4) + 4, (2:4) + 4*2 ]);
         ax_trace = subplot(4,4,[(2:4) + 4*3 ]);
         ax_spectra = subplot(4,4,[1,1 + 4, 1 + 4*2]);
@@ -73,7 +69,7 @@ function signalSpectrogram(st, ts, fs, varargin)
     cb = colorbar;
     set(ax_spectrogram, 'Position', originalSize);
     
-    title(options.title, 'Interpreter', 'none');
+    title(options.title, 'Interpreter', 'none', 'FontSize', 8);
         
     xlabel("s"); ylabel("Hz");
 
@@ -100,7 +96,7 @@ function signalSpectrogram(st, ts, fs, varargin)
     
     if(~isempty(options.spectra))
         
-        set(ax_spectrogram,'yticklabel',[])
+%         set(ax_spectrogram,'yticklabel',[])
         set(ax_spectrogram,'ylabel',[])
         axes(ax_spectra)
         
@@ -138,6 +134,8 @@ function options = defaultOptions()
     options.trace_ts = [];
     options.spectra = [];
     options.spectra_fs = [];
+
+    options.ax_spectrogram = [];
 end
 
 

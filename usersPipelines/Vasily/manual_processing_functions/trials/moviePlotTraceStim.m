@@ -17,8 +17,10 @@ function moviePlotTraceStim(fullpath_movie, regions, varargin)
 
     [M,specs] = rw.h5readMovie(fullfile(basepath, filename + ".h5"));
     
-    nan_mask = double(specs.getMask()); nan_mask(~nan_mask) = NaN;
-    M = M.*nan_mask;
+    if(~isempty(specs.getMask()))
+        nan_mask = double(specs.getMask()); nan_mask(~nan_mask) = NaN;
+        M = M.*nan_mask;
+    end    
     %%
     
     disp("moviePlotTraceStim: getting region trace")

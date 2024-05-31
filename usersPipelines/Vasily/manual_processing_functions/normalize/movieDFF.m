@@ -38,8 +38,10 @@ function fullpath_out = movieDFF(fullpath_movie, varargin)
         [M0, specs0] = rw.h5readMovie(options.fullpathM0); 
         M_mean = mean(M0, 3);
         clear('M0');
-    elseif(specs.extra_specs.isKey("expBaseline_A"))
-        M_mean = specs.extra_specs("expBaseline_A");
+    elseif(specs.extra_specs.isKey("expBaseline_end"))
+        M_mean = specs.extra_specs("expBaseline_end");
+%     elseif(specs.extra_specs.isKey("expBaseline_A"))
+%         M_mean = specs.extra_specs("expBaseline_A");
     elseif(specs.extra_specs.isKey("mean_substracted")) 
         M_mean = specs.extra_specs("mean_substracted");
     else

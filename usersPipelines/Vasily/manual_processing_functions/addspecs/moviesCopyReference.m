@@ -1,4 +1,4 @@
-function fullpath_out = moviesCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
+function moviesCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     
     [basepath, filename, ext, basefilename, channel, postfix] = ...
         filenameParts(fullpath_movie);
@@ -23,14 +23,37 @@ function fullpath_out = moviesCopyReference(fullpath_movie, fullpath_movie_ref, 
     if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
     %%
     
+    if(isempty(fullpath_movie_ref))
+
+        disp("moviesCopyReference: looking for reference file")
+
+        specs = rw.h5readMovieSpecs(fullpath_movie);
+        files = dir(fullfile(options.folder_ref, ...
+            specs.getMouseId() + "_c" + specs.getChannelId() + "*.h5"));
+
+        if (length(files) > 1)
+            error("more than one reference for the mouse")
+        elseif(length(files) < 1)
+            error("no reference for the mouse " + specs.getMouseId())
+        end
+        fullpath_movie_ref = fullfile(files(1).folder, files(1).name);
+    end
+    %%
+    
     disp("moviesCopyReference: reading frames")
 
     specs1 = rw.h5readMovieSpecs(fullpath_movie_ref);
 %     specs2 = rw.h5readMovieSpecs(fullpath_movie);
     specs2_out = copy(specs2);
     
-    F1 = specs1.extra_specs('F0');
-    F2 = specs2.extra_specs('F0');
+    if(isempty(options.F0ref)) F1 = specs1.extra_specs('F0');
+    else F1 = options.F0ref;
+    end
+
+    if(isempty(options.F0)) F2 = specs2.extra_specs('F0');
+    else F2 = options.F0;
+    end
+    
     %%
 
     disp("moviesCopyReference: performing registration")
@@ -47,7 +70,8 @@ function fullpath_out = moviesCopyReference(fullpath_movie, fullpath_movie_ref, 
         spatial_filter = @(data) data; 
     end
 
-    [Reg,regMethod, regScore] = imageReg(spatial_filter(frame_fixed), spatial_filter(frame_moving), 'linear');
+    [Reg,regMethod, regScore] = imageReg(spatial_filter(frame_fixed), spatial_filter(frame_moving), ...
+        'linear', options.shifts0);
     
 %     frame_registered = imwarp(frame_moving, Reg.transformation,...
 %     'OutputView', imref2d(size(frame_fixed)), ...
@@ -147,5 +171,12 @@ function options = defaultOptions(basepath)
 
     options.bandpass = [0.0200 0.2000]; %mm
     options.skip = true;
+
+    options.shifts0 = [0,0];
+    
+    options.folder_ref = "P:\GEVI_Wave\MiceAlignment\"; 
+    
+    options.F0 = [];
+    options.F0ref = [];
 end
 %%

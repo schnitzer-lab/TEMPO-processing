@@ -100,19 +100,21 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
     [st_y,~,~]   = proc.SpectrogramMultitaper(shifts(:,2), w, 'overlap', dw, 'nw', nw, 'fps', specs.getFps());
     
     ts = ts + (specs.timeorigin-1)/specs.getFps();
-    
-    
+        
     options_spectrogram = struct('q', [0.001, 0.999], 'flims_plot', [0, specs.getFps()/2], ...
-        'trace', shifts(:,1), 'trace_ts', ((0:(size(shifts,1)-1)) + (specs.timeorigin-1))'/specs.getFps(), ...
-        'spectra', mean(st, 2, 'omitnan'), 'spectra_fs', fs);
+        'trace_ts', ((0:(size(shifts,1)-1)) + (specs.timeorigin-1))'/specs.getFps(), ...
+        'spectra_fs', fs);
     
     fig_shifts_x = plt.getFigureByName("movieSimpleMoco: Shifts traces x"); clf;
     options_spectrogram.title = [basepath, filename, "x-shifts"];
+    options_spectrogram.trace = shifts(:,1);
+    options_spectrogram.spectra = mean(st_x, 2, 'omitnan');
     plt.signalSpectrogram(st_x, ts, fs, options_spectrogram);
-    
-    
-    fig_shifts_y = plt.getFigureByName("movieSimpleMoco: Shifts traces y"); clf;
+        
+    fig_shifts_y = plt.getFigureByName("movieSimpleMoco: Shifts traces y"); clf;  
     options_spectrogram.title = [basepath, filename, "y-shifts"];
+    options_spectrogram.trace = shifts(:,2);
+    options_spectrogram.spectra = mean(st_y, 2, 'omitnan');
     plt.signalSpectrogram(st_y, ts, fs, options_spectrogram);
     %%
     

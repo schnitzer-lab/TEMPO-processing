@@ -73,7 +73,7 @@
         z = pmtm(mr, 0.5*length(mr)/specs_r.getFps()/2); 
         [pks,locs,w,p] = findpeaks(log(z), 2*length(z)/specs_r.getFps(),...
             'MinPeakWidth', 0.3, 'MinPeakProminence', 1.25, 'SortStr', 'descend','Annotate','extents');
-        pks_use = (locs>1.5 & locs<20);% always above 1.5Hz & below 20Hz
+        pks_use = (locs>options.fref_lims(1) & locs<options.fref_lims(2));
         locs = locs(pks_use); pks = pks(pks_use); w = w(pks_use); p = p(pks_use); 
         options.fref = locs(1);
     end
@@ -115,6 +115,9 @@
         'max_phase', options.max_phase, 'max_delay', options.max_delay*specs_r.getFps());   
 
     Mr_filt = applyFilters(rw.h5readMovie(fullpath_r), Wxy) + Mr_filt0;
+    
+    % to avoid nan propagation from the ref channel edges
+    Mr_filt(isnan(Mr_filt) & ~isnan(Mr_filt0)) = Mr_filt0(isnan(Mr_filt) & ~isnan(Mr_filt0));
     %%
     
     disp("movieEstimateHemoGFilt: saving")
@@ -158,7 +161,8 @@ function options = defaultOptions(basepath)
     
     options.eps = 1e-8; % regularizer weight
 
-    options.fref = [];
+    options.fref = []; %Hz,
+    options.fref_lims = [1.5, 20]; %Hz
     options.max_amp_rel = 1.2;
     options.flim_max = 20; %Hz
 
@@ -227,10 +231,13 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
         'labels', ["Filter (rel to reg @fref)", "reg @fref", "amp_limit ("+string(options.max_amp_rel)+")"],...
         'fps', specs.getFps(), 'fw', .2, 't0', -(length(w))/2/specs.getFps())   
     ax1 = subplot(2,1,1); delete(ax1.Children(1));delete(ax1.Children(1));
-    subplot(2,1,2)
+    ax2 = subplot(2,1,2);
     hold on;
     xline(options.fref, '--');
     xline(options.flim_max, '-.');    
+    l = legend(ax2); legend_new = l.String; 
+    legend_new{end-1} = 'reference freq'; legend_new{end} = 'amp limit end freq';
+    legend(legend_new);
     hold off;
 
 %     yyaxis right

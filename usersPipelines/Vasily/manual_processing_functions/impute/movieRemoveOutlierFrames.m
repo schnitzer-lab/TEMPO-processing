@@ -57,27 +57,30 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
     n_outliers = sum(is_outlier);
     %%
     
-    if(n_outliers == 0) 
+    if(n_outliers > 0)     
+        %%
+        disp("movieRemoveOutlierFrames: reading movie")
+        [M, specs] = rw.h5readMovie(fullpath_movie);
+
+        disp("movieRemoveOutlierFrames: correcting outliers")
+        M(:,:,is_outlier) = NaN;
+        M = imputeNaNT(M);
+        m_out = squeeze(mean(M,[1,2],'omitnan'));
+        %%
+    else
         disp("movieRemoveOutlierFrames: no outliers found, returning");
         fullpath_out = fullpath_movie;
-        return;
+        m_out = m;
+%         return;
     end
-    %%
-    disp("movieRemoveOutlierFrames: reading movie")
-    [M, specs] = rw.h5readMovie(fullpath_movie);
 
-    disp("movieRemoveOutlierFrames: correcting outliers")
-    M(:,:,is_outlier) = NaN;
-    M = imputeNaNT(M);
     %%
 
     disp("movieRemoveOutlierFrames: plotting")
     
-    m_out = squeeze(sum(M,[1,2],'omitnan'));
-
     fig_traces = plt.getFigureByName("movieRemoveOutlierFrames: mean traces");
     plt.tracesComparison([m,m_out],...
-        'fps', specs.getFps(), 'nomean', false, 'fw', 0.1);
+        'fps', specs.getFps(), 'nomean', false, 'fw', 0.2);
     
     %%
 
@@ -96,14 +99,15 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
         string(n_outliers)+" outlier frames ("+num2str(n_outliers/length(m),"%.1e")+")"],...
         'interpreter', 'None', 'FontSize', 12)
     %%
- 
     disp("movieRemoveOutlierFrames: saving")
 
-    specs_out = copy(specs);
-    specs_out.AddToHistory(functionCallStruct({'fullpath_movie', 'options'}));
+    if(n_outliers > 0)         
+        specs_out = copy(specs);
+        specs_out.AddToHistory(functionCallStruct({'fullpath_movie', 'options'}));
+        rw.h5saveMovie(fullpath_out, M, specs_out);
+    end
     %%
     
-    rw.h5saveMovie(fullpath_out, M, specs_out);
     saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "_traces.png"))
     saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "_traces.fig"))
 

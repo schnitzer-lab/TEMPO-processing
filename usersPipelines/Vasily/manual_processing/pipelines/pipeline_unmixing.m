@@ -1,21 +1,21 @@
 
-% recording_name = "Visual\m14\20210619\meas00";
+% recording_name = "Visual\m40\20210824\meas00";
 % postfix_in1 = "cG_bin8_mc";
 % postfix_in2 = "cR_bin8_mc_reg";
 % 
-% mouse_state = "awake"; %"anesthesia"; % "awake";
+% mouse_state = "awake"; %"anesthesia"; % "awake"; %"transition";
 % skip_if_final_exists = false;
 % 
 % basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 % basefolder_output = "N:\GEVI_Wave\Analysis\";    
 % 
-% crosstalk_matrix =  [[1, 0]; [0.095, 1]]; 
+% crosstalk_matrix =  [[1, 0]; [0.07, 1]]; 
 % % 0.07 for ASAP3
 % % 0.095 for old ace recordings seems good - based on m14 visual v1
 % % 0.141 for older ASAP2s with different filters ??
 % % not sure this is correct, but it works for ASAP3 recordings
-% frame_range = [10, inf];
+% frame_range = [50, inf];
 %%
 
 folder_preprocessed = fullfile(basefolder_preprocessed, recording_name);
@@ -63,26 +63,12 @@ if(~strcmp(folder_preprocessed, folder_processing))
 end
 %%
 
-fullpath_mask = fullfile(folder_processing, "alignment_images", filename + "_maskManual.bmp");
-if(isfile(fullpath_mask))
-    if(~rw.h5checkDatasetExists(fullpathGin, '/specs/extra_specs/mask')) 
-        movieAddMask(fullpathGin, fullpath_mask); 
-    end
-
-    if(~rw.h5checkDatasetExists(fullpathRin, '/specs/extra_specs/mask')) 
-        movieAddMask(fullpathRin, fullpath_mask);
-    end
-else
-    warning("mask file not found: " + fullpath_mask)
-end
-%%
-
 fullpathGex = movieExtractFrames(fullpathGin, frame_range);
 fullpathRex = movieExtractFrames(fullpathRin, frame_range);
 %%
 
-fullpathGor = movieRemoveOutlierFrames(fullpathGex, 'n_sd', 5, 'dt', 10);
-fullpathRor = movieRemoveOutlierFrames(fullpathRex, 'n_sd', 5, 'dt', 10);
+fullpathGor = movieRemoveOutlierFrames(fullpathGex, 'n_sd', 6, 'dt', 15);
+fullpathRor = movieRemoveOutlierFrames(fullpathRex, 'n_sd', 6, 'dt', 15);
 %%
 
 % for movies where cameras weren't started synchroniously 
@@ -99,8 +85,8 @@ delay = 0;
 % fullpathGdx = fullpathGdl; fullpathRdx = fullpathRdl;
 %%
 
-fullpathGbl = movieExpBaselineCorrection(fullpathGdx, 'skip', true); 
-fullpathRbl = movieExpBaselineCorrection(fullpathRdx, 'skip', true);
+fullpathGbl = movieExpBaselineCorrection(fullpathGdx, 'divide', false); 
+fullpathRbl = movieExpBaselineCorrection(fullpathRdx, 'divide', false);
 % fullpathGbl = movieRemoveMean(fullpathGdx, 'skip', true); 
 % fullpathRbl = movieRemoveMean(fullpathRdx, 'skip', true);
 %%
@@ -110,6 +96,8 @@ if mouse_state == "anesthesia"
     f0_hp = 0.5; wp = 0.25; 
 elseif mouse_state == "awake"
    f0_hp = 1.5; wp = 0.5; 
+elseif mouse_state == "transition"
+   f0_hp = 1.0; wp = 0.5; 
 else
     error('state must be "anesthesia" or "awake"');
 end
@@ -118,7 +106,7 @@ attn = 1e5;  rppl = 1e-2;
 
 options_highpass = struct( 'attn', attn, 'rppl', rppl,  'skip', true, ...
     'filtersdir', "P:\GEVI_Wave\ConvolutionFilters\", ...
-    'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_convolution.exe",...
+    'exepath', "C:\Users\Vasily\repos\Voltage\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_convolution.exe",...
     'num_cores', 22);   
 
 fullpathGhp = movieFilterExternalHighpass(fullpathGbl, f0_hp, wp, options_highpass);
@@ -131,12 +119,19 @@ movieSavePreviewVideos(fullpathRhp, 'title', 'filtered')
 
 if mouse_state == "anesthesia"
     options_hfilt = ...
-        struct('skip', true, 'dt', 2, 'average_mm', 2, ...
-               'max_amp_rel', 1.1, 'flim_max', 20, 'max_delay', 30e-3, 'eps', 1e-8);
+        struct('skip', true, 'dt', 2.5, 'average_mm', 2, ...
+               'max_amp_rel', 1.1, 'fref_lims', [1.5, 15], 'flim_max', 20, ...
+               'max_delay', 30e-3, 'eps', 1e-8);
 elseif mouse_state == "awake"
     options_hfilt = ...
         struct('skip', true, 'dt', 1, 'average_mm', 2, ...
-               'max_amp_rel', 1.1, 'flim_max', 20, 'eps', 1e-8);
+               'max_amp_rel', 1.1, 'fref_lims', [5, 20], 'flim_max', 20, ...
+               'eps', 1e-8);
+elseif mouse_state == "transition"
+    options_hfilt = ...
+        struct('skip', true, 'dt', 1.5, 'average_mm', 2, ...
+               'max_amp_rel', 1.1, 'fref_lims', [2, 20], 'flim_max', 20, ...
+               'eps', 1e-8);
 else
     error('state must be "anesthesia" or "awake"');
 end
@@ -149,47 +144,23 @@ moviesSavePreviewVideos([fullpathGhemo, fullpathRhp], ...
     'titles', ["reference filt", "reference ch"])
 %%
 
-fullpathGnh = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, 'divide', false);
+fullpathGnh = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, ...
+    'divide', false);
 
-moviesSavePreviewVideos([fullpathGnh, fullpathGhemo, fullpathGhp], 'titles', ...
-    ["unmixed", "reference filt", "voltage ch"])
+moviesSavePreviewVideos([fullpathGnh, fullpathGhemo, fullpathGhp], ...
+    'titles', ["unmixed", "reference filt", "voltage ch"])
 %%
 
 fullpathGnhDFF = movieDFF(fullpathGnh);
-movieSavePreviewVideos(fullpathGnhDFF, 'title', 'G unmixed dF/F', 'mask', true)
+movieSavePreviewVideos(fullpathGnhDFF, 'title', 'G unmixed dF/F')
 
 fullpathRfDFF = movieDFF(fullpathRhp);
-movieSavePreviewVideos(fullpathRfDFF, 'title', 'R dF/F', 'mask', true)
-%%
-
-% % regression-based hemodynamics estimation
-% % set f0_h to the heartbeat
-% % f0_h = 12.25; wp = 1.5; 
-% f0_h = 9.75; wp = 1.5; 
-% attn = 1e5;  rppl = 1e-2; 
-% 
-% options_bandpass = struct( 'attn', attn, 'rppl', rppl,  'skip', true, ...
-%     'filtersdir', "P:\GEVI_Wave\ConvolutionFilters\", ...
-%     'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_convolution.exe",...
-%     'num_cores', 22);   
-% fullpathGhbp = movieFilterExternalBandpass(fullpathGhp, f0_h, wp, options_bandpass);
-% fullpathRhbp = movieFilterExternalBandpass(fullpathRhp, f0_h, wp, options_bandpass);
-% 
-% fullpathGhemo = movieEstimateHemoGReg(fullpathGhbp, fullpathRhbp, ...
-%     'naverage', 1, 'fullpath_rfull', fullpathRhp, 'naverage', 1); % update to handle averaging correctly
-% 
-% fullpathGnhReg = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, 'postfix', '_nohemoReg', 'divide', false);
-% fullpathGnhRegDFF = movieDFF(fullpathGnhReg);
-% 
-% movieSavePreviewVideos(fullpathGnhRegDFF, 'title', 'G unmixed dF/F')
-% delete(fullpathGnhReg)
-% delete(fullpathGhbp)
-% delete(fullpathRhbp)
+movieSavePreviewVideos(fullpathRfDFF, 'title', 'R dF/F')
 %%
 
 fullpaths_mean = movieMeanTraces([string(fullpathGnhDFF), string(fullpathRfDFF)], 'space', true, 'f0', f0_hp);
     
-options_spectrogram = struct('f0', f0_hp, 'timewindow', 4, 'df', 0.75, ...
+options_spectrogram = struct('timewindow', 4, 'fw', 0.75, ...
     'processingdir', fullfile(folder_processing, "\processing\meanTraceSpectrogram\"), ...
     'skip', false); %'correct1f', false, 
 movieMeanTraceSpectrogram(fullpaths_mean(1), options_spectrogram);
@@ -215,7 +186,7 @@ if(~strcmp(folder_processing, folder_output))
         movieSavePreviewVideos(fullpath_new, 'title', channel + " dFF", 'skip', false);
     end
 
-    fullpaths_mean_new = movieMeanTraces(paths_out_new, 'space', true, 'mask', true, 'skip', false, 'f0', f0_hp);
+    fullpaths_mean_new = movieMeanTraces(paths_out_new, 'space', true, 'skip', false, 'f0', f0_hp);
     
     options_spectrogram.processingdir = ...
         fullfile(folder_output, "\processing\meanTraceSpectrogram\");

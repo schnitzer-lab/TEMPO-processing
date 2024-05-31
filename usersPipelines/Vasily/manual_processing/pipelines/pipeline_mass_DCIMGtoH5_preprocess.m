@@ -3,16 +3,16 @@ clear;
 close all;
 %%
 
-files = dir("\\Bfm\b\GEVI_Wave\Raw\Locomotion\**\meas*");
+files = dir("\\Bfm\b\Visual\mEndo*\**\meas*");
 recording_names = arrayfun(@(f) string(fullfile(f.folder, f.name)), files);
-recording_names = erase(recording_names, "\\Bfm\b\GEVI_Wave\Raw\");
+recording_names = erase(recording_names, "\\Bfm\b\");
 %%
 % recording_names =  ["\Anesthesia\mv0105\20230831\meas"+arrayfun(@(k) string(num2str(k,'%02.f')), 0:30)];
 %     [rw.readlines("N:\GEVI_Wave\filelists\filelist_anesthesia_ace.txt")];
 
 channels = ["G","R"];
 
-basefolder_raw = "\\Bfm\b\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %
+basefolder_raw = "\\Bfm\b\Visual\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
 basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 basefolder_output = "P:\GEVI_Wave\Preprocessed\";

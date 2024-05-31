@@ -10,7 +10,7 @@
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 % basefolder_output = "P:\GEVI_Wave\Preprocessed\";
 % 
-% shifts0 = [20,0]; % pix, between R and G channel due to cameras misalignment
+% shifts0 = [0,0]; %[20,0]; % pix, between R and G channel due to cameras misalignment
 %
 % maxRAM = 0.1;
 % skip_if_final_exists = true;
@@ -85,7 +85,8 @@ delete(h5path1_reg)
 s = rw.h5readMovieSpecs(h5path2_mc); 
 s.AddToHistory('regMovies', ...
     mergeStructs({struct('fixed', char(h5path1_mc), 'moving', char(h5path2_mc)), ...
-        options_reg, struct('callDateTimeAutomatic', char(datetime()), 'callFilenameAutomatic', 'VoltageImagingAnalysis\preprocessing\4_registrationChAlign\regMovies.m')}));
+        options_reg, struct('callDateTimeAutomatic', char(datetime()), ...
+        'callFilenameAutomatic', 'VoltageImagingAnalysis\preprocessing\4_registrationChAlign\regMovies.m')}));
 rw.h5saveMovieSpecs(h5path2_reg, s);
 %%
 

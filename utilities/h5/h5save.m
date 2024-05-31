@@ -81,7 +81,7 @@ end
 
 if(~dspath_new) warning('Dataset %s already exists, will attemt to overwrite',dspath); end
 
-if (isnumeric(data) && isreal(data))%Simple matlab H5 writing for numeric data %~dspath_new
+if (dspath_new && isnumeric(data) && isreal(data))%Simple matlab H5 writing for numeric data %~dspath_new
     if(dspath_new) 
         h5append(fname,data,dspath);
     else

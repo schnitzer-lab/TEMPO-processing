@@ -37,6 +37,10 @@ end
 
 reader_path=fullfile(options.reader_folderpath,options.reader_filename);
 
+if(strlength(dcimgFilePath) > 127-6) % if output file name'_0.txt' is longer than 127 symbols, dct_readtimestamps.exe fails
+    error("dcimgFilePath needs to be shorter than 121 symbols for dct_readtimestamps.exe");
+end
+
 system(['"',reader_path,'"',' ','"', dcimgFilePath,'"']);
 disps('File stamps generated')
 

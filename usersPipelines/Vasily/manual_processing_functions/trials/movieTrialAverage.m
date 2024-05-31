@@ -30,13 +30,18 @@ function fullpath_out = movieTrialAverage(fullpath_movie, varargin)
     disp("movieTrialAverage: reading movie")
 
     [M,specs] = rw.h5readMovie(fullfile(basepath, filename + ".h5"));
-    ttl_signal = specs.getTTLTrace(size(M,3));
+    
+    
+    if(~isempty(options.ttl_signal)) ttl_signal = options.ttl_signal;
+    else ttl_signal = specs.getTTLTrace(size(M,3)); end
+
     %%
     
     disp("movieTrialAverage: rearranging movie into trials")
 
     [M_stim, window_stim, intervals_stim] = signalTrials(M, ttl_signal, ...
-        'drop', options.drop, 'iti_scale', options.iti_scale,...
+        'drop', options.drop, 'iti_scale', options.iti_scale, ...
+        'min_stim_length', options.min_stim_length, ...
         'align_to_end', options.align_to=="offset");
     M_stim_av = squeeze(mean(M_stim, 1));
     
@@ -45,16 +50,20 @@ function fullpath_out = movieTrialAverage(fullpath_movie, varargin)
     
     disp("movieTrialAverage: rearranging timestamps_table into trials")
     specs_out = copy(specs);
-    specs_out.AddToHistory("movieTrialAverage");
+    specs_out.AddToHistory(functionCallStruct({'options'}));
     
-    timestamps_table = specs_out.extra_specs('timestamps_table');
-    timestamps_table = timestamps_table(specs_out.timeorigin:(specs_out.timeorigin + size(M,3)-1),:);
-    [timestamps_table_stim, ~, ~] = signalTrials(timestamps_table', ttl_signal, ...
-        'drop', 2, 'iti_scale', 0.75, 'align_to_end', options.align_to=="offset");
-    timestamps_table_stim_av = squeeze(mean(timestamps_table_stim,1))';
-    timestamps_table_stim_av = [NaN(specs_out.timeorigin-1, size(timestamps_table_stim_av,2)); ...
-                                timestamps_table_stim_av]; 
-    specs_out.extra_specs('timestamps_table') = timestamps_table_stim_av;
+    if(specs_out.extra_specs.isKey('timestamps_table'))
+        timestamps_table = specs_out.extra_specs('timestamps_table');
+        timestamps_table = timestamps_table(specs_out.timeorigin:(specs_out.timeorigin + size(M,3)-1),:);
+        [timestamps_table_stim, ~, ~] = signalTrials(timestamps_table', ttl_signal, ...
+            'drop', options.drop, 'iti_scale', options.iti_scale, ...
+            'min_stim_length', options.min_stim_length, ...
+            'align_to_end', options.align_to=="offset");
+        timestamps_table_stim_av = squeeze(mean(timestamps_table_stim,1))';
+        timestamps_table_stim_av = [NaN(specs_out.timeorigin-1, size(timestamps_table_stim_av,2)); ...
+                                    timestamps_table_stim_av]; 
+        specs_out.extra_specs('timestamps_table') = timestamps_table_stim_av;
+    end
     %%
 
     disp("movieTrialAverage: plotting illustrations")
@@ -95,6 +104,8 @@ function options = defaultOptions(basepath)
     options.drop = 2;
     options.iti_scale = 0.75;
     options.align_to = "offset"; % "onset" or "offset"
+    options.ttl_signal = [];
+    options.min_stim_length = 0;
 
     options.outdir = basepath;
     options.postfix_new = "_trialAv";

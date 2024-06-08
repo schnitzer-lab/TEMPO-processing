@@ -51,6 +51,10 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, regions, var
     end
     %%
     
+    movie2d = std(M,[],3);
+    movie2d = plt.saturate(movie2d, 0.01);
+    %%
+    
     for i_r = 1:length(regions)
     %% 
     
@@ -79,7 +83,7 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, regions, var
         end
         
         [m_reg, mask_reg] = ...
-           movieRegion2Trace(M, contours, 'switchxy', false, 'plot', true);
+           movieRegion2Trace(M, contours, 'switchxy', false, 'plot', true, 'm2d', movie2d);
         mask_full = (~any(isnan(M), 3)) & mask_reg;
 
         
@@ -98,6 +102,9 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, regions, var
         specs_out = copy(specs);
         specs_out.AddToHistory(functionCallStruct({'fullpath_movie','regions','options'}));
         specs_out.AddBinning(sqrt(sum(mask_full, 'all')));
+        remove(specs_out.extra_specs, {'mask'});
+        remove(specs_out.extra_specs, {'allenMapEdgeOutline'});
+        remove(specs_out.extra_specs, {'allenTransform'});
     
         if(specs.extra_specs.isKey("F0"))
             A = specs.extra_specs("F0");
@@ -105,6 +112,9 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, regions, var
         elseif(specs.extra_specs.isKey("expBaseline_A"))
             A = specs.extra_specs("expBaseline_A");
             specs_out.extra_specs("expBaseline_A") =  mean(A(mask_full), 'all');
+        elseif(specs.extra_specs.isKey("expBaseline_end"))
+            A = specs.extra_specs("expBaseline_end");
+            specs_out.extra_specs("expBaseline_end") =  mean(A(mask_full), 'all');
         elseif(specs.extra_specs.isKey("mean_substracted")) 
             A = specs.extra_specs("mean_substracted");
             specs_out.extra_specs("mean_substracted") =  mean(A(mask_full), 'all');

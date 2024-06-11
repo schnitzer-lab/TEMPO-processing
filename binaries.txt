@@ -1,0 +1,8 @@
+analysis\allen\allenmap.mat
+
+utilities\dcimg\dcimgmex.mexw64
+utilities\dcimg\dcimgmatlab.mexw64
+utilities\dcimg\dct_readtimestamps\dct_readtimestamps.exe
+
+analysis\c_codes\compiled\*.dll
+analysis\c_codes\compiled\hdf5_movie_convolution.exe

@@ -1,0 +1,9 @@
+C:\Users\Vasily\repos\matlab_utils\+plt\getFigureByName.m
+C:\Users\Vasily\repos\matlab_utils\+plt\redblue.m
+C:\Users\Vasily\repos\matlab_utils\+plt\saturate.m
+C:\Users\Vasily\repos\matlab_utils\+plt\to01.m
+C:\Users\Vasily\repos\matlab_utils\+plt\tracesComparison.m
+C:\Users\Vasily\repos\matlab_utils\copyStruct.m
+C:\Users\Vasily\repos\matlab_utils\functionCallStruct.m
+C:\Users\Vasily\repos\matlab_utils\getOptions.m
+C:\Users\Vasily\repos\matlab_utils\mergeStructs.m

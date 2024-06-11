@@ -9,6 +9,7 @@ local_*
 # no binaries
 *.exe
 *.mexw64
+*.dll
 
 # no python autosave files
 *.ipynb_checkpoints*
@@ -21,10 +22,5 @@ analysis/compiled/hdf5_movie_fft/
 analysis/compiled/hdf5_movie_convolution/
 private/twophot/batchMoco1p.txt
 
-# c libs
-analysis/c_codes/hdf5_movie_fft/hdf5_movie_fft/fftw/bin/
-analysis/c_codes/hdf5_movie_fft/hdf5_movie_fft/fftw/lib/
-analysis/c_codes/hdf5_movie_fft/hdf5_movie_fft/lapac/
-analysis/c_codes/hdf5_movie_fft/hdf5_movie_fft/mtpsd/
 
 

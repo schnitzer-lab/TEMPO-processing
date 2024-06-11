@@ -19,9 +19,10 @@ recording_names = erase(recording_names, basefolder_raw);
 channels = ["G","R"];
 
 % basefolder_raw = "\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %%
-basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
+basefolder_converted = "O:\michelle\V\GEVI_Wave\Preprocessed\"; %"S:\GEVI_Wave\Preprocessed\";
 basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
+basefolder_preprocessed = "O:\michelle\V\GEVI_Wave\Preprocessed\"; %"P:\GEVI_Wave\Preprocessed\";
+basefolder_analysis = "N:\GEVI_Wave\Analysis\";
 skip_if_final_exists = true;
 
 binning = 8;
@@ -62,7 +63,7 @@ for i_f = 1:length(recording_names)
     try
         %%
         
-        basefolder_output = "P:\GEVI_Wave\Preprocessed\";
+        basefolder_output = basefolder_preprocessed; 
         postfix_in1 = "cG_bin"+string(binning);
         postfix_in2 = "cR_bin"+string(binning);
         pipeline_preprocessing_2xmoco
@@ -76,7 +77,7 @@ for i_f = 1:length(recording_names)
     try
         %%
         
-        basefolder_output = "N:\GEVI_Wave\Analysis\";    
+        basefolder_output = basefolder_analysis;  
         postfix_in1 = "cG_bin"+string(binning)+"_mc";
         postfix_in2 = "cR_bin"+string(binning)+"_mc_reg";
 %         skip_if_final_exists = false;

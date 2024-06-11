@@ -1,0 +1,23 @@
+local_*
+*.zip
+*.png
+*.jpg
+
+# no python autosave files
+*.ipynb_checkpoints*
+
+# no matlab autosave files
+*.asv
+
+# no extra files from c project:
+analysis/compiled/hdf5_movie_fft/
+analysis/compiled/hdf5_movie_convolution/
+private/twophot/batchMoco1p.txt
+
+# c libs
+analysis/c_codes/hdf5_movie_fft/hdf5_movie_fft/fftw/bin/
+analysis/c_codes/hdf5_movie_fft/hdf5_movie_fft/fftw/lib/
+analysis/c_codes/hdf5_movie_fft/hdf5_movie_fft/lapac/
+analysis/c_codes/hdf5_movie_fft/hdf5_movie_fft/mtpsd/
+
+

@@ -3,6 +3,13 @@ local_*
 *.png
 *.jpg
 
+# no data files
+*.mat
+
+# no binaries
+*.exe
+*.mexw64
+
 # no python autosave files
 *.ipynb_checkpoints*
 

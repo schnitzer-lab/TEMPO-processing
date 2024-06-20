@@ -71,10 +71,11 @@
     if(isempty(options.fref))
         % find firs hemodynamic peak
         z = pmtm(mr, 0.5*length(mr)/specs_r.getFps()/2); 
-        [pks,locs,w,p] = findpeaks(log(z), 2*length(z)/specs_r.getFps(),...
-            'MinPeakWidth', 0.3, 'MinPeakProminence', 1.25, 'SortStr', 'descend','Annotate','extents');
-        pks_use = (locs>options.fref_lims(1) & locs<options.fref_lims(2));
-        locs = locs(pks_use); pks = pks(pks_use); w = w(pks_use); p = p(pks_use); 
+        fs = linspace(0,1,(length(z)-1))*specs_r.getFps()/2;
+        touse = (fs>options.fref_lims(1) & fs<options.fref_lims(2));
+
+        [pks,locs,w,p] = findpeaks(log(z(touse)), fs(touse),...
+            'MinPeakWidth', 0.3, 'MinPeakProminence', 0.9, 'SortStr', 'descend','Annotate','extents');
         options.fref = locs(1);
     end
 

@@ -89,12 +89,14 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, regions, var
         
         %%
         
-        disp("movieExtractRegionTrace: plotting")
-        
-        fig_traces = plt.getFigureByName("movieExtractRegionTrace: mean traces");
-        plt.tracesComparison([m,m_reg], 'fps', specs.getFps(), 'fw', 0.25,...
-            'labels', ["initial", "region"], 'spacebysd', 3);
-        drawnow;
+        if(options.plot)
+            disp("movieExtractRegionTrace: plotting")
+            
+            fig_traces = plt.getFigureByName("movieExtractRegionTrace: mean traces");
+            plt.tracesComparison([m,m_reg], 'fps', specs.getFps(), 'fw', 0.25,...
+                'labels', ["initial", "region"], 'spacebysd', 3);
+            drawnow;
+        end
         %%
         
         disp("movieExtractRegionTrace: saving")
@@ -126,8 +128,10 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, regions, var
         
         saveas(fig_roi, fullfile(options.diagnosticdir, filename_out + "_masking.png"))
         saveas(fig_roi, fullfile(options.diagnosticdir, filename_out + "_masking.fig"))
-        saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "_traces.png"))
-        saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "_traces.fig"))
+        if(options.plot)
+            saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "_traces.png"))
+            saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "_traces.fig"))
+        end
         %%
     end
 end
@@ -138,8 +142,9 @@ function options = defaultOptions(basepath)
     options.diagnosticdir = basepath + "\diagnostic\extractRegionTrace\";
     options.outdir = basepath;
     
+    options.plot = true;
     options.skip = true;
-
+    
     options.regions_map = containers.Map(...
         ["M1", "SSp-bfd", "SSp-ll", "V1", "RSP"], ...
         [4,10, 12,38,51]);

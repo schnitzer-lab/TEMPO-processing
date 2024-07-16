@@ -101,7 +101,7 @@
             'flim_max', options.flim_max/specs_r.getFps(), ...
             'max_phase', options.max_phase, 'max_delay', options.max_delay*specs_r.getFps());
 
-        Mr_filt0 = applyFilters(Mr_in, W0);
+        Mr_filt0 = applyFilters(Mr_in, W0); %convn(Mr_in, W0, 'same');
         clear('Mr_in');
     end
     %%
@@ -179,20 +179,6 @@ function options = defaultOptions(basepath)
 end
 %%
 
-    
-%     X = reshape(Wxy, [prod(size(Wxy0, [1,2])), size(Wxy,3)]);
-%     X(isnan(X)) = 0;
-%     mu = mean(X, 1);
-% 
-%     [eigenvectors, scores, latent] = pca(X);
-% 
-%     nComp = 7;
-%     Xhat = scores(:,1:nComp) * eigenvectors(:,1:nComp)';
-%     Xhat = bsxfun(@plus, Xhat, mu);
-% 
-%     Wpc = reshape(Xhat, size(Wxy));
-%%
-
 function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     
     fig_time = plt.getFigureByName("movieEstimateHemoGFilt: Spatially-averaged traces");
@@ -240,11 +226,6 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     legend_new{end-1} = 'reference freq'; legend_new{end} = 'amp limit end freq';
     legend(legend_new);
     hold off;
-
-%     yyaxis right
-%     a = angle(zw); % fftshift needed
-%     dt = (unwrap(mod(angle(zw)-pi/2, pi)+pi/2)-pi)/2/pi/specs.getFps()*1e3;
-%       plot(fs,dt');    ylim([-0.2,0.2])
     
     saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filter" + ".png"))
     saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filter" + ".fig"))

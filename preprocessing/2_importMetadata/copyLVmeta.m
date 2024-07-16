@@ -27,7 +27,7 @@ function [copied_filelist,found_filelist,summary]=copyLVmeta(sourcepath,targetpa
 
 %% OPTIONS
 options=struct; % add your options below 
-options.subfolder='LVmeta';
+options.subfolder='LVMeta';
 
 %% VARIABLE CHECK 
 

@@ -76,14 +76,6 @@ function [status,cmdout,summary]=ConvolutionPerPixelExt(fullpath_in,...
 
     [status,cmdout] = system(cmd_call,'-echo');
     if(status) error("external routine failed"); end
-
-    %% summary
-    if(~options.nodata) 
-        movie_specs = rw.h5readMovieSpecs(fullpath_in);
-        movie_specs.AddToHistory(functionCallStruct(...
-            {'fullpath_in', 'fullfilterpath', 'fullpath_out', 'options'}));
-        rw.h5saveMovieSpecs(fullpath_out, movie_specs);
-    end   
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -99,6 +91,5 @@ function options =  DefaultOptions()
     options.remove_mean = false;
     options.optimize_flag = '--avx';
     options.cmd = false;
-    options.nodata = false;
 end
 

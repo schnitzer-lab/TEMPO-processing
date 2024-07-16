@@ -71,17 +71,17 @@ function moviePlotTraceStim(fullpath_movie, regions, varargin)
         ttl_signal = specs.getTTLTrace(size(M,3));
         %%
         %%
-        fig_traces = plt.getFigureByName("moviePlotTraceStim: traces"); clf;
+        % fig_traces = plt.getFigureByName("moviePlotTraceStim: traces"); clf;
         
-        plt.tracesComparison([ttl_signal/2,  m_reg/std(m_reg)], ...
-            'fps', specs.getFps(), 'spacebysd', 2, 'fw', 0.5)
-        legend(["ttl", region_name+" raw"], 'Interpreter', 'none')
-        
-        sgtitle({basepath, filename+" "+region_name}, ...
-            'Interpreter', 'none', 'FontSize', 12)
-        
-        saveas(fig_traces, fullfile(options.processingdir, filename+"_"+region_name+"_traces.fig"))
-        saveas(fig_traces, fullfile(options.processingdir, filename+"_"+region_name+"_traces.png"))
+        % plt.tracesComparison([ttl_signal/2,  m_reg/std(m_reg)], ...
+        %     'fps', specs.getFps(), 'spacebysd', 2, 'fw', 0.5)
+        % legend(["ttl", region_name+" raw"], 'Interpreter', 'none')
+        % 
+        % sgtitle({basepath, filename+" "+region_name}, ...
+        %     'Interpreter', 'none', 'FontSize', 12)
+        % 
+        % saveas(fig_traces, fullfile(options.processingdir, filename+"_"+region_name+"_traces.fig"))
+        % saveas(fig_traces, fullfile(options.processingdir, filename+"_"+region_name+"_traces.png"))
         %%
     
         disp("moviePlotTraceStim: getting single-trial traces")

@@ -6,7 +6,7 @@ classdef (Abstract) SimpleHandle < handle
     % RC '19-02-21_17:29:09'
     % - % 2019-09-25 13:55:47 RC - updated with help and summary methods
     % - 2020-09-13 15:32:08 - renamed simpleHandle -> SimpleHandle RC
-    
+        
     properties
     end
     

@@ -11,12 +11,6 @@ This pipeline was tested in MATLAB 2019b, 2021b, and 2023a.
 Add all folders (except _pipelines_) to MATLAB path. Add all **dependencies** to MATLAB path.
 
 ### Dependencies
-#### internal matlab utils
-see _dependencies_utils.txt_
-
-#### external dependencies
-_Inpaint_nans\inpaint_nans.m <br/>
-NoRMCorre\dftregistration_min_max.m_
 
 For .dcimg to .h5 conversion, binary files _dcimgmex.mexw64_ / _dcimgmatlab.mexw64_, _dct_readtimestamps.exe_, and drives from Hamamatsu are required
 

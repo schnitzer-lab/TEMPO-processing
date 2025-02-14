@@ -92,8 +92,7 @@ function options =  defaultOptions(basepath)
     options.shape = 'same'; %'same' or 'valid'
 
     options.num_cores = floor(feature('numcores') - 2);
-    options.exepath = 'C:\Users\Vasily\repos\Voltage\TEMPO-processing\analysis\c_codes\compiled\hdf5_movie_convolution.exe';
-
+    options.exepath = 'preprocessing_functions\compiled\hdf5_movie_convolution.exe';
     options.outdir = basepath;
     options.postfix_new = "_conv";
     options.skip=true;

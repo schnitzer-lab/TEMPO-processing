@@ -1,8 +1,9 @@
     
-% parpool('Threads');
+% parpool('Threads'); % for Matlab R2020a+
+% parpool('local');
 %%
 
-% recording_name = "Spontaneous\mv0104\20230815\meas04";%"Spontaneous\mv0104\20230815\meas04" %(short 22s recording for tests);
+% recording_name = "Visual\mv0104\20230822\meas02"
 % postfix_in1 = "cG_bin8";
 % postfix_in2 = "cR_bin8";
 % 
@@ -36,9 +37,9 @@ fullpathGconv = fullfile(file1.folder, file1.name);
 fullpathRconv = fullfile(file2.folder, file2.name);
 
 [~, ~, ext1, basefilename1, channel1, ~] = filenameParts(fullpathGconv);
-fullpathGin = fullfile(folder_processing, file1.name);%basefilename1+channel1+"_preprocessed"+ext1);
+fullpathGin = fullfile(folder_processing, file1.name);
 [~, ~, ext2, basefilename2, channel2, ~] = filenameParts(fullpathRconv);
-fullpathRin = fullfile(folder_processing, file2.name);%basefilename2+channel2+"_preprocessed"+ext2);
+fullpathRin = fullfile(folder_processing, file2.name);
 %%
 
 [filedir, filename, fileext, basefilename, channel, ~] = filenameParts(fullpathRconv);
@@ -53,9 +54,6 @@ if(~isempty(result))
 end
 %%
 
-% moviesCompareTimestamps(folder_converted);
-%%
-
 if(~strcmp(folder_converted, folder_processing))
     disp("copying data to: "+folder_processing)
     if(~isfolder(folder_processing)) mkdir(folder_processing); end
@@ -66,15 +64,10 @@ if(~strcmp(folder_converted, folder_processing))
 end
 %%
 
-% h5path1_p = movieExtractFrames(h5path1, [1500, 1800]*120, 'outdir', folder_processing);
-% h5path2_p = movieExtractFrames(h5path2, [1500, 1800]*120, 'outdir', folder_processing);
-%%
-
 [h5path1_mc, shiftsfile1] = movieSimpleMoco(fullpathGin, 'impute_nan', true);
 [h5path2_mc, shiftsfile2] = movieSimpleMoco(fullpathRin, 'impute_nan', true);
 %%
 
-warning('fix regMovies!')
 options_reg= struct('BandPass', true, 'BandPx', [2,10], 'interp', 'linear', ...
      'docrop', false, 'maxRAM', maxRAM, 'skip', true, 'shifts0', shifts0); 
 [h5path1_reg, h5path2_reg, summary_or] = ...
@@ -101,7 +94,7 @@ movieMakeMask(h5path1_mc); movieMakeMask(h5path2_reg);
 if(~strcmp(h5path2_mc, h5path2_reg)) delete(h5path2_mc); end
 if(~strcmp(fullpathGin,  fullpathGconv))     delete(fullpathGin); end
 if(~strcmp(fullpathRin,  fullpathRconv))     delete(fullpathRin); end
-%%
+%% 
 
 if(~strcmp(folder_output, folder_processing))
     disp("moving preprocessed data to: "+folder_output)

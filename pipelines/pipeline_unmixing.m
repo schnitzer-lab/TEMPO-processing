@@ -1,5 +1,5 @@
 
-% recording_name = "Visual\m40\20210824\meas00";
+% recording_name = "Visual\mv0104\20230822\meas02";
 % postfix_in1 = "cG_bin8_mc";
 % postfix_in2 = "cR_bin8_mc_reg";
 % 
@@ -12,9 +12,7 @@
 % 
 % crosstalk_matrix =  [[1, 0]; [0.07, 1]]; 
 % % 0.07 for ASAP3
-% % 0.095 for old ace recordings seems good - based on m14 visual v1
-% % 0.141 for older ASAP2s with different filters ??
-% % not sure this is correct, but it works for ASAP3 recordings
+% % 0.095 for old ace recordings
 % frame_range = [50, inf];
 %%
 
@@ -36,9 +34,9 @@ fullpathGpreproc = fullfile(file1.folder, file1.name);
 fullpathRpreproc = fullfile(file2.folder, file2.name);
 
 [~, ~, ext1, basefilename1, channel1, ~] = filenameParts(fullpathGpreproc);
-fullpathGin = fullfile(folder_processing, file1.name);%basefilename1+channel1+"_preprocessed"+ext1);
+fullpathGin = fullfile(folder_processing, file1.name);
 [~, ~, ext2, basefilename2, channel2, ~] = filenameParts(fullpathRpreproc);
-fullpathRin = fullfile(folder_processing, file2.name);%basefilename2+channel2+"_preprocessed"+ext2);
+fullpathRin = fullfile(folder_processing, file2.name);
 %%
 
 [filedir, filename, fileext, basefilename, channel, ~] = filenameParts(fullpathGin);
@@ -71,27 +69,23 @@ fullpathGor = movieRemoveOutlierFrames(fullpathGex, 'n_sd', 6, 'dt', 15);
 fullpathRor = movieRemoveOutlierFrames(fullpathRex, 'n_sd', 6, 'dt', 15);
 %%
 
+fullpathGdl = fullpathGor;
+% fullpathRdl = fullpathRor;
 % for movies where cameras weren't started synchroniously 
 % (i.e. left on internal trigger) - find delay throug mean traces xcorr (hemo frequency)
 fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, ...
     'min_lag_frames', 0.5, 'lag_estimator', 'phase' , 'f0', 30); % 'lag_estimator' , 'xcorr' % 'lag_estimator', 'phase' , 'f0', 30
-fullpathGdl = fullpathGor;
-% fullpathRdl = fullpathRor;
 %%
 
 delay = 0;
 [fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, crosstalk_matrix, ...
     'framedelay', delay, 'skip', true);
-% fullpathGdx = fullpathGdl; fullpathRdx = fullpathRdl;
 %%
 
 fullpathGbl = movieExpBaselineCorrection(fullpathGdx, 'divide', false); 
 fullpathRbl = movieExpBaselineCorrection(fullpathRdx, 'divide', false);
-% fullpathGbl = movieRemoveMean(fullpathGdx, 'skip', true); 
-% fullpathRbl = movieRemoveMean(fullpathRdx, 'skip', true);
 %%
 
-% Make sure that filter resonable, if not increase wp or decrease attn;
 if mouse_state == "anesthesia"
     f0_hp = 0.5; wp = 0.25; 
 elseif mouse_state == "awake"
@@ -114,27 +108,23 @@ fullpathRhp = movieFilterHighpass(fullpathRbl, f0_hp, wp, options_highpass);
 movieSavePreviewVideos(fullpathRhp, 'title', 'filtered')
 %%
 
-
 if mouse_state == "anesthesia"
     options_hfilt = ...
         struct('skip', true, 'dt', 2.5, 'average_mm', 2, ...
                'max_amp_rel', 1.1, 'fref_lims', [1.5, 15], 'flim_max', 20, ...
-               'max_delay', 30e-3, 'eps', 1e-8);
+               'max_delay', 30e-3);
 elseif mouse_state == "awake"
     options_hfilt = ...
         struct('skip', true, 'dt', 1, 'average_mm', 2, ...
-               'max_amp_rel', 1.1, 'fref_lims', [5, 20], 'flim_max', 20, ...
-               'eps', 1e-8);
+               'max_amp_rel', 1.1, 'fref_lims', [5, 20], 'flim_max', 20);
 elseif mouse_state == "transition"
     options_hfilt = ...
         struct('skip', true, 'dt', 1.5, 'average_mm', 2, ...
-               'max_amp_rel', 1.1, 'fref_lims', [2, 20], 'flim_max', 20, ...
-               'eps', 1e-8);
+               'max_amp_rel', 1.1, 'fref_lims', [2, 20], 'flim_max', 20);
 else
     error('state must be "anesthesia" or "awake"');
 end
 
-% options_hfilt.fref = 3.6
 fullpathGhemo = ...
     movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_hfilt);
 

@@ -1,7 +1,7 @@
 
 basepath = "N:\GEVI_Wave\Analysis";
 
-files = dir(fullfile(basepath, "\Visual\mEndo*\**\meas*"));
+files = dir(fullfile(basepath, "Visual\mv0104\20230822\**\meas*"));
 recording_names = arrayfun(@(f) string(fullfile(f.folder, f.name)), files);
 recording_names = erase(recording_names, basepath);
 %%

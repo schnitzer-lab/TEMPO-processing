@@ -83,7 +83,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     if(~isempty(specs.getTTLTrace()))
         axes(axes_all(2))
         hold on
-        h_ttl = plot(ts_trace, specs.getTTLTrace(length(m))*2*std(m) );
+        h_ttl = plot(ts_trace, specs.getTTLTrace(length(m))*2*std(m) + mean(m) );
         uistack(h_ttl,'bottom')
         hold off
     end

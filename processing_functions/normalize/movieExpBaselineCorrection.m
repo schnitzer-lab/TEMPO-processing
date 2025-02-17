@@ -71,7 +71,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     fig_meanfit = plt.getFigureByName("movieExpBaselineCorrection - mean trace");
     plot(f0, ts, meanmovie, '-'); 
     xlabel("frame"); 
-    text(0.15*mean(ts), max(get(gca, 'YLim')) - 0.2*diff(get(gca, 'YLim')), formattedDisplayText(f0))
+    text(0.15*mean(ts), max(get(gca, 'YLim')) - 0.2*diff(get(gca, 'YLim')), evalc('f0'))
     drawnow;
     %%
     

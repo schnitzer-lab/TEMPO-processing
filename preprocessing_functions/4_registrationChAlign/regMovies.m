@@ -59,7 +59,7 @@ options.plot=true;
 options.addmetah5=false;
 options.verbose=1; % 0 - supress displaying state of execution
 
-options.dataset= [filesep, 'mov'];
+options.dataset= ['/', 'mov'];
 
 options.docrop = true;
 options.skip = false;

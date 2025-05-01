@@ -44,11 +44,16 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
                 specs_r.getFps(), options.fref_lims,...
                 'MinPeakWidth', options.fref_minpeakwidth, ...
                 'MinPeakProminence', options.fref_minpeakprominance, 'SortStr', 'descend');
-            frefs(i_ch) = locs(1); zs(i_ch, :) = z;
+            if(~isempty(locs)), frefs(i_ch) = locs(1);
+            else, frefs(i_ch) = NaN; end
+            zs(i_ch, :) = z;
         end
     else
         frefs = options.fref;
     end
+    ind = 1:length(frefs);
+    frefs = interp1(ind(~isnan(frefs)), frefs(~isnan(frefs)), ind, 'linear', 'extrap');
+    if(any(isnan(frefs))), error('movieEstimateHemoGFiltTR: NaN reference freq'); end
 
     options_limit = struct(...
         'fref', frefs/specs_r.getFps(), 'max_amp_rel', options.max_amp_rel, ...
@@ -86,6 +91,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     if(options.mean_to_mean)
         w0 = estimateFiltersTimeResolved(...
             reshape(mg, 1,1,[]), reshape(mr, 1,1,[]), wn, dn, chunks);
+        w0 = limitFiltersTimeResolved(w0, options_limit);
         Mr_filt0 = applyFiltersTimeResolved(...
             Mr_sm, repelem(w0, size(Mr_sm,1), size(Mr_sm,2)), chunks, chunks_nooverlap);
     end
@@ -96,10 +102,10 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     Wsm = w0 + estimateFiltersTimeResolved(...
         rw.h5readMovie(fullpath_sig)-Mr_filt0, Mr_sm, wn, dn, chunks);
     Wsm = limitFiltersTimeResolved(Wsm, options_limit);
-    clear('Mr_filt0');
+    % clear('Mr_filt0');
     
     Mr_filt = applyFiltersTimeResolved(Mr_sm, Wsm, chunks, chunks_nooverlap); %convn(Mr_in, W0, 'same');
-    clear('Mr_sm');
+    % clear('Mr_sm');
     %%
    
     disp("movieEstimateHemoGFiltTR: estimating filter for each pixel")
@@ -122,7 +128,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
          % to avoid NaN propagation from the ref channel edges
          is_new_nan = isnan(Mr_filt) & ~isnan(Mr_filt_sm);
          Mr_filt(is_new_nan) = Mr_filt_sm(is_new_nan);
-         clear('Mr_filt_sm');
+         % clear('Mr_filt_sm');
     end
     %%
     
@@ -140,7 +146,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     end   
     %%
     
-    disp("movieEstimateHemoGFiltTR: saving plots and videos")
+    disp("movieEstimateHemoGFiltTR: saving plots")
         
     options.fref = mean(frefs);
     savePlots(rw.h5readMovie(fullpath_sig), rw.h5readMovie(fullpath_ref), ...

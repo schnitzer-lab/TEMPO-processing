@@ -70,6 +70,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     w0 = 0; Mr_filt0 = 0;
     if(options.mean_to_mean)
         w0 = estimateFilters(reshape(mg, 1,1,[]), reshape(mr, 1,1,[]), wn, dn);
+        w0 = limitFiltersTimeResolved(w0, options_limit);
         Mr_filt0 = applyFilters(Mr_sm, repelem(w0, size(Mr_sm,1), size(Mr_sm,2)));
     end
     %%

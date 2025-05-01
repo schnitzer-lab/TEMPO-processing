@@ -1,30 +1,30 @@
  
-% clear; 
-% close all;
-% warning on;
-% if(isempty(gcp('nocreate'))), parpool('Threads'); end 
-% 
-% diary(fullfile( ...
-%           "P:\GEVI_Wave\Logs", ...
-%           strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
+clear; 
+close all;
+warning on;
+if(isempty(gcp('nocreate'))), parpool('Threads'); end 
+
+diary(fullfile( ...
+          "P:\GEVI_Wave\Logs", ...
+          strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 % 
-% recording_name = "Anesthesia\mv0105\20230831\meas03";
-% postfix_in1 = "cG_bin8_mc";
-% postfix_in2 = "cR_bin8_mc_reg";
-% 
-% mouse_state = "anesthesia"; %"anesthesia"; % "awake"; %"transition";
-% skip_if_final_exists = false;
-% 
-% basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
-% basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-% basefolder_output = "N:\GEVI_Wave\Analysis\";    
-% 
-% crosstalk_matrix =  [[1, 0]; [0.07, 1]]; 
-% % 0.07 for ASAP3
-% % 0.095 for old ace recordings seems good - based on m14 visual v1
-% % 0.141 (?) for older ASAP2s with different filters
-% frame_range = [50, inf];
+recording_name = "Anesthesia\m43\20230116\meas08\";
+postfix_in1 = "cG_bin8_mc";
+postfix_in2 = "cR_bin8_mc_reg";
+
+mouse_state = "transition"; %"anesthesia"; % "awake"; %"transition";
+skip_if_final_exists = false;
+
+basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
+basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
+basefolder_output = "N:\GEVI_Wave\Analysis\";    
+
+crosstalk_matrix =  [[1, 0]; [0.07, 1]]; 
+% 0.07 for ASAP3
+% 0.095 for old ace recordings seems good - based on m14 visual v1
+% 0.141 (?) for older ASAP2s with different filters
+frame_range = [50, inf];
 %%
 % postfixed for the final files in the output location
 
@@ -129,11 +129,11 @@ movieSavePreviewVideos(fullpathRhp, 'title', 'filtered', 'skip', options_highpas
 %%
 
 if mouse_state == "anesthesia"
-    options_hfilt = struct('dt', 2.5, 'fref_lims', [1.5, 15],  'max_delay', 50e-3);
+    options_hfilt = struct('dt', 2.5, 'fref_lims', [1.5, 15],  'max_delay', 30e-3);
 elseif mouse_state == "awake" 
     options_hfilt = struct('dt', 1.0, 'fref_lims', [5.0, 20]);
 elseif mouse_state == "transition"
-    options_hfilt = struct('dt', 2.0, 'fref_lims', [1.5, 20], 'max_delay', 50e-3);
+    options_hfilt = struct('dt', 2.0, 'fref_lims', [1.5, 20], 'max_delay', 30e-3);
 else
     error("unknown mouse_state = " + mouse_state);
 end  

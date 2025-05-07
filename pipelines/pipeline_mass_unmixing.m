@@ -19,7 +19,7 @@ basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 basefolder_output = "N:\GEVI_Wave\Analysis\";    
 %%
 
-skip_if_final_exists = false;
+skip_if_final_exists = true;
 
 mouse_state = "transition";% "awake"; %"anesthesia" "transition"
 

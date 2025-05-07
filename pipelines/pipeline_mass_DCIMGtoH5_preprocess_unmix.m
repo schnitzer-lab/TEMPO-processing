@@ -8,10 +8,10 @@ diary(fullfile("P:\GEVI_Wave\Logs", ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 
-recording_names = ...
-    pathspattern("R:\GEVI_Wave\Raw\", "\Spontaneous\mv0106\20250320\meas*", true)';
 % recording_names = ...
-%     rw.readlines("N:\GEVI_Wave\filelists\filelist_michelle_unprocessed20240715.txt"); 
+%     pathspattern("R:\GEVI_Wave\Raw\", "\Spontaneous\mv0106\20250320\meas*", true)';
+recording_names = ...
+    rw.readlines("N:\GEVI_Wave\filelists\filelis_anesthesia_transition_asap3.txt"); 
 %%
 
 basefolder_raw = "R:\GEVI_Wave\Raw\"; %"\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %%
@@ -30,7 +30,7 @@ unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not a
 
 shifts0 = [0,0]; %[20,0]; % pix, between R and G channel due to cameras misalignment
 
-mouse_state = "awake";% "awake"; %"anesthesia" %"transition";
+mouse_state = "transition";% "awake"; %"anesthesia" %"transition";
 crosstalk_matrix =  [[1, 0]; [0.07, 1]]; %[[1, 0]; [0.095, 1]]; %
 frame_range = [50, inf];
 %%

@@ -8,7 +8,8 @@ diary(fullfile("P:\GEVI_Wave\Logs", ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 
-recording_names =  ["Spontaneous\mv0105\20230815\meas0"+string(0:3)];
+recording_names =  ...
+    rw.readlines("N:\GEVI_Wave\filelists\filelis_anesthesia_transition_asap3.txt");
 %%
 
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
@@ -21,7 +22,7 @@ skip_if_final_exists  = true;
 postfix_in1 = "cG_bin8";
 postfix_in2 = "cR_bin8";
     
-shifts0 = [20,0]; % pix, between R and G channel due to cameras misalignment
+shifts0 = [0,0]; % pix, between R and G channel due to cameras misalignment
 
 maxRAM = 0.1;
 %%
@@ -40,4 +41,7 @@ for i_f = 1:length(recording_names)
         warning(ME.message);
     end
 end
+%%
+
+diary off
     

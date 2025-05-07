@@ -63,5 +63,6 @@ for i_f = 1:length(recording_names)
 end
 %%
 
+diary off
 
     

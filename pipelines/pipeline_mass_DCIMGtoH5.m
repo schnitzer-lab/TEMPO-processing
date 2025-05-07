@@ -35,3 +35,6 @@ for i_f = 1:length(recording_names)
         warning(ME.message);
     end   
 end
+%%
+
+diary off

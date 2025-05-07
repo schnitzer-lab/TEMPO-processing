@@ -169,8 +169,8 @@ fullpaths_mean = movieMeanTraces([string(fullpathGnhDFF), string(fullpathRfDFF)]
 options_spectrogram = struct('timewindow', 4, 'fw', 0.75, ...
     'processingdir', fullfile(folder_processing, 'processing', 'meanTraceSpectrogram'), ...
     'skip', false); %'correct1f', false, 
-movieMeanTraceSpectrogram(fullpaths_mean(1), options_spectrogram);
 movieMeanTraceSpectrogram(fullpaths_mean(2), options_spectrogram);
+movieMeanTraceSpectrogram(fullpaths_mean(1), options_spectrogram);
 %%
 % copy renamed final files to the output location
 
@@ -197,8 +197,8 @@ if(~strcmp(folder_processing, folder_output))
     
     options_spectrogram.processingdir = ...
         fullfile(folder_output, 'processing', 'meanTraceSpectrogram');
-    movieMeanTraceSpectrogram(fullpaths_mean_new(1), options_spectrogram);
     movieMeanTraceSpectrogram(fullpaths_mean_new(2), options_spectrogram);
+    movieMeanTraceSpectrogram(fullpaths_mean_new(1), options_spectrogram);
 end
 %%
 % delete all intermediate files

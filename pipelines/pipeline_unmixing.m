@@ -79,7 +79,7 @@ end
 %%
 
 % fullpaths_in_mean = movieMeanTraces([fullpathGin, fullpathRin], ...
-%     'processingdir', folder_processing);
+    % 'processingdir', folder_processing);
 % fullpathGin = fullpaths_in_mean(1); fullpathRin = fullpaths_in_mean(2);
 %%
 
@@ -93,7 +93,8 @@ fullpathRor = movieRemoveOutlierFrames(fullpathRex, 'n_sd', 6, 'dt', 15);
 
 % for movies where cameras weren't started synchroniously 
 fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, ...
-    'min_lag_frames', 0.5, 'lag_estimator', 'phase' , 'f0', 30); % 'lag_estimator' , 'xcorr' % 'lag_estimator', 'phase' , 'f0', 30
+    'lag_estimator', 'phase', 'f0', 30,...
+    'min_lag_frames', 0.5, 'max_lag_frames', 100); 
 fullpathGdl = fullpathGor;
 % fullpathRdl = fullpathRor;
 %%

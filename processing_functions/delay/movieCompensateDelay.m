@@ -19,44 +19,11 @@ function [fullpath_out,lag] = ...
     m_in  = rw.h5getMeanTrace(fullpaths_in_mean(2));
     specs = rw.h5readMovieSpecs(fullpath_movie);
     %%
-
-    if(options.bandpass && isempty(options.f_bp))
-        
-        nw = 0.5*length(m_in)/specs.getFps()/2;
-        z = pmtm(m_in, nw); 
-        fs = linspace(0, specs.getFps()/2, length(z));
-        z(fs < options.f0) = NaN;  %discard low-frequency stuff
-        [pks,locs,w,p] = findpeaks(log(z), 2*length(z)/specs.getFps(),...
-            'MinPeakWidth', 0.3, 'MinPeakProminence', 0.5, 'SortStr', 'descend','Annotate','extents');
-    
-        options.f_bp = 2*round(locs(1),1);  %2d harmonic - less obsuced under anesthesia
-        options.w_bp = ceil(w(1)*10)/10;
-    end      
-    %%
-
-    if(options.bandpass)  
-        options_bandpass = struct( 'attn', 1e4, 'rppl', 1e-2,  'skip', options.skip, ...
-            'filtersdir', "P:\GEVI_Wave\ConvolutionFilters\", ...
-            'exepath', "C:\Users\Vasily\repos\VoltageImagingAnalysis\analysis\c_codes\compiled\hdf5_movie_convolution.exe",...
-            'num_cores', 22);   
-        
-        fullpath_bp = movieFilterBandpass(fullpaths_in_mean(1), ...
-            options.f_bp, options.w_bp, options_bandpass);
-        fullpath_ref_bp = movieFilterBandpass(fullpaths_in_mean(2), ...
-            options.f_bp, options.w_bp, options_bandpass);
-        
-        m_in = rw.h5getMeanTrace(fullpath_bp);
-        m_ref = rw.h5getMeanTrace(fullpath_ref_bp);
-    end
-    %%
     
     if(options.lag_estimator == "phase")
-        nfft = 2^(ceil(log2((specs.getFps()/2) / 1))); %1Hz bin
+        nfft = 2^(ceil(log2(options.max_lag_frames*pi)));
         noverlap = round(nfft*4/5); 
-%         cohxy = mscohere(m_in(options.ndrop:(end)), m_ref((options.ndrop):end), ...
-%             hann(nfft),noverlap,nfft);
-        pxy = cpsd(m_in(options.ndrop:(end)), m_ref((options.ndrop):end), ...
-            hann(nfft),noverlap,nfft); % Plot estimate
+        pxy = cpsd(m_in, m_ref, hann(nfft), noverlap, nfft);
     
         fs = linspace(0,specs.getFps()/2, length(pxy));
 %         pxy(cohxy < 0.1) = NaN; % then unwrapping woudn't work
@@ -64,9 +31,11 @@ function [fullpath_out,lag] = ...
         
         relative_phase = unwrap(angle(pxy))/2/pi;
         %%
+
         coefs = robustfit(fs, relative_phase, 'welsch', 1, 'on');
         lag = -coefs(2)*specs.getFps();
-%%
+        %%
+        
         fig_phase = plt.getFigureByName("movieCompensateDelay: phase");
         plot(fs, relative_phase);
         hold on
@@ -81,8 +50,11 @@ function [fullpath_out,lag] = ...
     
     if(options.lag_estimator == "xcorr")
         %%
+        m_in_hp = highpass(m_in, options.f0, specs.getFps());
+        m_ref_hp = highpass(m_ref, options.f0, specs.getFps());
         [lag, r, lags, xc] = ...
-            xcorrLagFFT(m_in(options.ndrop:end), m_ref(options.ndrop:end), 50, specs.getFps(), true);
+            xcorrLagFFT(m_in_hp(100:(end-100)), m_ref_hp(100:(end-100)), ...
+            50, options.max_lag_frames, true);
         %%
     
         fig_mean = plt.getFigureByName("moviesCompensateDelay: mean traces initial");
@@ -126,15 +98,10 @@ function options = defaultOptions(basepath)
     options.skip = true;
 
     options.min_lag_frames = 0.5;
+    options.max_lag_frames = 100;
 
-    options.bandpass = false;
-    options.f_bp = [];
-    options.w_bp = 1; %Hz
-    
-    options.f0 = 1.5;
+    options.f0 = 30;
 
     options.lag_estimator = "phase"; % "phase" or "xcorr"
-    
-    options.ndrop = 20;
 end
 %%

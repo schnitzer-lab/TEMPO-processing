@@ -91,16 +91,17 @@ function fullpath_out = movieDFF(fullpath_movie, varargin)
     fig_traces = plt.getFigureByName("dF/F0 traces");
     mraw = squeeze(mean(Mraw, [1,2], 'omitnan'));
     md = squeeze(mean(Md, [1,2], 'omitnan'));
-    plt.tracesComparison([mraw*std(md)/std(mraw), md],  ...
-        'fps', specs.getFps(),  'labels', ["raw (sd norm)", "dF/F"], 'f0', 0.5)
-    
+    plt.tracesComparison([mraw*std(md)/std(mraw), md], ...
+        'fps', specs.getFps(), 'fw', 0.2, 'f0', specs.getFrequencyRange(1), ...
+        'labels', ["raw (sd norm)", "dF/F"])    
     
     saveas(fig_f0, fullfile(options.diagnosticdir, filename_out + "F0.png") );
     saveas(fig_f0, fullfile(options.diagnosticdir, filename_out + "F0.fig") );
     
     saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "traces.png") );
     saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "traces.fig") );   
-    %%    
+    %%   
+    
     disp("movieDFF: saving output")
     
     specs_out = copy(specs);

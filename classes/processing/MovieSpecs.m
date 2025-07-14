@@ -214,6 +214,25 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
             mask_nan(mask) = 1;
         end
         
+        function ttl_signal = getTTLTraceFromanalog(obj, nT)
+            if(~obj.extra_specs.isKey('ttl_fromanalog')) 
+                ttl_signal = [];
+                return;
+            end
+            if(nargin < 2), nT = length(obj.extra_specs('ttl_fromanalog'))-(obj.timeorigin-1); end
+            
+            ttl_signal_full = obj.extra_specs('ttl_fromanalog');
+            ttl_signal_raw = ttl_signal_full(obj.timeorigin:end);
+            
+            ttl_signal = ttl_signal_raw;
+            if(obj.timebinning ~= 1)
+                ttl_signal = ttl_signal(1:(length(ttl_signal) - mod(length(ttl_signal), obj.timebinning)));
+                ttl_signal = round(mean(reshape(ttl_signal,obj.timebinning,[]),1)');
+            end
+            ttl_signal = ttl_signal(1:min(nT, length(ttl_signal)));
+            ttl_signal((end+1):nT) = NaN;
+        end   
+
         function ttl_signal = getTTLTrace(obj, nT)
             if(~obj.extra_specs.isKey('timestamps_table')) 
                 ttl_signal = [];
@@ -222,7 +241,7 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
             
             timestamps_table = obj.extra_specs('timestamps_table');
 
-            if(nargin < 2) nT = size(timestamps_table,1)-(obj.timeorigin-1); end
+            if(nargin < 2), nT = size(timestamps_table,1)-(obj.timeorigin-1); end
 
             ttl_column = find(string(strsplit(obj.extra_specs('timestamps_table_names'), ';')) == "behavior_ttl");
             
@@ -233,8 +252,9 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
                 ttl_signal = ttl_signal(1:(length(ttl_signal) - mod(length(ttl_signal), obj.timebinning)));
                 ttl_signal = round(mean(reshape(ttl_signal,obj.timebinning,[]),1)');
             end
-            ttl_signal = ttl_signal(1:nT);
-        end       
+            ttl_signal = ttl_signal(1:min(nT, length(ttl_signal)));
+            ttl_signal((end+1):nT) = NaN;
+        end   
         %%
         
         function [specs_cells, specs_names] = GetAllSpecs(obj)

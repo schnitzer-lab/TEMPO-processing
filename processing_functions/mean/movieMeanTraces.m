@@ -51,9 +51,9 @@ function fullpaths_out = movieMeanTraces(fullpaths, varargin)
     %%
 
     fig = plt.getFigureByName("Mean traces");
-    plt.tracesComparison(xs, 'labels', labels, 'fps', specs.getFps(), ...
-        'fw', options.fw,'f0', options.f0, 't0', (specs.timeorigin-1)/specs.getFps(),...
-        'spacebysd', 3*options.space);
+    plt.tracesComparison(xs, 'spacebysd', 3*options.space, 'labels', labels, ...
+        'fps', specs.getFps(), 'fw', options.fw, 'f0', specs.getFrequencyRange(1),...
+        't0', (specs.timeorigin-1)/specs.getFps());
     sgtitle({basepath, "Spatially-averaged traces"}, 'Interpreter', 'none');
     %%
     
@@ -76,7 +76,6 @@ end
 
 function options = defaultOptions(basepath)
     
-    options.f0 = 0.5;
     options.fw = 0.2;
     options.nframes_read = Inf;
     options.skip = true;

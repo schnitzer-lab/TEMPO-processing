@@ -8,7 +8,7 @@ function signalTrials(m_stim, window_stim, fps, align_to)
     plot(ts, -mean(m_stim, 1)*100, 'black', 'LineWidth', 1.5);  hold on;
     plot(ts, -mean(m_stim, 1)*100+std(m_stim,[], 1)*100, 'black--', 'LineWidth', .5);
     plot(ts, -mean(m_stim, 1)*100-std(m_stim,[], 1)*100, 'black--', 'LineWidth', .5); hold off
-    xlim(minmax(ts));
+    xlim([min(ts), max(ts)]);
     ylabel("-\Delta F/F_0 (%)") ;
     cb = colorbar; cb.Visible = 'off';
     

@@ -1,4 +1,4 @@
-    
+   
 % clear; 
 % close all;
 % warning on;
@@ -80,6 +80,7 @@ end
 [h5path2_mc, shiftsfile2] = movieSimpleMoco(fullpathRin, 'impute_nan', true);
 %%
 
+plt.getFigureByName('regMovies')
 warning('fix regMovies!')
 options_reg= struct('BandPass', true, 'BandPx', [2,10], 'interp', 'linear', ...
      'docrop', false, 'maxRAM', maxRAM, 'skip', true, 'shifts0', shifts0); 

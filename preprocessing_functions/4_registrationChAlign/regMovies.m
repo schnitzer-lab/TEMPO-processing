@@ -161,6 +161,8 @@ moving_frame = imputeNaNS(moving_frame);
 if options.plot
     % multiple plots are not great and causing clutter. Better get one good
     % figure in the end summarizing them all. RC
+
+    plt.getFigureByName("regMovies: 1")
     plotting(fixed_frame,moving_frame)
     sgtitle('Fixed and moving frame before processing')
     drawnow
@@ -176,7 +178,7 @@ end
 summary.sim_metrics_before_bandpassed = evalRegQualityMetrics(fixed_frame, moving_frame, 'BandPass',false);
 
 if options.plot
-    figure(2);
+    plt.getFigureByName("regMovies: 2")
     plotting(fixed_frame,moving_frame)
     sgtitle('Fixed and moving frame after bandpassing')
     drawnow
@@ -219,7 +221,7 @@ fixedRefObj = imref2d(size(fixed_frame));
 movingRefObj = imref2d(size(Reg.RegisteredImage));
 
 if options.plot
-    figure(3)
+    plt.getFigureByName("regMovies: 3")
     disp('Plotting');
     plotting(fixed_frame,reg_frame)
 end
@@ -250,7 +252,8 @@ croppeddims = size(fixed_cropped);
 summary.croppeddims = croppeddims;
 
 if options.plot
-    figure(4)
+    
+    plt.getFigureByName("regMovies: 4")
     plotting(fixed_cropped,registered_cropped)
     drawnow
 end

@@ -73,7 +73,10 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
             saveas(fig_roi, fullfile(options.processingdir, basefilename_out+"_roi.fig"))
             saveas(fig_roi, fullfile(options.processingdir, basefilename_out+"_roi.png"))
         end
-        
+
+        if(isempty(options.ttl_signal))
+            options.ttl_signal = specs.getTTLTraceFromanalog(size(M,3));
+        end
         if(isempty(options.ttl_signal))
             options.ttl_signal = specs.getTTLTrace(size(M,3));
         end

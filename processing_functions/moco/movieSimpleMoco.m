@@ -36,8 +36,8 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
     %%
     
     if(options.bandpass)
-        lower_threshold = options.bandpass(1)/specs.getPixSize();
-        upper_threshold = options.bandpass(2)/specs.getPixSize();
+        lower_threshold = 2*round(options.bandpass(1)/specs.getPixSize()/2)+1;
+        upper_threshold = 2*round(options.bandpass(2)/specs.getPixSize()/2)+1;
         spatial_filter = @(data) ...
             smoothdata(smoothdata(data, 1, 'gaussian', upper_threshold), 2, 'gaussian', upper_threshold )-...
             smoothdata(smoothdata(data, 1, 'gaussian', lower_threshold), 2, 'gaussian', lower_threshold);
@@ -52,7 +52,7 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
     drawnow;
     %%
     
-    Mf = single(rw.h5readMovie(fullpath_movie)); 
+    Mf = rw.h5readMovie(fullpath_movie); 
     shifts = zeros([size(Mf,3),2]); 
     nan_mask = false(size(Mf, [1,2]));
 %     nan_ind = [];
@@ -62,8 +62,7 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
             sprintf("%d/%d", it, options.niteration) );
         [Mf, shifts2, template] = dftMoco2(Mf,...
             'spatial_filter', spatial_filter, ...
-            'upsample', options.upsample_factor*specs.binning, ...
-            'max_shift', options.max_shift/specs.getPixSize());
+            'upsample', options.upsample_factor*specs.binning);
         shifts = shifts + shifts2;
 
         if(options.impute_nan) 
@@ -89,7 +88,7 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
     
     fig_shifts = plt.getFigureByName("Shifts traces"); clf;
     plt.tracesComparison([shifts(:,1), shifts(:,2)], ...
-        'nomean', false, 'labels', ["x_shift", "y_shift"], 'fps', specs.getFps());        
+        'nomean', false, 'labels', ["x_shift", "y_shift"], 'fps', specs.getFps(), 'fw', 0.1);        
     %%
        
     w = round(2*specs.getFps()); % 2 second timewindow
@@ -183,9 +182,8 @@ function options = defaultOptions(basepath)
     options.diagnosticdir = fullfile(basepath, 'diagnostic', 'movieFindMocoShifts');
     options.bandpass = [0.0500 0.5000]; %mm
     options.max_shift = [0.5, 0.5]; %mm
-    options.upsample_factor = 20; %specs.binning
+    options.upsample_factor = 8; 
     options.niteration = 2;
-%     options.timebin = 6;
 
     options.impute_nan = true;
     

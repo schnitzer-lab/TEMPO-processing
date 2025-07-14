@@ -1,26 +1,15 @@
-function Wxy = estimateFilters(Mg, Mr, wn, dn)
+function Wxy = estimateFilters(Mg, Mr, wn, no, fref)
 
-    if(mod(wn,2)==0), wn = wn+1; end
+    if(nargin < 5), fref = []; end
     
     [nx, ny] = size(Mg,[1,2]); 
 
-    % parfor works better without nested loops...
-    Wxy = NaN([nx*ny, wn]);
-    Mg = reshape(Mg, [nx*ny, size(Mg,3)]);
-    Mr = reshape(Mr, [nx*ny, size(Mr,3)]);
+    Mg_flatT = reshape(Mg, [nx*ny, size(Mg,3)])'; clear('Mg');
+    Mr_flatT = reshape(Mr, [nx*ny, size(Mr,3)])'; clear('Mr');
 
-    % for i_s = 1:(nx*ny)
-    parfor i_s = 1:(nx*ny)
+    % Wxy_flat = estimateFilter(Mg_flatT, Mr_flatT, wn, no)'; 
+    Wxy_flat = estimateFilterReg(Mg_flatT, Mr_flatT, wn, no, 1, [], fref)'; 
 
-        if(all(Mg(i_s,:) == 0) || all(Mr(i_s,:) == 0)) 
-            Wxy(i_s, :) = nan(size(Wxy(i_s, :) )); 
-            continue; 
-        end    
-
-        Wxy(i_s, :) = estimateFilterReg(Mg(i_s,:)', Mr(i_s,:)', wn, dn); 
-%         Wxy(i_s, :) = limitFilter(Wxy(i_s, :)', options);
-    end
-    
-    Wxy = reshape(Wxy, [nx,ny,wn]);
+    Wxy = reshape(Wxy_flat, [nx,ny,wn]);
 end
 %%

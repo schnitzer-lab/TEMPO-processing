@@ -5,14 +5,14 @@ function W = limitFiltersTimeResolved(W, varargin)
         options = getOptions(options, varargin);
     end
 
-    [nx, ny, nt, nchunks] = size(W); 
+    [nx,ny,nt,nchunks] = size(W); 
     
-    W = reshape(W, [nx*ny, nt,nchunks]);
+    W_flat = reshape(W, [nx*ny,nt,nchunks]);
 
-%     for i_s = 1:(nx*ny)
-    parfor i_s = 1:(nx*ny)
+    for i_s = 1:(nx*ny)
+%     parfor i_s = 1:(nx*ny)
         
-        ws = squeeze(W(i_s,:,:));
+        ws = squeeze(W_flat(i_s,:,:));
         if(size(ws,1) == 1), ws = ws'; end
 
         for i_ch = 1:nchunks
@@ -23,10 +23,10 @@ function W = limitFiltersTimeResolved(W, varargin)
 
            ws(:, i_ch) = limitFilter(ws(:, i_ch), options_limit);
         end
-        W(i_s,:,:) = ws;
+        W_flat(i_s,:,:) = ws;
     end
     
-    W = reshape(W, [nx,ny,nt,nchunks]);
+    W = reshape(W_flat, [nx,ny,nt,nchunks]);
 end
 %%
 

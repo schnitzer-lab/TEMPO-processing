@@ -120,7 +120,7 @@ function savePlots(M, Mout, specs, filename_out, options)
     
     plt.tracesComparison([m, m_out], ...
         'labels',["Input", "Nohemo"] + " (mean)",...
-        'fps', specs.getFps(), 'fw', 0.3)    
+        'fps', specs.getFps(), 'fw', 0.2, 'f0', specs.getFrequencyRange(1))    
     
     saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".png"))
     saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".fig"))

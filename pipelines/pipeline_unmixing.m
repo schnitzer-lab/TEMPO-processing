@@ -1,4 +1,4 @@
- 
+
 % clear; 
 % close all;
 % warning on;
@@ -7,13 +7,13 @@
 % diary(fullfile( ...
 %           "P:\GEVI_Wave\Logs", ...
 %           strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
-%%
+% %%
 % 
-% recording_name = "Anesthesia\m43\20230116\meas08\";
+% recording_name = "Spontaneous\mv0106\20250320\meas01"; % "Anesthesia\m46\20221221\meas04"; 
 % postfix_in1 = "cG_bin8_mc";
 % postfix_in2 = "cR_bin8_mc_reg";
 % 
-% mouse_state = "transition"; %"anesthesia"; % "awake"; %"transition";
+% mouse_state = "awake"; %"anesthesia"; % "awake"; %"transition";
 % skip_if_final_exists = false;
 % 
 % basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
@@ -129,47 +129,57 @@ movieSavePreviewVideos(fullpathGhp, 'title', 'filtered', 'skip', options_highpas
 movieSavePreviewVideos(fullpathRhp, 'title', 'filtered', 'skip', options_highpass.skip)
 %%
 
+fullpaths_mean = movieMeanTraces(...
+    [string(fullpathGhp), string(fullpathRhp)], 'space', true);
+    
+options_spectrogram = struct('timewindow', 4, 'fw', 0.75, ...
+    'processingdir', fullfile(folder_processing, 'processing', 'meanTraceSpectrogram')); %'correct1f', false, 
+movieMeanTraceSpectrogram(fullpaths_mean(2), options_spectrogram);
+movieMeanTraceSpectrogram(fullpaths_mean(1), options_spectrogram);
+%%
+
 if mouse_state == "anesthesia"
-    options_hfilt = struct('dt', 2.5, 'fref_lims', [1.5, 15],  'max_delay', 30e-3);
+    options_hfilt = struct('dt', 2.5, 'fref_lims', [1.5, 15], 'max_amp_rel', 1.1);
 elseif mouse_state == "awake" 
-    options_hfilt = struct('dt', 1.0, 'fref_lims', [5.0, 20]);
+    options_hfilt = struct('dt', 1.5, 'fref_lims', [5.0, 20], 'max_amp_rel', 1.2);
 elseif mouse_state == "transition"
-    options_hfilt = struct('dt', 2.0, 'fref_lims', [1.5, 20], 'max_delay', 30e-3);
+    options_hfilt = struct('dt', 2.0, 'fref_lims', [1.5, 20], 'max_amp_rel', 1.1);
 else
     error("unknown mouse_state = " + mouse_state);
 end  
 
-options_hfilt = mergeStructs({options_hfilt,  struct(...
-    'flim_max', 20, 'max_amp_rel', 1.10, 'average_mm', 2, 'dt_slow', 20*options_hfilt.dt)});
+options_hfilt = mergeStructs({options_hfilt,  ...
+    struct('dt_slow', 20*options_hfilt.dt, 'average_mm', 2, ...
+           'flim_max', 20, 'max_delay', 30*1e-3)});
 
 % options_hfilt = rmfield(options_hfilt, 'dt_slow');
-% fullpathGhemo = movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_hfilt);
+% fullpathGhemo = movieEstimateHemoGFilt_old2(fullpathGhp, fullpathRhp, options_hfilt);
+fullpathGhemo = movieEstimateHemoGFiltTR_old(fullpathGhp, fullpathRhp, options_hfilt);
 
-fullpathGhemo = movieEstimateHemoGFiltTR(fullpathGhp, fullpathRhp, options_hfilt);
 
 moviesSavePreviewVideos([fullpathGhemo, fullpathRhp], ...
     'titles', ["reference filt", "reference ch"])
 %%
 
 fullpathGnh = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, ...
-    'divide', false, 'postfix', "_nohemoTR");
+    'divide', false, 'postfix', "_nohemoTR  ");
 
 moviesSavePreviewVideos([fullpathGnh, fullpathGhemo, fullpathGhp], ...
     'titles', ["unmixed", "reference filt", "voltage ch"])
 %%
 
-fullpathGnhDFF = movieDFF(fullpathGnh);
-movieSavePreviewVideos(fullpathGnhDFF, 'title', 'G unmixed dF/F')
-
 fullpathRfDFF = movieDFF(fullpathRhp);
 movieSavePreviewVideos(fullpathRfDFF, 'title', 'R dF/F')
+
+fullpathGnhDFF = movieDFF(fullpathGnh);
+movieSavePreviewVideos(fullpathGnhDFF, 'title', 'G unmixed dF/F')
 %%
 
-fullpaths_mean = movieMeanTraces([string(fullpathGnhDFF), string(fullpathRfDFF)], 'space', true, 'f0', f0_hp);
+fullpaths_mean = movieMeanTraces(...
+    [string(fullpathGnhDFF), string(fullpathRfDFF)], 'space', true);
     
 options_spectrogram = struct('timewindow', 4, 'fw', 0.75, ...
-    'processingdir', fullfile(folder_processing, 'processing', 'meanTraceSpectrogram'), ...
-    'skip', false); %'correct1f', false, 
+    'processingdir', fullfile(folder_processing, 'processing', 'meanTraceSpectrogram')); %'correct1f', false, 
 movieMeanTraceSpectrogram(fullpaths_mean(2), options_spectrogram);
 movieMeanTraceSpectrogram(fullpaths_mean(1), options_spectrogram);
 %%
@@ -194,7 +204,7 @@ if(~strcmp(folder_processing, folder_output))
         movieSavePreviewVideos(fullpath_new, 'title', channel + " dFF", 'skip', false);
     end
 
-    fullpaths_mean_new = movieMeanTraces(paths_out_new, 'space', true, 'skip', false, 'f0', f0_hp);
+    fullpaths_mean_new = movieMeanTraces(paths_out_new, 'space', true, 'skip', false);
     
     options_spectrogram.processingdir = ...
         fullfile(folder_output, 'processing', 'meanTraceSpectrogram');

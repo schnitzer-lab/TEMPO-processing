@@ -1,4 +1,4 @@
-
+ 
 % clear; 
 % close all;
 % warning on;
@@ -7,16 +7,16 @@
 % diary(fullfile( ...
 %           "P:\GEVI_Wave\Logs", ...
 %           strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
-% %%
-% 
-% recording_name = "Spontaneous\mv0106\20250320\meas01"; % "Anesthesia\m46\20221221\meas04"; 
+%%
+
+% recording_name = "Visual\mEndo2\20240126\meas00\"; % "Anesthesia\m46\20221221\meas04"; 
 % postfix_in1 = "cG_bin8_mc";
 % postfix_in2 = "cR_bin8_mc_reg";
 % 
-% mouse_state = "awake"; %"anesthesia"; % "awake"; %"transition";
+% mouse_state = "anesthesia"; %"anesthesia"; % "awake"; %"transition";
 % skip_if_final_exists = false;
 % 
-% basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
+% basefolder_preprocessed = "\\stg-tnr50a1.stanford.edu\endothelium_bfm_usmaart\GEVI_Wave\Preprocessed\";
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 % basefolder_output = "N:\GEVI_Wave\Analysis\";    
 % 
@@ -99,9 +99,8 @@ fullpathGdl = fullpathGor;
 % fullpathRdl = fullpathRor;
 %%
 
-delay = 0;
-[fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, crosstalk_matrix, ...
-    'framedelay', delay, 'skip', true);
+[fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, ...
+    crosstalk_matrix, 'skip', true);
 % fullpathGdx = fullpathGdl; fullpathRdx = fullpathRdl;
 %%
 
@@ -153,9 +152,9 @@ options_hfilt = mergeStructs({options_hfilt,  ...
            'flim_max', 20, 'max_delay', 30*1e-3)});
 
 % options_hfilt = rmfield(options_hfilt, 'dt_slow');
-% fullpathGhemo = movieEstimateHemoGFilt_old2(fullpathGhp, fullpathRhp, options_hfilt);
-fullpathGhemo = movieEstimateHemoGFiltTR_old(fullpathGhp, fullpathRhp, options_hfilt);
+% fullpathGhemo = movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_hfilt);
 
+fullpathGhemo = movieEstimateHemoGFiltTR(fullpathGhp, fullpathRhp, options_hfilt);
 
 moviesSavePreviewVideos([fullpathGhemo, fullpathRhp], ...
     'titles', ["reference filt", "reference ch"])

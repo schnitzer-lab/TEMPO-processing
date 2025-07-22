@@ -32,12 +32,20 @@ function [fullpath_out,lag] = ...
         relative_phase = unwrap(angle(pxy))/2/pi;
         %%
 
-        coefs = robustfit(fs, relative_phase, 'welsch', 1, 'on');
+        df = [0; diff(relative_phase)];
+        df(isnan(df)) = 0;
+        df(abs((df - mean(df, 'omitnan'))./std(df, [], 'omitnan')) > 3) = mean(df, 'omitnan');
+        relative_phase_filtered = cumsum (df);
+
+        relative_phase_filtered(isnan(relative_phase)) = NaN;
+        %%
+
+        coefs = robustfit(fs, relative_phase_filtered, 'welsch', 1, 'on');
         lag = -coefs(2)*specs.getFps();
         %%
         
         fig_phase = plt.getFigureByName("movieCompensateDelay: phase");
-        plot(fs, relative_phase);
+        plot(fs, relative_phase_filtered);
         hold on
         plot(fs, coefs(1) + coefs(2)*fs)
         hold off

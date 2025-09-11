@@ -76,10 +76,15 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
         'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
     %%
     
-    tform = imregcorr(template_reg0, template_fixed, ...
+    tform_cor = imregcorr(template_reg0, template_fixed, ...
         'transformtype', 'rigid', 'window', false);
-    tform_full = rigid2d(tform.T*tform0.T);
+    template_cor = imwarp(template_reg0, tform_cor, 'OutputView', ref_fixed, ...
+        'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
 
+    [opt, met] = imregconfig("multimodal");
+    tform_mul =  imregtform(template_cor, template_fixed,'rigid', opt, met);
+
+    tform_full = rigid2d(tform_mul.T*tform_cor.T*tform0.T);
     template_registered = imwarp(template_moving, tform_full, 'OutputView', ref_fixed, ...
         'SmoothEdges', true, 'FillValues', options.fillval, 'interp', options.interp);
     %%
@@ -107,10 +112,10 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     saveas(fig_sbs, fullfile(options.diagnosticdir, filename_out + "_sbs.fig"))
     %%
 
-    if(any(abs(abs(tform.T(3,1:2)))*specs.getPixSize() > options.shift_max))
+    if(any(abs(abs(tform_cor.T(3,1:2)))*specs.getPixSize() > options.shift_max))
         error("movieRegister: template registration failed - shift too big");
     end
-    if(abs(atan2d(tform.T(2,1), tform.T(1,1))) > options.angle_max)
+    if(abs(atan2d(tform_cor.T(2,1), tform_cor.T(1,1))) > options.angle_max)
         error("movieRegister: template registration failed - angle too big");
     end
     if(corr_reg < options.corr_min)

@@ -79,15 +79,20 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     
     rot = @(t) [cosd(t) sind(t); -sind(t) cosd(t)];
 
-    tform0 = rigid2d(rot(options.angle0), options.shifts0/specs_mov.getPixSize());
+    tform0 = rigid2d(rot(-options.angle0), options.shifts0/specs_mov.getPixSize());
     template_reg0 = imwarp(template_moving, tform0, 'OutputView', ref_fixed, ...
         'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
     %%
     
-    tform = imregcorr(template_reg0, template_fixed, ...
+    tform_cor = imregcorr(template_reg0, template_fixed, ...
         'transformtype', 'rigid', 'window', false);
-    tform_full = rigid2d(tform.T*tform0.T);
+    template_cor = imwarp(template_reg0, tform_cor, 'OutputView', ref_fixed, ...
+        'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
 
+    [opt, met] = imregconfig("multimodal");
+    tform_mul =  imregtform(template_cor, template_fixed,'rigid', opt, met);
+
+    tform_full = rigid2d(tform_mul.T*tform_cor.T*tform0.T);
     template_registered = imwarp(template_moving, tform_full, 'OutputView', ref_fixed, ...
         'SmoothEdges', true, 'FillValues', options.fillval, 'interp', options.interp);
     %%
@@ -104,10 +109,10 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     title(sprintf("transformed (r=%.2f)", corr_reg)) 
     %%
 
-    if(any(abs(abs(tform.T(3,1:2)))*specs_mov.getPixSize() > options.shift_max))
+    if(any(abs(abs(tform_full.T(3,1:2)))*specs_mov.getPixSize() > options.shift_max))
         error("moviesCopyReference: template registration failed - shift too big");
     end
-    if(abs(atan2d(tform.T(2,1), tform.T(1,1))) > options.angle_max)
+    if(abs(atan2d(tform_full.T(2,1), tform_full.T(1,1))) > options.angle_max)
         error("moviesCopyReference: template registration failed - angle too big");
     end
     if(corr_reg < options.corr_min || corr_reg < corr_mov)
@@ -117,7 +122,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
 
     disp("moviesCopyReference: registering mask")
 
-    mask_moving = imwarp(int32(specs_ref.getMask()), tform.invert,...
+    mask_moving = imwarp(int32(specs_ref.getMask()), tform_full.invert,...
         'OutputView', imref2d(size(frame_moving)), ...
         'SmoothEdges', true, 'FillValues', NaN, 'interp', 'linear');
     mask_moving(1,:) = 0; mask_moving(:,1) = 0;
@@ -129,8 +134,10 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     fig_masks = plt.getFigureByName('movieCopyReference: masks');
     subplot(1,2,1)
     imshow(frame_fixed.*double(specs_ref.getMask()), [])
+    title("reference alignmet")
     subplot(1,2,2)
     imshow(frame_moving.*double(specs_out.getMask()), [])
+    title("target alignmet")
     %%
     disp("moviesCopyReference: registering allen")
         
@@ -156,7 +163,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     if(~isempty(customOutlines_fixed))
     
         for i_r = 1:size(customOutlines_fixed,3)
-            region_outline = tform.transformPointsInverse(customOutlines_fixed(:,:,i_r));
+            region_outline = tform_full.transformPointsInverse(customOutlines_fixed(:,:,i_r));
             customOutlines_moving(:,:,i_r) = region_outline;
         end
         
@@ -226,7 +233,7 @@ function [options,p] = parseInputs(basepath, varargin)
         fullfile(basepath, "\diagnostic\movieRegister\"), @(s) isstring(s)|ischar(s));
   
     p.addParameter('bandpass', [0.05, 0.5], @(x) isinrange(x,0,Inf)); % mm
-    p.addParameter('shifts0', [0, 0], @(x) isinrange(x,0,Inf)); % mm
+    p.addParameter('shifts0', [0, 0], @(x) isnumeric(x)); % mm
     p.addParameter('angle0', 0, @(x) isinrange(x,-180,180)); % degree
 
     p.addParameter('interp', 'linear');
@@ -234,7 +241,7 @@ function [options,p] = parseInputs(basepath, varargin)
 
     p.addParameter('shift_max', Inf, @(x) isinrange(x,0,Inf)); % mm
     p.addParameter('angle_max', Inf, @(x) isinrange(x,0,Inf)); % degree
-    p.addParameter('corr_min', 0, @(x) isinrange(x,0,1));
+    p.addParameter('corr_min', 0.3, @(x) isinrange(x,0,1));
 
     p.addParameter('skip', true, @(x) (x==true)|(x==false));
     

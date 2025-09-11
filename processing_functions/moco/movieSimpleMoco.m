@@ -31,7 +31,7 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
 
     disp("movieSimpleMoco: reading movie")
     specs = rw.h5readMovieSpecs(fullpath_movie);
-    sz = rw.h5getDatasetSize(fullpath_movie, '/mov');
+    [~,~,nt] = rw.h5getDatasetSize(fullpath_movie, '/mov');
 %     [M, specs] = rw.h5readMovie(fullpath_movie);
     %%
     
@@ -47,8 +47,8 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
         
     fig_filtered = plt.getFigureByName("movieSimpleMoco: Frame filtering example"); clf;
     subplot(1,2,1)
-    imshow(spatial_filter(rw.h5readMovie(fullpath_movie, 'frame_start', round(sz(3)/2), 'frames_num', 1)), []);
-    title("frame " + num2str(round(sz(3)/2)) + " filtered");
+    imshow(spatial_filter(rw.h5readMovie(fullpath_movie, 'frame_start', round(nt/2), 'frames_num', 1)), []);
+    title("frame " + num2str(round(nt/2)) + " filtered");
     drawnow;
     %%
     

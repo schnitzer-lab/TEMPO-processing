@@ -36,10 +36,13 @@ function movieSavePreviewVideos(fullpath_movie, varargin)
     disp("movieSavePreviewVideos: reading movie")
    
     specs = rw.h5readMovieSpecs(fullpath_movie);
-    nt = rw.h5getDatasetSize(fullpath_movie, '/mov', 3);
+    [nx,nt] = rw.h5getDatasetSize(fullpath_movie, '/mov', [1,3]);
     
     ttl_signal = specs.getTTLTrace(nt);
-    if(isempty(ttl_signal)) ttl_signal = zeros(nt,1); end
+    if(isempty(ttl_signal)), ttl_signal = zeros(nt,1); end
+    if(isempty(options.upsample_s))
+        options.upsample_s = max(round(150/nx), 1);
+    end
     %%
  
     disp("movieSavePreviewVideos: saving video")
@@ -49,16 +52,16 @@ function movieSavePreviewVideos(fullpath_movie, varargin)
         struct('fps', specs.getFps()/options.slowdown, ...
             'colormap', options.colormap, 'overwrite', true);
 
-    nframes = round(options.nseconds*specs.getFps());
+    nframes = min(round(options.nseconds*specs.getFps()), nt-1);
     
     if(isempty(options.ranges))
         range_begin = (1:(1+nframes))+(specs.timeorigin-1);
         range_end = ((nt-nframes):nt)+(specs.timeorigin-1);
         options.ranges = {range_begin, range_end};
+
+        if(nframes == nt-1), options.ranges = {range_begin}; end
     end
 
-    % upsample_s = max(round(150/size(M,1)), 1);
-    
     pixsize = specs.getPixSize(); if(isnan(pixsize)), pixsize = []; end
 
     center = @(movie) movie - (max(movie, [], 'all', 'omitnan')+min(movie, [], 'all', 'omitnan'))/2;
@@ -119,7 +122,7 @@ function options = defaultOptions(basepath)
     options.saturate = 0.03;
     options.slowdown = 5;
     options.upsample_t = 1;
-    options.upsample_s = 1;
+    options.upsample_s = [];
 
     options.flip_x = false;
     options.flip_y = false;

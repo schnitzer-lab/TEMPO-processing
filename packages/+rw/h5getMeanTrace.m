@@ -5,14 +5,14 @@ function movie_mean = h5getMeanTrace(h5filename, varargin)
         options = getOptions(options, varargin);
     end
 
-    movie_size = rw.h5getDatasetSize(h5filename, options.dataset);
+    nt = rw.h5getDatasetSize(h5filename, options.dataset, 3);
     specs = rw.h5readMovieSpecs(h5filename);
 
-    movie_total = nan([movie_size(3), 1]);
+    movie_total = nan([nt, 1]);
     movie_current = [];
    
-    for i_c = 1:options.nframes_read:movie_size(3)
-        nframes_read = min(options.nframes_read, movie_size(3)-i_c+1);
+    for i_c = 1:options.nframes_read:nt
+        nframes_read = min(options.nframes_read, nt-i_c+1);
 
         movie_current = h5read(h5filename, options.dataset, [1, 1, i_c], [Inf, Inf, nframes_read]);
 

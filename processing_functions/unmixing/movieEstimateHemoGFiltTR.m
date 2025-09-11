@@ -20,7 +20,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     % To avoid extra data in the ram, movies are loaded from hard drive
     % when passed to processing functions 
     specs_r = rw.h5readMovieSpecs(fullpath_ref);
-    sz = rw.h5getDatasetSize(fullpath_ref, '/mov');
+    [nx,ny,nt] = rw.h5getDatasetSize(fullpath_ref, '/mov');
     mr = rw.h5getMeanTrace(fullpath_ref);
     mg = rw.h5getMeanTrace(fullpath_sig);
     %%
@@ -72,7 +72,6 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
 
     Mr = rw.h5readMovie(fullpath_ref);
     Mg = rw.h5readMovie(fullpath_sig);
-    
     %%
 
     options_estimate_nolim = copyStruct(options_limit);
@@ -107,8 +106,8 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     Wsm = 0;
     if( options.naverage > 1 )
         
-        if(all(sz(1:2) < options.naverage))
-            Mr_sm = reshape(repelem(mr, prod(sz(1:2))), sz);
+        if(all([nx,ny] < options.naverage))
+            Mr_sm = reshape(repelem(mr, nx*ny), [nx,ny,nz]);
         else
             Mr_sm = rw.h5readMovie(fullpath_ref); 
             
@@ -119,20 +118,20 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
         end
 
         Mr_filt_xy = Mr_filt;
-
+        Mr_filt_xy(isnan(Mr_filt_xy)) = 0;  % to avoid NaN propagation from the ref channel edges
+       
         Wsm = estimateFiltersTimeResolved(...
             Mg - Mr_filt_xy,  Mr_sm, ...
-                wn, no, chunks, frefs/specs_r.getFps());   
+            wn, no, chunks, frefs/specs_r.getFps());   
         Wsm = limitFiltersTimeResolved(Wsm, options_limit);
 
         Mr_filt = Mr_filt_xy + ...
             applyFiltersTimeResolved(Mr_sm, Wsm, ...
                 chunks, chunks_nooverlap);
     
-         % to avoid NaN propagation from the ref channel edges
-         is_new_nan = isnan(Mr_filt) & ~isnan(Mr_filt_xy);
-         Mr_filt(is_new_nan) = Mr_filt_xy(is_new_nan);
-         % clear('Mr_filt_sm');
+%          is_new_nan = isnan(Mr_filt) & ~isnan(Mr_filt_xy);
+%          Mr_filt(is_new_nan) = Mr_filt_xy(is_new_nan);
+%          clear('Mr_filt_sm');
     end
     %%
     
@@ -330,8 +329,7 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     idf = zeros(size(w)); idf(floor((length(w)+1)/2)) = 1;
     ids = fft(idf);
 
-    phase_delay = -angle(zw./abs(zw)./ids);
-%     plot(fs, -angle(ZW./abs(ZW)./ids), ':'); 
+    phase_delay = -mod(unwrap(angle(zw./abs(zw)./ids))+pi/2, pi)+pi/2;
 
     plot(fs, phase_delay, '.-', 'LineWidth', 1.5); xlim([0, specs.getFps()/2])
     hold on

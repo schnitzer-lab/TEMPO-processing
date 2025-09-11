@@ -9,7 +9,7 @@ diary(fullfile("P:\GEVI_Wave\Logs", ...
 %%
 
 recording_names = ...
-    pathspattern("R:\GEVI_Wave\Raw\", "Visual\m88*\*\meas*", true)';
+    pathspattern("R:\GEVI_Wave\Raw\", "**\*\202505*\meas*", true)';
 % recording_names = ["Spontaneous\mDLRKlMORcre001\20240912\meas00", ...
 %                    "Spontaneous\mRArchLKl001\20240912\meas00"];
 %%
@@ -25,7 +25,7 @@ binning = 8;
 maxRAM = 0.1;
 unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not accounted for.
 
-shifts0 = [0,0];
+shifts0 = [0,0]; % [0,0.5] mm
 %%
 
 MEs_conv = {};

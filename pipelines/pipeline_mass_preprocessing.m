@@ -22,7 +22,7 @@ skip_if_final_exists  = true;
 postfix_in1 = "cG_bin8";
 postfix_in2 = "cR_bin8";
     
-shifts0 = [0,0]; % pix, between R and G channel due to cameras misalignment
+shifts0 = [0,0]; % [0, 0.5  ] mm, between R and G channel due to cameras misalignment
 
 maxRAM = 0.1;
 %%

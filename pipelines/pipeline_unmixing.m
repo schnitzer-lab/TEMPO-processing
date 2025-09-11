@@ -1,4 +1,4 @@
- 
+% %% 
 % clear; 
 % close all;
 % warning on;
@@ -7,16 +7,16 @@
 % diary(fullfile( ...
 %           "P:\GEVI_Wave\Logs", ...
 %           strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
-%%
-
-% recording_name = "Visual\mEndo2\20240126\meas00\"; % "Anesthesia\m46\20221221\meas04"; 
-% postfix_in1 = "cG_bin8_mc";
-% postfix_in2 = "cR_bin8_mc_reg";
+% %%
+% 
+% recording_name = "Spontaneous\mly2002bi\20250821\meas01"; % "Anesthesia\m46\20221221\meas04"; 
+% postfix_in1 = "cG_bin8*_mc";
+% postfix_in2 = "cR_bin8*_mc_reg";
 % 
 % mouse_state = "anesthesia"; %"anesthesia"; % "awake"; %"transition";
 % skip_if_final_exists = false;
 % 
-% basefolder_preprocessed = "\\stg-tnr50a1.stanford.edu\endothelium_bfm_usmaart\GEVI_Wave\Preprocessed\";
+% basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 % basefolder_output = "N:\GEVI_Wave\Analysis\";    
 % 
@@ -71,9 +71,9 @@ end
 
 if(~strcmp(folder_preprocessed, folder_processing))
     disp("copying data to: "+folder_processing)
-    if(~isfolder(folder_processing)) mkdir(folder_processing); end
-    if(~isfile(fullpathGin)) copyfile(fullpathGpreproc, fullpathGin); end
-    if(~isfile(fullpathRin)) copyfile(fullpathRpreproc, fullpathRin); end
+    if(~isfolder(folder_processing)), mkdir(folder_processing); end
+    if(~isfile(fullpathGin)), copyfile(fullpathGpreproc, fullpathGin); end
+    if(~isfile(fullpathRin)), copyfile(fullpathRpreproc, fullpathRin); end
     copyfile(fullfile(file2.folder, "alignment_images"), fullfile(folder_processing, "alignment_images"));
 end
 %%
@@ -151,7 +151,8 @@ options_hfilt = mergeStructs({options_hfilt,  ...
     struct('dt_slow', 20*options_hfilt.dt, 'average_mm', 2, ...
            'flim_max', 20, 'max_delay', 30*1e-3)});
 
-% options_hfilt = rmfield(options_hfilt, 'dt_slow');
+% options_hfilt = rmfield(optio
+% ns_hfilt, 'dt_slow');
 % fullpathGhemo = movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_hfilt);
 
 fullpathGhemo = movieEstimateHemoGFiltTR(fullpathGhp, fullpathRhp, options_hfilt);
@@ -161,7 +162,7 @@ moviesSavePreviewVideos([fullpathGhemo, fullpathRhp], ...
 %%
 
 fullpathGnh = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, ...
-    'divide', false, 'postfix', "_nohemoTR  ");
+    'divide', false, 'postfix', "_nohemoTR");
 
 moviesSavePreviewVideos([fullpathGnh, fullpathGhemo, fullpathGhp], ...
     'titles', ["unmixed", "reference filt", "voltage ch"])

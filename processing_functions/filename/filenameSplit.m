@@ -1,6 +1,6 @@
 function [filedir, basename, fileext, filepostfix] = filenameSplit(filepath, sep, include_sep)
-    if(nargin < 2) sep = ''; end
-    if(nargin < 3) include_sep = false; end
+    if(nargin < 2), sep = ''; end
+    if(nargin < 3), include_sep = false; end
         
     [filedir, filename, fileext] = fileparts(string(filepath));
     

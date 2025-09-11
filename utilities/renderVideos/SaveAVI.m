@@ -17,7 +17,7 @@ function [] = SaveAVI(M, path, varargin)
         end    
     end
     
-    if(options.saturate) M = plt.saturate(M, options.saturate); end
+    if(options.saturate), M = plt.saturate(M, options.saturate); end
     
     v = VideoWriter(char(path), 'Indexed AVI');
     

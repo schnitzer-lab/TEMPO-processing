@@ -1,4 +1,4 @@
-function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, regions, varargin)
+function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, varargin)
     
     [basepath, filename, ext, basefilename, channel, postfix] = ...
         filenameParts(fullpath_movie);
@@ -9,10 +9,10 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, regions, var
     end
     %%
 
-    if(~iscell(regions)) regions = num2cell(regions); end
+    if(~iscell(region_ids)), region_ids = num2cell(region_ids); end
     %%
     
-    postfix_new_all = "_"+cellfun(@(s) strjoin(string(s),'+'), regions)+"trace";
+    postfix_new_all = "_"+cellfun(@(s) strjoin(string(s),'+'), region_ids)+"trace";
     filename_out_all = basefilename+channel+postfix+postfix_new_all;
     fullpath_out_all = fullfile(options.outdir, filename_out_all + ext);
 
@@ -26,8 +26,8 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, regions, var
         end     
     end
 
-    if (~isfolder(options.outdir)) mkdir(options.outdir); end
-    if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
+    if (~isfolder(options.outdir)), mkdir(options.outdir); end
+    if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
     %%
     
     specs = rw.h5readMovieSpecs(fullpath_movie);
@@ -55,31 +55,31 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, regions, var
     movie2d = plt.saturate(movie2d, 0.01);
     %%
     
-    for i_r = 1:length(regions)
+    for i_r = 1:length(region_ids)
     %% 
     
-        region = regions{i_r};
+        region_id = region_ids{i_r};
         postfix_new = postfix_new_all(i_r);
         filename_out = filename_out_all(i_r);
         fullpath_out = fullpath_out_all(i_r);
-        if(isfile(fullpath_out) && options.skip) continue; end       
+        if(isfile(fullpath_out) && options.skip), continue; end       
     %%
 
         disp("movieExtractRegionTrace: extracting trace " + postfix_new);
 
-        if(isstring(region) || ischar(region))
-            region = options.regions_map(region);
+        if(isstring(region_id) || ischar(region_id))
+            region_id = options.regions_map(region_id);
         end    
         %%
     
         fig_roi = plt.getFigureByName("movieExtractRegionTrace: selected roi");
         
-        contours= cell(length(region),1);
-        for i_c = 1:length(region)
-            contours{i_c} = specs.getAllenOutlines(region(i_c));
+        contours= cell(length(region_id),1);
+        for i_c = 1:length(region_id)
+            contours{i_c} = specs.getAllenOutlines(region_id(i_c));
         end
         if(isempty(contours{1}))
-            error("movieExtractRegionTrace: no region " + strjoin(string(region),"+") + " found")
+            error("movieExtractRegionTrace: no region " + strjoin(string(region_id),"+") + " found")
         end
         
         [m_reg, mask_reg] = ...

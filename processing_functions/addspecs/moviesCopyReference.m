@@ -1,7 +1,6 @@
 function moviesCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     
-    [basepath, filename, ext, basefilename, channel, postfix] = ...
-        filenameParts(fullpath_movie);
+    [basepath, filename, ~, ~, ~, ~] = filenameParts(fullpath_movie);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -70,8 +69,15 @@ function moviesCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
         spatial_filter = @(data) data; 
     end
 
-    [Reg,regMethod, regScore] = imageReg(spatial_filter(frame_fixed), spatial_filter(frame_moving), ...
-        'linear', options.shifts0);
+    if(options.register)
+        [Reg, ~, ~] = imageReg(spatial_filter(frame_fixed), spatial_filter(frame_moving), ...
+            'linear', options.shifts0);
+        tform = Reg.transformation;
+        frame_registered = Reg.RegisteredImage;
+    else
+        tform = transltform2d([0,0]);
+        c = frame_moving;
+    end
     
 %     frame_registered = imwarp(frame_moving, Reg.transformation,...
 %     'OutputView', imref2d(size(frame_fixed)), ...
@@ -88,13 +94,13 @@ function moviesCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     imshowpair(spatial_filter(frame_fixed),spatial_filter(frame_moving))
     title('overlap initial')
     subplot(1,4,4)
-    imshowpair(spatial_filter(frame_fixed),Reg.RegisteredImage)
+    imshowpair(spatial_filter(frame_fixed),spatial_filter(frame_moving))
     title('overlap registered')
     %%
     
     disp("moviesCopyReference: registering mask")
 
-    mask_moving = imwarp(int32(specs1.getMask()), Reg.transformation.invert,...
+    mask_moving = imwarp(int32(specs1.getMask()), tform.invert,...
         'OutputView', imref2d(size(frame_moving)), ...
         'SmoothEdges', true, 'FillValues', NaN, 'interp', 'linear');
     mask_moving(1,:) = 0;
@@ -117,41 +123,72 @@ function moviesCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     %%
     disp("moviesCopyReference: registering allen")
         
-    edgeOutlines_fixed = specs1.getAllenOutlines();
-    edgeOutlines_moving = nan(size(edgeOutlines_fixed));
-    for i_r = 1:size(edgeOutlines_fixed,3)
-        region_outline = Reg.transformation.transformPointsInverse(edgeOutlines_fixed(:,:,i_r));
-        edgeOutlines_moving(:,:,i_r) = region_outline;
-    end
+    allenOutlines_fixed = specs1.getAllenOutlines();
+    allenOutlines_moving = nan(size(allenOutlines_fixed));
+
+    if(~isempty(allenOutlines_fixed))
     
-    specs2_out.extra_specs("allenTransform") = ...
-        specs1.extra_specs('allenTransform')*Reg.transformation.T; % order? % does not account for possible rebinning
-    specs2_out.extra_specs("allenMapEdgeOutline") = ...
-        edgeOutlines_moving*specs2_out.binning;
+        for i_r = 1:size(allenOutlines_fixed,3)
+            region_outline = Reg.transformation.transformPointsInverse(allenOutlines_fixed(:,:,i_r));
+            allenOutlines_moving(:,:,i_r) = region_outline;
+        end
+        
+        specs2_out.extra_specs("allenTransform") = ...
+            specs1.extra_specs('allenTransform')*Reg.transformation.T; % order? % does not account for possible rebinning
+        specs2_out.extra_specs("allenMapEdgeOutline") = ...
+            allenOutlines_moving*specs2_out.binning;
+    end
+
+
+    customOutlines_fixed = specs1.getCustomOutlines();
+    customOutlines_moving = nan(size(customOutlines_fixed));
+
+    if(~isempty(customOutlines_fixed))
+    
+        for i_r = 1:size(customOutlines_fixed,3)
+            region_outline = tform.transformPointsInverse(customOutlines_fixed(:,:,i_r));
+            customOutlines_moving(:,:,i_r) = region_outline;
+        end
+        
+        specs2_out.extra_specs("customOutlines") = ...
+            customOutlines_moving*specs2_out.binning;
+    end
 
     %%
     fig_allen = plt.getFigureByName("register_two_frames: allen");
 
     subplot(1,2,1)
     imshow(F1, []); hold on;
+
     plt.outlines(specs1.getAllenOutlines(), [], [],...
         '--', 'color', [0,1,0], 'LineWidth', 0.5); 
+    plt.outlines(specs1.getCustomOutlines(), [], [],...
+        '--', 'color', [1,0,0], 'LineWidth', 0.5); 
+    
+    
     hold off
     
     subplot(1,2,2)
     imshow(F2, []); hold on;
-    % plt.outlines(edgeOutlines_fixed,...
-    %     '--', 'color', [1,0,0], 'LineWidth', 0.5); 
     plt.outlines(specs2_out.getAllenOutlines(), [], [],...
         '--', 'color', [0,1,0], 'LineWidth', 0.5); 
+    plt.outlines(specs2_out.getCustomOutlines(), [], [],...
+        '--', 'color', [1,0,0], 'LineWidth', 0.5); 
     hold off
     drawnow;
     %%
+    
+    if(~isempty(specs2_out.getAllenOutlines()))
+        rw.h5writeStruct(char(fullpath_movie), ...
+            specs2_out.extra_specs("allenTransform"), '/specs/extra_specs/allenTransform');
+        rw.h5writeStruct(char(fullpath_movie), ...
+            specs2_out.extra_specs("allenMapEdgeOutline"), '/specs/extra_specs/allenMapEdgeOutline');
+    end
 
-    rw.h5writeStruct(char(fullpath_movie), ...
-        specs2_out.extra_specs("allenTransform"), '/specs/extra_specs/allenTransform');
-    rw.h5writeStruct(char(fullpath_movie), ...
-        specs2_out.extra_specs("allenMapEdgeOutline"), '/specs/extra_specs/allenMapEdgeOutline');
+    if(~isempty(specs2_out.getCustomOutlines()))
+        rw.h5writeStruct(char(fullpath_movie), ...
+            specs2_out.extra_specs("customOutlines"), '/specs/extra_specs/customOutlines');
+    end
     %%
     
     disp("moviesCopyReference: saving diagnostic")
@@ -160,6 +197,7 @@ function moviesCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     saveas(fig_reg, fullfile(options.diagnosticdir, filename + "_reg.fig"))
     saveas(fig_masks, fullfile(options.diagnosticdir, filename + "_masks.png"))
     saveas(fig_masks, fullfile(options.diagnosticdir, filename + "_masks.fig"))
+
     saveas(fig_allen, fullfile(options.diagnosticdir, filename + "_allen.png"))
     saveas(fig_allen, fullfile(options.diagnosticdir, filename + "_allen.fig"))
 end
@@ -172,6 +210,7 @@ function options = defaultOptions(basepath)
     options.bandpass = [0.0200 0.2000]; %mm
     options.skip = true;
 
+    options.register = true;
     options.shifts0 = [0,0];
     
     options.folder_ref = "P:\GEVI_Wave\MiceAlignment\"; 

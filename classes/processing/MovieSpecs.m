@@ -175,12 +175,25 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
         function outlines = getAllenOutlines(obj, outlines_nums)
             if(obj.extra_specs.isKey("allenMapEdgeOutline"))
                 raw_outlines = obj.extra_specs("allenMapEdgeOutline");
-                if(nargin < 2) outlines_nums = 1:size(raw_outlines, 3); end
+                if(nargin < 2), outlines_nums = 1:size(raw_outlines, 3); end
                 outlines = raw_outlines(:,:,outlines_nums)/obj.binning;
-                outlines(:,1,:) = outlines(:,1,:) - obj.getSpaceOrign(2)+1;
-                outlines(:,2,:) = outlines(:,2,:) - obj.getSpaceOrign(1)+1;
+                outlines(:,1,:) = outlines(:,1,:)-obj.getSpaceOrign(2)+1;
+                outlines(:,2,:) = outlines(:,2,:)-obj.getSpaceOrign(1)+1;
             else
                 warning("No brain regions outlines found");
+                outlines = [];
+            end
+        end
+
+        function outlines = getCustomOutlines(obj, outlines_nums)
+            if(obj.extra_specs.isKey("customOutlines"))
+                raw_outlines = obj.extra_specs("customOutlines");
+                if(nargin < 2), outlines_nums = 1:size(raw_outlines, 3); end
+                outlines = raw_outlines(:,:,outlines_nums)/obj.binning;
+                outlines(:,1,:) = outlines(:,1,:)-obj.getSpaceOrign(2)+1;
+                outlines(:,2,:) = outlines(:,2,:)-obj.getSpaceOrign(1)+1;
+            else
+                warning("No custom brain outlines found");
                 outlines = [];
             end
         end

@@ -77,8 +77,7 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     %%
     
     tform = imregcorr(template_reg0, template_fixed, ...
-        'transformtype','rigid');
-    
+        'transformtype', 'rigid', 'window', false);
     tform_full = rigid2d(tform.T*tform0.T);
 
     template_registered = imwarp(template_moving, tform_full, 'OutputView', ref_fixed, ...

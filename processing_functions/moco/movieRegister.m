@@ -67,42 +67,51 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     title("initial")
     %%
 
-    ref_fixed = imref2d(size(template_fixed));
+    ref = imref2d(size(template_fixed));
+    center = [mean(ref.XWorldLimits), mean(ref.YWorldLimits)];
     
     rot = @(t) [cosd(t) sind(t); -sind(t) cosd(t)];
 
-    tform0 = rigid2d(rot(options.angle0), options.shifts0/specs.getPixSize());
-    template_reg0 = imwarp(template_moving, tform0, 'OutputView', ref_fixed, ...
+    % tform0 = rigid2d(rot(-options.angle0), options.shifts0/specs_mov.getPixSize());
+    tform00 = rigid2d(rot(0), [center(1), center(2)]); 
+    tform01 = rigid2d(rot(-options.angle0), [0, 0]); 
+    tform02 = rigid2d(rot(0), options.shifts0/specs_mov.getPixSize()); 
+    
+    % move origin to center, rotate, shift, move origin back
+    tform0 = rigid2d(tform00.invert.T*tform02.T*tform01.T*tform00.T);
+
+    template_reg0 = imwarp(template_moving, ref, tform0, 'OutputView', ref, ...
         'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
     %%
-    
-    tform_cor = imregcorr(template_reg0, template_fixed, ...
-        'transformtype', 'rigid', 'window', false);
-    template_cor = imwarp(template_reg0, tform_cor, 'OutputView', ref_fixed, ...
-        'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
+        
+    % tform_cor = imregcorr(template_reg0, template_fixed, ...
+        % 'transformtype', 'rigid', 'window', false);
+    % template_cor = imwarp(template_reg0, tform_cor, 'OutputView', ref_fixed, ...
+        % 'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
 
     [opt, met] = imregconfig("multimodal");
-    tform_mul =  imregtform(template_cor, template_fixed,'rigid', opt, met);
+    tform_mul =  imregtform(template_reg0, ref, template_fixed, ref,...
+        'rigid', opt, met);
 
-    tform_full = rigid2d(tform_mul.T*tform_cor.T*tform0.T);
-    template_registered = imwarp(template_moving, tform_full, 'OutputView', ref_fixed, ...
+    tform_full = rigid2d(tform_mul.T*tform0.T); % *tform_cor.T
+    template_reg = imwarp(template_moving, ref, tform_full, 'OutputView', ref, ...
         'SmoothEdges', true, 'FillValues', options.fillval, 'interp', options.interp);
     %%
 
-    nan_mask = isnan(template_registered) | isnan(template_fixed) | isnan(template_moving);
+    nan_mask = isnan(template_reg) | isnan(template_fixed) | isnan(template_moving);
     corr_mov = corr(template_moving(~nan_mask), template_fixed(~nan_mask));
-    corr_reg = corr(template_registered(~nan_mask), template_fixed(~nan_mask));
+    corr_reg = corr(template_reg(~nan_mask), template_fixed(~nan_mask));
 
     fig_overlap = plt.getFigureByName("movieRegister: templates overlap");
     subplot(1,2,1);
     title(sprintf("initial (r=%.2f)", corr_mov))
     subplot(1,2,2);
-    imshowpair(template_registered, template_fixed);
+    imshowpair(template_reg, template_fixed);
     title(sprintf("transformed (r=%.2f)", corr_reg))
     
     fig_sbs = plt.getFigureByName("movieRegister: templates");
     subplot(1,3,3);
-    imshow(template_registered, []);
+    imshow(template_reg, []);
     title("transformed");
     %%
 
@@ -128,7 +137,7 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     M_reg = nan(size(M), class(M));
     parfor i_f = 1:size(M,3)
         frame_moving = M(:,:,i_f);
-        frame_registered = imwarp(frame_moving, tform_full, 'OutputView', ref_fixed, ...
+        frame_registered = imwarp(frame_moving, tform_full, 'OutputView', ref, ...
             'SmoothEdges', true, 'FillValues', options.fillval, 'interp', options.interp);
         M_reg(:,:,i_f) = frame_registered;
     end

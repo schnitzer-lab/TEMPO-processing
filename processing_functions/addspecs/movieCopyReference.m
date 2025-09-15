@@ -37,7 +37,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     end
     %%
     
-    disp("moviesCopyReference: reading frames")
+    disp("movieCopyReference: reading frames")
 
     specs_ref = rw.h5readMovieSpecs(fullpath_movie_ref);
 %     specs_mov = rw.h5readMovieSpecs(fullpath_movie);
@@ -68,59 +68,68 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     end
     %%
 
-    plt.getFigureByName("movieCopyReference: templates overlap")
+    plt.getFigureByName("movieCopyReference: templates overlap");
     subplot(1,2,1)
     imshowpair(template_moving, template_fixed)
     title("initial")
 
     %%
 
-    ref_fixed = imref2d(size(template_fixed));
+    ref = imref2d(size(template_fixed));
+    center = [mean(ref.XWorldLimits), mean(ref.YWorldLimits)];
     
     rot = @(t) [cosd(t) sind(t); -sind(t) cosd(t)];
 
-    tform0 = rigid2d(rot(-options.angle0), options.shifts0/specs_mov.getPixSize());
-    template_reg0 = imwarp(template_moving, tform0, 'OutputView', ref_fixed, ...
+    % tform0 = rigid2d(rot(-options.angle0), options.shifts0/specs_mov.getPixSize());
+    tform00 = rigid2d(rot(0), [center(1), center(2)]); 
+    tform01 = rigid2d(rot(-options.angle0), [0, 0]); 
+    tform02 = rigid2d(rot(0), options.shifts0/specs_mov.getPixSize()); 
+    
+    % move origin to center, rotate, shift, move origin back
+    tform0 = rigid2d(tform00.invert.T*tform02.T*tform01.T*tform00.T);
+
+    template_reg0 = imwarp(template_moving, ref, tform0, 'OutputView', ref, ...
         'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
     %%
     
-    tform_cor = imregcorr(template_reg0, template_fixed, ...
-        'transformtype', 'rigid', 'window', false);
-    template_cor = imwarp(template_reg0, tform_cor, 'OutputView', ref_fixed, ...
-        'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
+    % tform_cor = imregcorr(template_reg0, template_fixed, ...
+        % 'transformtype', 'rigid', 'window', false);
+    % template_cor = imwarp(template_reg0, tform_cor, 'OutputView', ref_fixed, ...
+        % 'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
 
     [opt, met] = imregconfig("multimodal");
-    tform_mul =  imregtform(template_cor, template_fixed,'rigid', opt, met);
+    tform_mul =  imregtform(template_reg0, ref, template_fixed, ref,...
+        'rigid', opt, met);
 
-    tform_full = rigid2d(tform_mul.T*tform_cor.T*tform0.T);
-    template_registered = imwarp(template_moving, tform_full, 'OutputView', ref_fixed, ...
+    tform_full = rigid2d(tform_mul.T*tform0.T); % *tform_cor.T
+    template_reg = imwarp(template_moving, ref, tform_full, 'OutputView', ref, ...
         'SmoothEdges', true, 'FillValues', options.fillval, 'interp', options.interp);
     %%
 
-    nan_mask = isnan(template_registered) | isnan(template_fixed) | isnan(template_moving);
+    nan_mask = isnan(template_reg) | isnan(template_fixed) | isnan(template_moving);
     corr_mov = corr(template_moving(~nan_mask), template_fixed(~nan_mask));
-    corr_reg = corr(template_registered(~nan_mask), template_fixed(~nan_mask));
+    corr_reg = corr(template_reg(~nan_mask), template_fixed(~nan_mask));
 
     fig_overlap = plt.getFigureByName("movieCopyReference: templates overlap");
     subplot(1,2,1);
     title(sprintf("initial (r=%.2f)", corr_mov))
     subplot(1,2,2);
-    imshowpair(template_registered, template_fixed);
+    imshowpair(template_reg, template_fixed);
     title(sprintf("transformed (r=%.2f)", corr_reg)) 
     %%
 
     if(any(abs(abs(tform_full.T(3,1:2)))*specs_mov.getPixSize() > options.shift_max))
-        error("moviesCopyReference: template registration failed - shift too big");
+        error("movieCopyReference: template registration failed - shift too big");
     end
     if(abs(atan2d(tform_full.T(2,1), tform_full.T(1,1))) > options.angle_max)
-        error("moviesCopyReference: template registration failed - angle too big");
+        error("movieCopyReference: template registration failed - angle too big");
     end
     if(corr_reg < options.corr_min || corr_reg < corr_mov)
-        error("moviesCopyReference: template registration failed - final correlation too low");        
+        error("movieCopyReference: template registration failed - final correlation too low");        
     end
     %%
 
-    disp("moviesCopyReference: registering mask")
+    disp("movieCopyReference: registering mask")
 
     mask_moving = imwarp(int32(specs_ref.getMask()), tform_full.invert,...
         'OutputView', imref2d(size(frame_moving)), ...
@@ -139,7 +148,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     imshow(frame_moving.*double(specs_out.getMask()), [])
     title("target alignmet")
     %%
-    disp("moviesCopyReference: registering allen")
+    disp("movieCopyReference: registering allen")
         
     allenOutlines_fixed = specs_ref.getAllenOutlines();
     allenOutlines_moving = nan(size(allenOutlines_fixed));
@@ -147,12 +156,12 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     if(~isempty(allenOutlines_fixed))
     
         for i_r = 1:size(allenOutlines_fixed,3)
-            region_outline = Reg.transformation.transformPointsInverse(allenOutlines_fixed(:,:,i_r));
+            region_outline = tform_full.transformPointsInverse(allenOutlines_fixed(:,:,i_r));
             allenOutlines_moving(:,:,i_r) = region_outline;
         end
         
         specs_out.extra_specs("allenTransform") = ...
-            specs_ref.extra_specs('allenTransform')*Reg.transformation.T; % order? % does not account for possible rebinning
+            specs_ref.extra_specs('allenTransform')*tform_full.T; % order? % does not account for possible rebinning
         specs_out.extra_specs("allenMapEdgeOutline") = ...
             allenOutlines_moving*specs_out.binning;
     end
@@ -175,7 +184,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     fig_allen = plt.getFigureByName("register_two_frames: outlines");
 
     subplot(1,2,1)
-    imshow(F1, []); hold on;
+    imshow(plt.saturate(F1, [0, 0.95]), []); hold on;
 
     plt.outlines(specs_ref.getAllenOutlines(), [], [],...
         '--', 'color', [0,1,0], 'LineWidth', 0.5); 
@@ -185,7 +194,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     hold off
     
     subplot(1,2,2)
-    imshow(F2, []); hold on;
+    imshow(plt.saturate(F2, [0, 0.95]), []); hold on;
     plt.outlines(specs_out.getAllenOutlines(), [], [],...
         '--', 'color', [0,1,0], 'LineWidth', 0.5); 
     plt.outlines(specs_out.getCustomOutlines(), [], [],...
@@ -194,7 +203,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     drawnow;
     %%
 
-    disp("moviesCopyReference: saving aligned")
+    disp("movieCopyReference: saving aligned")
     
     rw.h5writeStruct(char(fullpath_movie), ...
         specs_out.extra_specs("mask"), '/specs/extra_specs/mask');
@@ -212,7 +221,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     end
     %%
     
-    disp("moviesCopyReference: saving diagnostic")
+    disp("movieCopyReference: saving diagnostic")
     
     saveas(fig_overlap, fullfile(options.diagnosticdir, filename + "_reg_overlap.png"))
     saveas(fig_overlap, fullfile(options.diagnosticdir, filename + "_reg_overlap.fig"))
@@ -230,7 +239,7 @@ function [options,p] = parseInputs(basepath, varargin)
     isinrange = @(x,a,b) isnumeric(x)&all((x>=a)&(x<=b));
 
     p.addParameter('diagnosticdir', ...
-        fullfile(basepath, "\diagnostic\movieRegister\"), @(s) isstring(s)|ischar(s));
+        fullfile(basepath, "\diagnostic\movieCopyReference\"), @(s) isstring(s)|ischar(s));
   
     p.addParameter('bandpass', [0.05, 0.5], @(x) isinrange(x,0,Inf)); % mm
     p.addParameter('shifts0', [0, 0], @(x) isnumeric(x)); % mm
@@ -245,8 +254,7 @@ function [options,p] = parseInputs(basepath, varargin)
 
     p.addParameter('skip', true, @(x) (x==true)|(x==false));
     
-    p.addParameter('folder_ref', ...
-        fullfile(basepath, "P:\GEVI_Wave\MiceAlignment\"), @(s) isstring(s)|ischar(s));
+    p.addParameter('folder_ref', "P:\GEVI_Wave\MiceAlignment\", @(s) isstring(s)|ischar(s));
 
     p.parse(varargin{:});
     options = p.Results;

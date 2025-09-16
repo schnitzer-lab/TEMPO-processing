@@ -90,8 +90,8 @@ movieMakeMask(h5path1_mc); movieMakeMask(h5path2_reg);
 %%
 
 if(~strcmp(h5path2_mc, h5path2_reg)), delete(h5path2_mc); end
-if(~strcmp(fullpathGin,  fullpathGconv)), delete(fullpathGin); end
-if(~strcmp(fullpathRin,  fullpathRconv)), delete(fullpathRin); end
+if(~strcmp(fullpathGin, fullpathGconv)), delete(fullpathGin); end
+if(~strcmp(fullpathRin, fullpathRconv)), delete(fullpathRin); end
 %%
 
 if(~strcmp(folder_output, folder_processing))

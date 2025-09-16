@@ -1,4 +1,4 @@
-
+% 
 % clear; 
 % close all;
 % warning on;
@@ -6,13 +6,13 @@
 % 
 % diary(fullfile("P:\GEVI_Wave\Logs", ...
 %         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
-%%
-%
-% recording_name = "Spontaneous\mCtrl12\20201122\meas01";
+% %
+% 
+% recording_name = "Spontaneous\mly2001wt\20250822\meas00";
 % 
 % channels = ["G","R"];
 % 
-% basefolder_raw = "\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% 
+% basefolder_raw = "R:\GEVI_Wave\Raw\";% 
 % basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
 % 
 % binning = 8;

@@ -279,7 +279,7 @@ function options = defaultOptions(basepath)
     options.postfix_new = "";
     options.skip = true;
     options.ttl_signal = [];
-    options.iti_scale = 4;
+    options.iti_scale = 2;
     options.drop = 1;
     options.processingdir = basepath + "\processing\plotTraceStim\";
     

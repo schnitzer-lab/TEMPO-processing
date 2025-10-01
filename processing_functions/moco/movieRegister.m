@@ -121,10 +121,10 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     saveas(fig_sbs, fullfile(options.diagnosticdir, filename_out + "_sbs.fig"))
     %%
 
-    if(any(abs(abs(tform_cor.T(3,1:2)))*specs.getPixSize() > options.shift_max))
+    if(any(abs(abs(tform_full.T(3,1:2)))*specs.getPixSize() > options.shift_max))
         error("movieRegister: template registration failed - shift too big");
     end
-    if(abs(atan2d(tform_cor.T(2,1), tform_cor.T(1,1))) > options.angle_max)
+    if(abs(atan2d(tform_full.T(2,1), tform_full.T(1,1))) > options.angle_max)
         error("movieRegister: template registration failed - angle too big");
     end
     if(corr_reg < options.corr_min)

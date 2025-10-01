@@ -72,10 +72,10 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     
     rot = @(t) [cosd(t) sind(t); -sind(t) cosd(t)];
 
-    % tform0 = rigid2d(rot(-options.angle0), options.shifts0/specs_mov.getPixSize());
+    % tform0 = rigid2d(rot(-options.angle0), options.shifts0/specs.getPixSize());
     tform00 = rigid2d(rot(0), [center(1), center(2)]); 
     tform01 = rigid2d(rot(-options.angle0), [0, 0]); 
-    tform02 = rigid2d(rot(0), options.shifts0/specs_mov.getPixSize()); 
+    tform02 = rigid2d(rot(0), options.shifts0/specs.getPixSize()); 
     
     % move origin to center, rotate, shift, move origin back
     tform0 = rigid2d(tform00.invert.T*tform02.T*tform01.T*tform00.T);

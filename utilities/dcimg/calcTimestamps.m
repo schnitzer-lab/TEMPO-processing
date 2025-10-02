@@ -42,13 +42,13 @@ if(sum(timestamps < 0) > 1)
 end
 timestapms_use = (timestamps >= 0);
 
-summary.medianFps=[]; % init field
+summary.meanFps=[]; % init field
 summary.nDroppedFrames=[]; % init field
 summary.timestamps=timestamps;
 summary.interval=diff(timestamps);
 summary.fpsVec= 1./summary.interval;
-summary.medianFps=median(summary.fpsVec(timestapms_use(1:(end-1))));
-fps=summary.medianFps;
+summary.meanFps=mean(summary.fpsVec(timestapms_use(1:(end-1))));
+fps=summary.meanFps;
 summary.jitter=std(summary.interval);
 summary.medianInterval=median(summary.interval);
 summary.intervalDeviations=abs(summary.interval-summary.medianInterval);

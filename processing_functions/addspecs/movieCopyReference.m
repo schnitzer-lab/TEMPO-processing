@@ -116,6 +116,8 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     subplot(1,2,2);
     imshowpair(template_reg, template_fixed);
     title(sprintf("transformed (r=%.2f)", corr_reg)) 
+
+    sgtitle([basepath, filename], 'Interpreter', 'None')
     %%
 
     if(any(abs(abs(tform_full.T(3,1:2)))*specs_mov.getPixSize() > options.shift_max))
@@ -147,6 +149,8 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     subplot(1,2,2)
     imshow(frame_moving.*double(specs_out.getMask()), [])
     title("target alignmet")
+
+    sgtitle([basepath, filename], 'Interpreter', 'None')
     %%
     disp("movieCopyReference: registering allen")
         
@@ -190,7 +194,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
         '--', 'color', [0,1,0], 'LineWidth', 0.5); 
     plt.outlines(specs_ref.getCustomOutlines(), [], [],...
         '--', 'color', [1,0,0], 'LineWidth', 0.5); 
-    
+    title("reference alignmet")
     hold off
     
     subplot(1,2,2)
@@ -200,7 +204,10 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     plt.outlines(specs_out.getCustomOutlines(), [], [],...
         '--', 'color', [1,0,0], 'LineWidth', 0.5); 
     hold off
+    title("target alignmet")
     drawnow;
+    
+    sgtitle([basepath, filename], 'Interpreter', 'None')
     %%
 
     disp("movieCopyReference: saving aligned")

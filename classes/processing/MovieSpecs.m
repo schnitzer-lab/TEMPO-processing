@@ -30,7 +30,7 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
                                   pixsize, binning, spaceorigin,...
                                   sourcePath, history, history_params,...
                                   extra_specs)
-            if(nargin < 10) extra_specs = containers.Map; end
+            if(nargin < 10), extra_specs = containers.Map; end
 
             [fps, timebinning, timeorigin, pixsize, binning, spaceorigin,...
              sourcePath, history, history_params, extra_specs] = ...
@@ -104,7 +104,7 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
         end
 
         function channel_id = getChannelId(obj)
-            [filefolder, filename] = fileparts(obj.sourcePath);
+            [~, filename] = fileparts(obj.sourcePath);
 
             channel_id = filename(end); % not a great way, needs to be a class field
         end
@@ -149,14 +149,14 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
         
         function frange = AddFrequencyRange(obj, f1, f2)
             if(~isKey(obj.extra_specs, 'frange_valid'))
-                obj.extra_specs('frange_valid') = [0, obj.fps];
+                obj.extra_specs('frange_valid') = [0, obj.fps/2];
             end
 
-            if(nargin < 3) f2 = []; end
+            if(nargin < 3), f2 = []; end
             
             frange = obj.extra_specs('frange_valid');
-            if(~isempty(f1)) frange(1) = max(frange(1), f1); end
-            if(~isempty(f2)) frange(2) = min(frange(2), f2); end
+            if(~isempty(f1)), frange(1) = max(frange(1), f1); end
+            if(~isempty(f2)), frange(2) = min(frange(2), f2); end
 
             obj.extra_specs('frange_valid') = frange;
         end
@@ -165,7 +165,7 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
             if(isKey(obj.extra_specs, 'frange_valid'))
                 frange = obj.extra_specs('frange_valid');
             else
-                frange = [0, obj.fps];
+                frange = [0, obj.fps/2];
             end
             if(nargin > 1)
                 frange = frange(ind);

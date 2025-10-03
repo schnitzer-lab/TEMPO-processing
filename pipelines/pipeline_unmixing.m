@@ -94,7 +94,7 @@ fullpathRor = movieRemoveOutlierFrames(fullpathRex, 'n_sd', 6, 'dt', 15);
 % for movies where cameras weren't started synchroniously 
 fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, ...
     'lag_estimator', 'phase', 'f0', 30,...
-    'min_lag_frames', 0.5, 'max_lag_frames', 100); 
+    'min_lag_frames', 0.75, 'max_lag_frames', 100); 
 fullpathGdl = fullpathGor;
 % fullpathRdl = fullpathRor;
 %%
@@ -151,8 +151,7 @@ options_hfilt = mergeStructs({options_hfilt,  ...
     struct('dt_slow', 20*options_hfilt.dt, 'average_mm', 2, ...
            'flim_max', 20, 'max_delay', 30*1e-3)});
 
-% options_hfilt = rmfield(optio
-% ns_hfilt, 'dt_slow');
+% options_hfilt = rmfield(options_hfilt, 'dt_slow');
 % fullpathGhemo = movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_hfilt);
 
 fullpathGhemo = movieEstimateHemoGFiltTR(fullpathGhp, fullpathRhp, options_hfilt);

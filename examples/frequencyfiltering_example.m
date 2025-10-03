@@ -15,7 +15,7 @@ f0 = 6;
 wp = 2.5;
 
 % to use compiled executable. 3-4 times faster
-% options_bandpass.exepath = "C:\Users\Vasily\repos\Voltage\TEMPO-processing\analysis\c_codes\compiled\hdf5_movie_convolution.exe");   
+% options_bandpass.exepath = "..\analysis\c_codes\compiled\hdf5_movie_convolution.exe");   
 
 % frequency filter whole movie at a single pixel level
 % movieFilterExternalHighpass and movieFilterExternalLowpass also exist

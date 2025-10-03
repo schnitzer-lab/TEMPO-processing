@@ -119,7 +119,7 @@ end
 
 options_highpass = struct( 'attn', 1e5, 'rppl', 1e-2, 'skip', true);
 options_highpass.filtersdir = "P:\GEVI_Wave\ConvolutionFilters\";    
-options_highpass.exepath = "C:\Users\Vasily\repos\Voltage\TEMPO-processing\analysis\c_codes\compiled\hdf5_movie_convolution.exe";   
+options_highpass.exepath = "..\analysis\c_codes\compiled\hdf5_movie_convolution.exe";    % to use compiled executable. 3-4 times faster
 
 fullpathGhp = movieFilterHighpass(fullpathGbl, f0_hp, wp, options_highpass);
 fullpathRhp = movieFilterHighpass(fullpathRbl, f0_hp, wp, options_highpass);

@@ -1,9 +1,16 @@
+# necessary for allen map alignment
 analysis\allen_map\allenmap.mat
+
+# necessary for allen map alignment, can be generated
 analysis\allen_map\allen_reference_toalign.png
 analysis\allen_map\allen_reference_points.txt
+
+# necessary for .dcimg to h5 convertion
 utilities\dcimg\dcimgmex.mexw64
 utilities\dcimg\dcimgmatlab.mexw64
 utilities\dcimg\dct_readtimestamps\dct_readtimestamps.exe
+
+# optional for filtering
 analysis\c_codes\compiled\hdf5_movie_convolution.exe
 analysis\c_codes\compiled\libblas.dll
 analysis\c_codes\compiled\libfftw3-3.dll

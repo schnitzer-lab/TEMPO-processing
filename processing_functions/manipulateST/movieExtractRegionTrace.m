@@ -102,7 +102,7 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, 
         disp("movieExtractRegionTrace: saving")
         
         specs_out = copy(specs);
-        specs_out.AddToHistory(functionCallStruct({'fullpath_movie','regions','options'}));
+        specs_out.AddToHistory(functionCallStruct({'fullpath_movie','region_ids','options'}));
         specs_out.AddBinning(sqrt(sum(mask_full, 'all')));
         remove(specs_out.extra_specs, {'mask'});
         remove(specs_out.extra_specs, {'allenMapEdgeOutline'});

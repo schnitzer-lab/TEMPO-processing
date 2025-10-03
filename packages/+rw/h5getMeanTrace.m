@@ -16,7 +16,7 @@ function movie_mean = h5getMeanTrace(h5filename, varargin)
 
         movie_current = h5read(h5filename, options.dataset, [1, 1, i_c], [Inf, Inf, nframes_read]);
 
-        if(~isempty(specs.getMaskNaN()))
+        if(~isempty(specs.getMaskNaN()) && options.mask)
             movie_current = movie_current.*specs.getMaskNaN(); %(:,i_c:(i_c+nrows_read-1));
         end
 
@@ -31,4 +31,5 @@ function options = defaultOptions()
     
     options.dataset = '/mov';
     options.nframes_read = Inf;
+    options.mask = true;
 end

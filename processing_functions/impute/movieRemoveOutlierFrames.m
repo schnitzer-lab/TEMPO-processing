@@ -30,7 +30,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
     
     disp("movieRemoveOutlierFrames: reading movie")
     specs = rw.h5readMovieSpecs(fullpath_movie);
-    m = rw.h5getMeanTrace(fullpath_movie);
+    m = rw.h5getMeanTrace(fullpath_movie, 'mask', false);
 %     [M, specs] = rw.h5readMovie(fullpath_movie);
 %     m = squeeze(mean(M,[1,2],'omitnan'));
     %%
@@ -48,7 +48,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
         m_std = movstd(m_current, npoints, 'Endpoints', 'shrink');
 
         is_outlier_current = abs(m_current-m_movmean) > options.n_sd*m_std;
-        if(sum(is_outlier_current) == 0) break; end
+        if(sum(is_outlier_current) == 0), break; end
         is_outlier = (is_outlier | is_outlier_current);
         m_current(is_outlier) = NaN; 
         m_current = squeeze(imputeNaNT(reshape(m_current, [1,1, length(m)])));
@@ -98,6 +98,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
     sgtitle([filename, ...
         string(n_outliers)+" outlier frames ("+num2str(n_outliers/length(m),"%.1e")+")"],...
         'interpreter', 'None', 'FontSize', 12)
+    drawnow();
     %%
     disp("movieRemoveOutlierFrames: saving")
 

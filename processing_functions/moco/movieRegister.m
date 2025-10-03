@@ -65,6 +65,8 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     subplot(1,3,2)
     imshow(template_moving, [])
     title("initial")
+
+    sgtitle([basepath, filename], 'Interpreter', 'None')
     %%
 
     ref = imref2d(size(template_fixed));
@@ -113,6 +115,8 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     subplot(1,3,3);
     imshow(template_reg, []);
     title("transformed");
+
+    sgtitle([basepath, filename], 'Interpreter', 'None')
     %%
 
     saveas(fig_overlap, fullfile(options.diagnosticdir, filename_out + "_overlap.png"))
@@ -149,6 +153,8 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     subplot(1,3,2); imshow(median_moving, []); title("initial");
     subplot(1,3,3); imshow(median_reg, []); title("transformed");
     drawnow(); 
+
+    sgtitle([basepath, filename], 'Interpreter', 'None')
     %%
        
     disp("movieRegister: saving output")

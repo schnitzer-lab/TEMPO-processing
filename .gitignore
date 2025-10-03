@@ -2,6 +2,7 @@ local_*
 *.zip
 *.png
 *.jpg
+*.eps
 
 # no data files
 *.mat
@@ -20,7 +21,9 @@ local_*
 # no extra files from c project:
 analysis/compiled/hdf5_movie_fft/
 analysis/compiled/hdf5_movie_convolution/
-private/twophot/batchMoco1p.txt
+
+# no allen reference points
+analysis/allen_map/allen_reference_points*.txt
 
 # IDE stuff
 *.idea/

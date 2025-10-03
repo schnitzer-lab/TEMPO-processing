@@ -5,7 +5,7 @@ analysis\allen_map\allenmap.mat
 analysis\allen_map\allen_reference_toalign.png
 analysis\allen_map\allen_reference_points.txt
 
-# necessary for .dcimg to h5 convertion
+# necessary for .dcimg to .h5 conversion
 utilities\dcimg\dcimgmex.mexw64
 utilities\dcimg\dcimgmatlab.mexw64
 utilities\dcimg\dct_readtimestamps\dct_readtimestamps.exe

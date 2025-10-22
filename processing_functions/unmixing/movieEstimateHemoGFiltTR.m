@@ -1,5 +1,5 @@
 function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
-    movieEstimateHemoGFiltTR2(fullpath_sig, fullpath_ref, varargin)
+    movieEstimateHemoGFiltTR(fullpath_sig, fullpath_ref, varargin)
     
     [basepath_ref, ~, ~] = fileparts(fullpath_ref);
 
@@ -19,10 +19,12 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
         
     % To avoid extra data in the ram, movies are loaded from hard drive
     % when passed to processing functions 
-    specs_r = rw.h5readMovieSpecs(fullpath_ref);
-    [nx,ny,nt] = rw.h5getDatasetSize(fullpath_ref, '/mov');
-    mr = rw.h5getMeanTrace(fullpath_ref);
-    mg = rw.h5getMeanTrace(fullpath_sig);
+    
+    [Mg, ~] = rw.h5readMovie(fullpath_sig);
+    [Mr, specs_r] = rw.h5readMovie(fullpath_ref);
+    sz = size(Mr);
+    mr = squeeze(mean(Mr, [1,2], 'omitnan'));%rw.h5getMeanTrace(fullpath_ref);
+    mg = squeeze(mean(Mg, [1,2], 'omitnan'));%rw.h5getMeanTrace(fullpath_sig);
     %%
        
     wn = round(specs_r.getFps()*options.dt);
@@ -67,74 +69,53 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     end
     %%
 
-    disp("movieEstimateHemoGFiltTR: loading ref and performing spatial averaging")
-
-
-    Mr = rw.h5readMovie(fullpath_ref);
-    Mg = rw.h5readMovie(fullpath_sig);
-    %%
-
-    options_estimate_nolim = copyStruct(options_limit);
-    options_estimate_nolim.max_delay = Inf; options_estimate_nolim.max_amp_rel = Inf;
-    %%
-    
-    w0 = 0; Mr_filt0 = 0;
-    if(options.mean_to_mean)
-        w0 = estimateFiltersTimeResolved(...
-            reshape(mg, 1,1,[]), reshape(mr, 1,1,[]), ...
-            wn, no, chunks, frefs/specs_r.getFps());
-        w0 = limitFiltersTimeResolved(w0, options_limit);
-        Mr_filt0 = applyFiltersTimeResolved(...
-            Mr, repelem(w0, size(Mr,1), size(Mr,2)), chunks, chunks_nooverlap);
-    end
-    %%
-
-    disp("movieEstimateHemoGFiltTR: estimating filter for averaged traces")
-    
-    Wxy = w0 + estimateFiltersTimeResolved(Mg-Mr_filt0, Mr, ...
-        wn, no, chunks, frefs/specs_r.getFps() );
-    Wxy = limitFiltersTimeResolved(Wxy, options_limit);
-    % clear('Mr_filt0');
-    
-    Mr_filt = applyFiltersTimeResolved(Mr, Wxy, chunks, chunks_nooverlap); %convn(Mr_in, W0, 'same');
-    % clear('Mr_sm');
-    %%
-   
-    disp("movieEstimateHemoGFiltTR: estimating filter for each pixel")
-
+    disp("movieEstimateHemoGFiltTR: performing spatial averaging")
     % local correction in case of ref spatial averaging
-    Wsm = 0;
+    Mr_sm = 0;
     if( options.naverage > 1 )
-        
-        if(all([nx,ny] < options.naverage))
-            Mr_sm = reshape(repelem(mr, nx*ny), [nx,ny,nz]);
+        if(all(sz(1:2) <= options.naverage))
+            Mr_sm = reshape(repelem(mr, prod(sz(1:2))), sz);
+            % Mg_sm = reshape(repelem(mg, prod(sz(1:2))), sz);
         else
             Mr_sm = rw.h5readMovie(fullpath_ref); 
-            
+     
             % NaNs on the ref edges due to registration. Imputing (imputeNaNS) or 
             % nan-tolerant smoothing (smooth2a/mm.movieSmooth) takes forever
             Mr_sm(isnan(Mr_sm)) = 0; 
             Mr_sm = smooth3(Mr_sm, 'box', [options.naverage, options.naverage,1]);
         end
-
-        Mr_filt_xy = Mr_filt;
-        Mr_filt_xy(isnan(Mr_filt_xy)) = 0;  % to avoid NaN propagation from the ref channel edges
-       
-        Wsm = estimateFiltersTimeResolved(...
-            Mg - Mr_filt_xy,  Mr_sm, ...
-            wn, no, chunks, frefs/specs_r.getFps());   
-        Wsm = limitFiltersTimeResolved(Wsm, options_limit);
-
-        Mr_filt = Mr_filt_xy + ...
-            applyFiltersTimeResolved(Mr_sm, Wsm, ...
-                chunks, chunks_nooverlap);
-    
-%          is_new_nan = isnan(Mr_filt) & ~isnan(Mr_filt_xy);
-%          Mr_filt(is_new_nan) = Mr_filt_xy(is_new_nan);
-%          clear('Mr_filt_sm');
     end
     %%
     
+    Mr_xy_filt = 0; Mr_sm_filt = 0;
+    Wxy = 0; Wsm = 0;   
+
+    for iter = 1:options.niter 
+        %%
+        
+        disp("movieEstimateHemoGFiltTR: estimating filter for smoothed ref traces"...
+            + sprintf(" (%d/%d)",iter,options.niter))
+
+        Wsm = estimateFiltersTimeResolved(Mg-Mr_xy_filt,  Mr_sm, wn, no,...
+            chunks, 'usereg', options.usereg, 'frefs', frefs/specs_r.getFps());  
+        Wsm = limitFiltersTimeResolved(Wsm, options_limit);       
+        Mr_sm_filt = applyFiltersTimeResolved(Mr_sm, Wsm, chunks, chunks_nooverlap);  
+  
+        disp("movieEstimateHemoGFiltTR: estimating filter for single-pixel traces"...
+            + sprintf(" (%d/%d)",iter,options.niter))
+
+        Wxy = estimateFiltersTimeResolved(Mg-Mr_sm_filt, Mr, wn, no,...
+            chunks, 'usereg', options.usereg, 'frefs', frefs/specs_r.getFps());
+        Wxy = limitFiltersTimeResolved(Wxy, options_limit);
+        Mr_xy_filt = applyFiltersTimeResolved(Mr, Wxy, chunks, chunks_nooverlap);   
+        %%        
+    end
+    %%
+    
+    Mr_filt = (Mr_sm_filt + Mr_xy_filt);
+    % clear('Mr_sm');
+    %%
+   
     disp("movieEstimateHemoGFiltTR: saving")
 
     specs_out = copy(specs_r);
@@ -152,8 +133,8 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     disp("movieEstimateHemoGFiltTR: saving plots")
         
     options.fref = mean(frefs);
-    savePlots(rw.h5readMovie(fullpath_sig), rw.h5readMovie(fullpath_ref), ...
-        Mr_filt, Wxy, specs_r, filename_out, options);
+    savePlots(Mg, Mr, ...
+        Mr_filt, Wsm, specs_r, filename_out, options);
 end
 %%
 
@@ -166,7 +147,8 @@ function options = defaultOptions(basepath)
 
     options.naverage = []; % number of points for reference ch spatial averaging 
     options.average_mm = Inf; % mm, scale for reference ch spatial averaging 
-    options.mean_to_mean = true;
+    options.niter = 3; % number of times to repeat the estimation
+    options.usereg = false; % use regularized version of the filter estimation 
 
     options.fref = []; % Hz,  main hemodynamic peak frequency
     options.fref_lims = [1.5, 20]; % Hz, limits for finding main hemodynamic peak frequency
@@ -228,9 +210,15 @@ end
 
 function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     
-%     Wxy = mean(Wxy, 4);
     Mg(isnan(Mr_filt)) = NaN;
     Mr(isnan(Mr_filt)) = NaN;
+
+    if(~isempty(specs.getMask()))
+        Mg = Mg.*specs.getMaskNaN();
+        Mr = Mr.*specs.getMaskNaN();
+        Mr_filt = Mr_filt.*specs.getMaskNaN();
+        Wxy = Wxy.*specs.getMaskNaN();
+    end
     %%
 
     pix_loc =  round(size(Mr, [1,2])/2);
@@ -244,10 +232,11 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     mr =  squeeze(Mr(pix_loc(1),pix_loc(2),:));
     mr_filt = squeeze(Mr_filt(pix_loc(1),pix_loc(2),:));
     mg_nohemo  = squeeze(Mg(pix_loc(1),pix_loc(2),:)-Mr_filt(pix_loc(1),pix_loc(2),:));
+    a = (mr\mg); % abs(zw(ind_f0)); % 
     
     fig_time_pix = plt.getFigureByName("movieEstimateHemoGFiltTR: single pix");
 
-    plt.tracesComparison([mg, mr*abs(zw(ind_f0)), mr_filt, mg-mr*abs(zw(ind_f0)), mg_nohemo], ...
+    plt.tracesComparison([mg, mr*a, mr_filt, mg-mr*a, mg_nohemo], ...
         'labels',["ch1", "ch2 (scaled)", "ch2 (filtered)", "umx regression", "umx filter"],...
         'fps', specs.getFps(), 'fw', 0.2, ...
         'nomean', false, 'spacebysd', [0,3,0,3,0], 'f0', specs.getFrequencyRange(1));
@@ -257,8 +246,6 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     saveas(fig_time_pix, fullfile(options.diagnosticdir, filename_out + "_pixtraces" + ".fig"))
     %%
         
-%     nan_mask = ones(size(Wxy, [1,2]));
-%     if(~isempty(specs.getMask())), nan_mask(specs.getMask() == 0) = NaN; end
     w =  squeeze(mean(Wxy, [1,2,4], 'omitnan'));
     
     zw = fft(w);
@@ -271,8 +258,9 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     mr =  squeeze(mean(Mr,[1,2],'omitnan'));
     mr_filt = squeeze(mean(Mr_filt,[1,2],'omitnan'));
     mg_nohemo  = squeeze(mean(Mg-Mr_filt, [1,2],'omitnan'));
+    a = (mr\mg); % abs(zw(ind_f0)); % 
 
-    plt.tracesComparison([mg, mr*(mr\mg), mr_filt, mg-mr*(mr\mg), mg_nohemo], ...
+    plt.tracesComparison([mg, mr*a, mr_filt, mg-mr*a, mg_nohemo], ...
         'labels',["ch1", "ch2 (scaled)", "ch2 (filtered)", "umx regression", "umx filter"],...
         'fps', specs.getFps(), 'fw', 0.2, ...
         'nomean', false, 'spacebysd', [0,3,0,3,0], 'f0', specs.getFrequencyRange(1));
@@ -297,7 +285,7 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     subplot(3,1,1)
     plot( ts, w, 'LineWidth', 1.5);
     legend('time representation'); grid();
-    xlabel('Time, s'); xlim(minmax(ts))
+    xlabel('Time, s'); xlim([min(ts), max(ts)])
 
     subplot(3,1,2)
 
@@ -321,7 +309,7 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     end
 
     hold off;
-    ylim([0.9, 1.2].*minmax(abs(zw'))); grid on;
+    ylim([0.9, 1.2].*[min(abs(zw')), max(abs(zw'))]); grid on;
     xlabel('Frequency, Hz');
     
     subplot(3,1,3)
@@ -346,14 +334,5 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
 
     saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filter" + ".png"))
     saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filter" + ".fig"))
-    %%
-%     subplot(1,2,1)
-%     imagesc((1:size(ZW,2))*600/118, fs, plt.saturate((abs(ZW) - mean(abs(ZW),2))./mean(abs(ZW),2), 0.01)); ylim([0,specs.getFps()/2]); caxis([-1,1]*max(abs(caxis)))
-%     colormap(plt.redblue)
-% 
-%     subplot(1,2,2)
-%     imagesc((1:size(ZW,2))*600/118, fs, -angle(ZW./abs(ZW)./ids)); ylim([0,specs.getFps()/2]); caxis([-1,1]*max(abs(caxis)))
-%     colormap('jet')
-    %%
 end
 %%

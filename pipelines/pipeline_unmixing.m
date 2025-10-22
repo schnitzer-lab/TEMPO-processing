@@ -1,4 +1,4 @@
-% %% 
+% % 
 % clear; 
 % close all;
 % warning on;
@@ -13,8 +13,10 @@
 % postfix_in1 = "cG_bin8*_mc";
 % postfix_in2 = "cR_bin8*_mc_reg";
 % 
-% mouse_state = "anesthesia"; %"anesthesia"; % "awake"; %"transition";
 % skip_if_final_exists = false;
+%
+% mouse_state = "anesthesia"; %"anesthesia"; % "awake"; %"transition";
+% unmix_time_resolved = true;
 % 
 % basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
@@ -26,9 +28,10 @@
 % % 0.141 (?) for older ASAP2s with different filters
 % frame_range = [50, inf];
 %%
-% postfixed for the final files in the output location
 
-postfix_out1 = "_unmixedTR_dFF";
+% postfixes for the final files in the output location
+if(unmix_time_resolved), postfix_out1 = "_unmixedTR_dFF"; 
+else, postfix_out1 = "_unmixed_dFF"; end
 postfix_out2 = "_dFF";
 %%
 
@@ -148,13 +151,16 @@ else
 end  
 
 options_hfilt = mergeStructs({options_hfilt,  ...
-    struct('dt_slow', 20*options_hfilt.dt, 'average_mm', 2, ...
+    struct('average_mm', 1, 'niter', 3, 'npixatonce', 1*1e4, ...
            'flim_max', 20, 'max_delay', 30*1e-3)});
 
-% options_hfilt = rmfield(options_hfilt, 'dt_slow');
-% fullpathGhemo = movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_hfilt);
-
-fullpathGhemo = movieEstimateHemoGFiltTR(fullpathGhp, fullpathRhp, options_hfilt);
+if(unmix_time_resolved)
+    options_hfilt.dt_slow = 10*options_hfilt.dt; 
+    options_hfilt.npixatonce = [];
+    fullpathGhemo = movieEstimateHemoGFiltTR(fullpathGhp, fullpathRhp, options_hfilt);
+else
+    fullpathGhemo = movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_hfilt);
+end
 
 moviesSavePreviewVideos([fullpathGhemo, fullpathRhp], ...
     'titles', ["reference filt", "reference ch"])
@@ -185,20 +191,21 @@ movieMeanTraceSpectrogram(fullpaths_mean(1), options_spectrogram);
 % copy renamed final files to the output location
 
 if(~strcmp(folder_processing, folder_output))
-    if(~isfolder(folder_output)) mkdir(folder_output); end
+    if(~isfolder(folder_output)), mkdir(folder_output); end
     
     paths_out_new = [];
     for f_out = [string(fullpathGnhDFF), string(fullpathRfDFF)]
         %%
         [filedir, ~, fileext, ~, channel, postfix_out] = filenameParts(f_out);
         
-        if(findstr(postfix_out, 'nohemo'))
+        if(contains(postfix_out, 'nohemo'))
             fullpath_new = fullfile(folder_output, channel + postfix_out1 + fileext);
         else
             fullpath_new = fullfile(folder_output, channel + postfix_out2 + fileext);
         end
         
-        copyfile(f_out, fullpath_new); paths_out_new = [paths_out_new, fullpath_new];
+        copyfile(f_out, fullpath_new); 
+        paths_out_new = [paths_out_new, fullpath_new];
         
         movieSavePreviewVideos(fullpath_new, 'title', channel + " dFF", 'skip', false);
     end
@@ -213,26 +220,26 @@ end
 %%
 % delete all intermediate files
 
-if(~strcmp(fullpathGin, fullpathGpreproc)) delete(fullpathGin); end
-if(~strcmp(fullpathRin, fullpathRpreproc)) delete(fullpathRin); end
+if(~strcmp(fullpathGin, fullpathGpreproc)), delete(fullpathGin); end
+if(~strcmp(fullpathRin, fullpathRpreproc)), delete(fullpathRin); end
 
-if(~strcmp(fullpathGex, fullpathGin)) delete(fullpathGex); end
-if(~strcmp(fullpathRex, fullpathRin)) delete(fullpathRex); end
+if(~strcmp(fullpathGex, fullpathGin)), delete(fullpathGex); end
+if(~strcmp(fullpathRex, fullpathRin)), delete(fullpathRex); end
 
-if(~strcmp(fullpathGor, fullpathGex)) delete(fullpathGor); end
-if(~strcmp(fullpathRor, fullpathRex)) delete(fullpathRor); end
+if(~strcmp(fullpathGor, fullpathGex)), delete(fullpathGor); end
+if(~strcmp(fullpathRor, fullpathRex)), delete(fullpathRor); end
 
-if(~strcmp(fullpathGdl, fullpathGor)) delete(fullpathGdl); end
-if(~strcmp(fullpathRdl, fullpathRor)) delete(fullpathRdl); end
+if(~strcmp(fullpathGdl, fullpathGor)), delete(fullpathGdl); end
+if(~strcmp(fullpathRdl, fullpathRor)), delete(fullpathRdl); end
 
-if(~strcmp(fullpathGdx, fullpathGdl)) delete(fullpathGdx); end
-if(~strcmp(fullpathRdx, fullpathRdl)) delete(fullpathRdx); end
+if(~strcmp(fullpathGdx, fullpathGdl)), delete(fullpathGdx); end
+if(~strcmp(fullpathRdx, fullpathRdl)), delete(fullpathRdx); end
 
-if(~strcmp(fullpathGbl, fullpathGdx)) delete(fullpathGbl); end
-if(~strcmp(fullpathRbl, fullpathRdx)) delete(fullpathRbl); end
+if(~strcmp(fullpathGbl, fullpathGdx)), delete(fullpathGbl); end
+if(~strcmp(fullpathRbl, fullpathRdx)), delete(fullpathRbl); end
 
-if(~strcmp(fullpathGdx, fullpathGhp)) delete(fullpathGhp); end
-if(~strcmp(fullpathRdx, fullpathRhp)) delete(fullpathRhp); end
+if(~strcmp(fullpathGdx, fullpathGhp)), delete(fullpathGhp); end
+if(~strcmp(fullpathRdx, fullpathRhp)), delete(fullpathRhp); end
 
 delete(fullpathGhemo); 
 delete(fullpathGnh);

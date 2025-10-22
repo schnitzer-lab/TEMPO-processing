@@ -22,6 +22,7 @@ basefolder_output = "N:\GEVI_Wave\Analysis\";
 skip_if_final_exists = true;
 
 mouse_state = "transition";% "awake"; %"anesthesia" "transition"
+unmix_time_resolved = true;
 
 crosstalk_matrix =  [[1, 0]; [0.07, 1]]; %[[1, 0]; [0.095, 1]]; %
 % crosstalk_matrix =  [[1, 0]; [0.07, 1]]; %[[1, 0]; [0.095, 1]]; %

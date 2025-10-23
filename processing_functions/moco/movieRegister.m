@@ -53,20 +53,20 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     end
     %%
 
-    plt.getFigureByName("movieRegister: templates overlap")
-    subplot(1,2,1)
-    imshowpair(template_moving, template_fixed)
-    title("initial")
+    plt.getFigureByName("movieRegister: templates overlap");
+    subplot(1,2,1);
+    imshowpair(template_moving, template_fixed);
+    title("initial");
 
-    plt.getFigureByName("movieRegister: templates")
-    subplot(1,3,1)
-    imshow(template_fixed, [])
-    title("fixed")
-    subplot(1,3,2)
-    imshow(template_moving, [])
-    title("initial")
+    plt.getFigureByName("movieRegister: templates");
+    subplot(1,3,1);
+    imshow(template_fixed, []);
+    title("fixed");
+    subplot(1,3,2);
+    imshow(template_moving, []);
+    title("initial");
 
-    sgtitle([basepath, filename], 'Interpreter', 'None')
+    sgtitle([basepath, filename], 'Interpreter', 'None');
     %%
 
     ref = imref2d(size(template_fixed));

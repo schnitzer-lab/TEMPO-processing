@@ -16,8 +16,8 @@ function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
     postfix_new = "_df" + num2str(round(delay_frames, 1));
     %%
        
-    if (~isfolder(options.outdir)) mkdir(options.outdir); end
-    if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
+    if (~isfolder(options.outdir)), mkdir(options.outdir); end
+    if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
 
     filename_out = filename + postfix_new;
     fullpath_out = fullfile(options.outdir, filename_out + ext);
@@ -35,23 +35,22 @@ function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
 %%
     disp("movieDelay: computing delayed movie");
     [M, specs] = rw.h5readMovie(fullpath_movie);
-    m = squeeze(mean(M, [1,2], 'omitnan'));
+    m0 = squeeze(mean(M, [1,2], 'omitnan'));
 
     [nx, ny] = size(M, [1,2]);
 
-    % somehow parfor works better without nested loops... 
+    % parfor works better without nested loops... 
     M = reshape(M, [nx*ny, size(M, 3)]);
     Mmean = mean(M,2,'omitnan');
     
     h = hamming(2*options.nw);
 
-%     ppm = ParforProgressbar(nx*ny, 'title', 'applyFilters: parfor progress');
     parfor i_s = 1:(nx*ny)
         
-%         m0 = mean(M(i_s, (1+options.frame0):end))
         m = (M(i_s, :))' - Mmean(i_s);
 
-        if(all(isnan(m))) continue; end
+        if(all(isnan(m))), continue; end
+        if(any(isnan(m))), M(i_s,:) = NaN; continue; end
         
         x = [h(1:options.nw)*m(1+options.frame0);...
              m((1+options.frame0):end); 
@@ -62,9 +61,7 @@ function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
         
         % in-place to save ram
         M(i_s, :) = md + Mmean(i_s);
-%         ppm.increment();
     end
-%     delete(ppm)
     
     Md = reshape(M, [nx,ny,size(M,2)]);
     clear('M');
@@ -73,7 +70,7 @@ function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
     fig_mean = plt.getFigureByName("movieDelay: mean");
     md = squeeze(mean(Md, [1,2], 'omitnan'));
 
-    plt.tracesComparison([m,md], 'labels', ["initial", "delayed"])
+    plt.tracesComparison([m0,md], 'labels', ["initial", "delayed"])
     % plt.tracesComparison([x(:,1), x(:,1)-x(:,2), x(:,1)-x(:,3)])
     sgtitle([basepath, filename], 'interpreter', 'none', 'FontSize', 8)
 %%

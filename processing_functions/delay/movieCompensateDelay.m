@@ -95,7 +95,7 @@ function [fullpath_out,lag] = ...
             'labels', ["in", "ref", "shifted"]);
         saveas(fig_mean, fullfile(options.diagnosticdir, filename + "_mean_out.png"));
         saveas(fig_mean, fullfile(options.diagnosticdir, filename + "_mean_out.fig"));
-        end
+    end
 end
 %%
 

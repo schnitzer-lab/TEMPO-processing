@@ -7,20 +7,20 @@
 % diary(fullfile( ...
 %         "P:\GEVI_Wave\Logs", ...
 %         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
-% %%
+%%
 % 
-% recording_name = "Spontaneous\mly2002bi\20250821\meas01";%"Spontaneous\mv0104\20230815\meas04" %(short 22s recording for tests);
+% recording_name = "Visual\rfm002mjr\20231209\meas00";%"Spontaneous\mv0104\20230815\meas04" %(short 22s recording for tests);
 % postfix_in1 = "cG_bin8";
 % postfix_in2 = "cR_bin8";
 % 
-% basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
+% basefolder_converted = "O:\GEVI_Wave\Preprocessed\";
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 % basefolder_output = "P:\GEVI_Wave\Preprocessed\";
 % 
 % shifts0 = [0,0]; %[0,0.5]; % mm, between R and G channel due to cameras misalignment
 % 
 % maxRAM = 0.1;
-% skip_if_final_exists = true;
+% skip_if_final_exists = false;
 %%
 
 folder_converted = fullfile(basefolder_converted, recording_name);
@@ -73,8 +73,8 @@ end
 % fullpathRin = movieExtractFrames(fullpathRin, [1, 35000], 'outdir', folder_processing);
 %%
 
-[h5path1_mc, shiftsfile1] = movieSimpleMoco(fullpathGin, 'impute_nan', true);
-[h5path2_mc, shiftsfile2] = movieSimpleMoco(fullpathRin, 'impute_nan', true);
+[h5path1_mc, shiftsfile1] = movieSimpleMoco(fullpathGin);
+[h5path2_mc, shiftsfile2] = movieSimpleMoco(fullpathRin);
 %%
 
 h5path2_reg = movieRegister(h5path2_mc, h5path1_mc, 'shifts0', shifts0,...

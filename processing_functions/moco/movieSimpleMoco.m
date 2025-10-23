@@ -12,8 +12,8 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
     postfix_new = "_mc";
     %%
     
-    if (~isfolder(options.processingdir)) mkdir(options.processingdir); end
-    if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
+    if (~isfolder(options.processingdir)), mkdir(options.processingdir); end
+    if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
 
     fullpath_out = fullfile(options.outdir, filename + postfix_new + ext);
     fullpath_out_shifts = fullfile(options.processingdir, filename + postfix_new + '.txt');
@@ -54,8 +54,7 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
     
     Mf = rw.h5readMovie(fullpath_movie); 
     shifts = zeros([size(Mf,3),2]); 
-    nan_mask = false(size(Mf, [1,2]));
-%     nan_ind = [];
+    nan_poins = false(size(Mf));
     for it = 1:options.niteration
         
         disp("movieSimpleMoco: finding shifts - iteration " + ...
@@ -64,21 +63,23 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
             'spatial_filter', spatial_filter, ...
             'upsample', options.upsample_factor*specs.binning);
         shifts = shifts + shifts2;
+        
+        nan_poins = nan_poins | isnan(Mf) ; 
 
-        if(options.impute_nan) 
-            Mf = imputeNaNT(Mf); 
-
-            if(any(isnan(Mf(:))))
-                warning("movieSimpleMoco: constant shift")
-                Mf = imputeNaNS(Mf);
-            end
-         else
-            nan_mask = (nan_mask | any(isnan(Mf),3));
-            Mf(repmat(nan_mask, [1,1,size(Mf,3)])) = 0;
+        % setting nan to 0 produces sharp edges, that can owerwhelm the template
+        Mf = imputeNaNT(Mf); 
+        if(any(isnan(Mf(:))))
+            warning("movieSimpleMoco: constant shift")
+            Mf = imputeNaNS(Mf);
         end
     end
-    template(nan_mask) = NaN;
-%     shifts = shifts - median(shifts,1);
+    
+%     Mf(nan_poins) = NaN;
+    nan_mask = ones(size(Mf, [1,2]), class(Mf));
+    nan_mask(any(nan_poins,3)) = NaN;
+
+    Mf = Mf.*nan_mask;
+    template = template.*nan_mask;
     %%
       
     plt.getFigureByName("movieSimpleMoco: Frame filtering example");
@@ -117,10 +118,10 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
     plt.signalSpectrogram(st_y, ts, fs, options_spectrogram);
     %%
     
-    M = single(rw.h5readMovie(fullpath_movie));
-    M(repmat(nan_mask, [1,1,size(M,3)])) = NaN;
-    
+    M = rw.h5readMovie(fullpath_movie);
+    M(isnan(Mf)) = NaN;    
     %%
+    
     fig_mean = plt.getFigureByName("movieSimpleMoco: mean traces");
     pix_xy = round(size(M,[1,2])/2);
 
@@ -184,8 +185,6 @@ function options = defaultOptions(basepath)
     options.max_shift = [0.5, 0.5]; %mm
     options.upsample_factor = 8; 
     options.niteration = 2;
-
-    options.impute_nan = true;
     
     options.skip = true;
 end

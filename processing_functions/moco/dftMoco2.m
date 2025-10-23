@@ -1,6 +1,6 @@
 function [M, shifts, template_out] = dftMoco2(M,varargin)
 
-    options = defaultOptions(size(M,3));
+    options = defaultOptions();
     if(~isempty(varargin))
         options = getOptions(options, varargin);
     end
@@ -17,6 +17,7 @@ function [M, shifts, template_out] = dftMoco2(M,varargin)
         psize_post = ceil((2.^ceil(log2(size(M, [1,2]))) - size(M, [1,2]))/2);
     end
     pad_to2n = @(F, v) padarray(padarray(F, psize_pre, v,'pre'), psize_post, v, 'post');
+    unpad = @(F) F((psize_pre(1)+1):(size(F,1)-psize_post(1)), (psize_pre(2)+1):(size(F,2)-psize_post(2)));
 
     z = zeros(size(M, [1,2]) + psize_pre + psize_post);
     z( floor((size(z,1)+1)/2), floor((size(z,2)+1)/2) ) = 1;
@@ -34,22 +35,18 @@ function [M, shifts, template_out] = dftMoco2(M,varargin)
     
     shifts = NaN([size(M,3),2]);
     Mft = filter_ft.*fft2(pad_to2n(M.*hann2d,0));
-    % Mft = permute(Mft, [3,1,2]);
 
     parfor i_f = 1:size(M,3)
-        current_frame_ft = Mft(:,:,i_f);
 
-        % current_frame(isnan(current_frame)) = 0;       
-        % output = dftregistration_min_max( ...
-        %     current_frame_ft, template_ft, options.upsample,...
-        %     -options.max_shift, options.max_shift, options.phase_flag);
+        current_frame_ft = Mft(:,:,i_f);
         output = dftregistration( ...
             current_frame_ft, template_ft, options.upsample);
+%            -options.max_shift, options.max_shift, options.phase_flag);
         
         shifts(i_f,:) = output(:,[4,3]);
     end
 
-    template_out = ifftn(template_ft); 
+    template_out = unpad(ifftn(template_ft)); 
     %%
 
     shifts = shifts - median(shifts);
@@ -63,12 +60,11 @@ function [M, shifts, template_out] = dftMoco2(M,varargin)
     %%
 end
 
-function options = defaultOptions(nT)
-%     options.update_template = false;
+function options = defaultOptions()
     options.nmedian = 2; % subsampling used for median estimation
     options.padto2n = true;
     options.fill_value = NaN;
-    options.interpolation_method = 'cubic';
+    options.interpolation_method = 'linear';
     options.spatial_filter = @(x) x;
     options.upsample = 8;
     % options.max_shift = Inf;

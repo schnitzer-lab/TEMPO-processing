@@ -114,7 +114,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     
     disp("movieEstimateHemoGFilt: generating and saving plots")
             
-    savePlots(Mg, Mr, Mr_filt, Wsm, specs_r, filename_out, options);
+    savePlots(Mg, Mr, Mr_filt, Wsm, Wxy, specs_r, filename_out, options);
 end
 %%
 
@@ -186,8 +186,9 @@ end
 
 %%
 
-function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
-      
+
+function savePlots(Mg, Mr, Mr_filt, Wsm, Wxy, specs, filename_out, options)
+    
     Mg(isnan(Mr_filt)) = NaN;
     Mr(isnan(Mr_filt)) = NaN;
 
@@ -195,13 +196,14 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
         Mg = Mg.*specs.getMaskNaN();
         Mr = Mr.*specs.getMaskNaN();
         Mr_filt = Mr_filt.*specs.getMaskNaN();
+        Wsm = Wsm.*specs.getMaskNaN();
         Wxy = Wxy.*specs.getMaskNaN();
     end
     %%
 
     pix_loc =  round(size(Mr, [1,2])/2);
 
-    w =  squeeze(mean(Wxy(pix_loc(1),pix_loc(2),:), [1,2], 'omitnan'));
+    w =  squeeze(mean(Wsm(pix_loc(1),pix_loc(2),:,:), [1,2,4], 'omitnan'));
     zw = fft(w);
     fs = linspace(0,specs.getFps, length(zw));
     [~,ind_f0] = min(abs(fs-options.fref));
@@ -210,9 +212,8 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     mr =  squeeze(Mr(pix_loc(1),pix_loc(2),:));
     mr_filt = squeeze(Mr_filt(pix_loc(1),pix_loc(2),:));
     mg_nohemo  = squeeze(Mg(pix_loc(1),pix_loc(2),:)-Mr_filt(pix_loc(1),pix_loc(2),:));
-    
     a = (mr\mg); % abs(zw(ind_f0)); % 
-
+    
     fig_time_pix = plt.getFigureByName("movieEstimateHemoGFilt: single pix");
 
     plt.tracesComparison([mg, mr*a, mr_filt, mg-mr*a, mg_nohemo], ...
@@ -225,14 +226,11 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     saveas(fig_time_pix, fullfile(options.diagnosticdir, filename_out + "_pixtraces" + ".fig"))
     %%
         
-%     nan_mask = ones(size(Wxy, [1,2]));
-%     if(~isempty(specs.getMask())), nan_mask(specs.getMask() == 0) = NaN; end
-    w =  squeeze(mean(Wxy, [1,2], 'omitnan'));
+    w =  squeeze(mean(Wsm, [1,2,4], 'omitnan'));
     
     zw = fft(w);
     fs = linspace(0,specs.getFps, length(zw));
-    [~,ind_f0] = min(abs(fs-options.fref));    
-    zw(fs < specs.getFrequencyRange(1)) = NaN;
+    [~,ind_f0] = min(abs(fs-options.fref));
       
     fig_time = plt.getFigureByName("movieEstimateHemoGFilt: Spatially-averaged traces");
  
@@ -240,8 +238,7 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     mr =  squeeze(mean(Mr,[1,2],'omitnan'));
     mr_filt = squeeze(mean(Mr_filt,[1,2],'omitnan'));
     mg_nohemo  = squeeze(mean(Mg-Mr_filt, [1,2],'omitnan'));
-
-    a = (mr\mg); %abs(zw(ind_f0)); % (mr\mg)
+    a = (mr\mg); % abs(zw(ind_f0)); % 
 
     plt.tracesComparison([mg, mr*a, mr_filt, mg-mr*a, mg_nohemo], ...
         'labels',["ch1", "ch2 (scaled)", "ch2 (filtered)", "umx regression", "umx filter"],...
@@ -253,17 +250,28 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
     saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".fig"))
     %%
 
-    fig_filt= plt.getFigureByName("movieEstimateHemoGFilt: Spatially-averaged filter");
-    % fig_filt.Position(4) = round(fig_filt.Position(4)*1.5);
+    W =  squeeze(mean(Wsm, [1,2], 'omitnan'));
+    w = mean(W,2);
+    ZW = fft(W);
+    zw = mean(ZW,2);
+    zw(fs < specs.getFrequencyRange(1)) = NaN;
 
+    ts = ((1:length(w))-(length(w)+1)/2)/specs.getFps();
+
+    fig_filt= plt.getFigureByName("movieEstimateHemoGFilt: Spatially-averaged filter");
+    fig_filt.Position(4) = 630;
+    
     sgtitle('Unmixing filter')
     subplot(3,1,1)
-    plot(((1:length(w)) -(length(w)+1)/2)/specs.getFps(), w, 'LineWidth', 1.5);
+    plot( ts, w, 'LineWidth', 1.5);
     legend('time representation'); grid();
-    xlabel('Time, s');
+    xlabel('Time, s'); xlim([min(ts), max(ts)])
 
     subplot(3,1,2)
-    semilogy(fs, abs(zw), 'LineWidth', 1.5); xlim([0, specs.getFps()/2]);
+
+%     semilogy(fs, abs(ZW), ':')
+    semilogy(fs, abs(zw), '.-', 'LineWidth', 1.5); xlim([0, specs.getFps()/2]);
+    hold on;
     grid();
 
     legend(["spectral amplitude"]);
@@ -280,30 +288,212 @@ function savePlots(Mg, Mr, Mr_filt, Wxy, specs, filename_out, options)
             "limit ("+num2str(options.max_amp_rel)+"*ref)", "reference"]);
     end
 
+    hold off;
     ylim([0.9, 1.2].*[min(abs(zw')), max(abs(zw'))]); grid on;
     xlabel('Frequency, Hz');
     
     subplot(3,1,3)
     
-    idf = zeros(size(w)); idf((length(w)+1)/2) = 1;
+    idf = zeros(size(w)); idf(floor((length(w)+1)/2)) = 1;
     ids = fft(idf);
 
     phase_delay = -mod(unwrap(angle(zw./abs(zw)./ids))+pi/2, pi)+pi/2;
-    
-    plot(fs, phase_delay, 'LineWidth',1.5); xlim([0, specs.getFps()/2])
+
+    plot(fs, phase_delay, '.-', 'LineWidth', 1.5); xlim([0, specs.getFps()/2])
+    hold on
+   
     ylim_phase = ylim();
     
-    hold on;
     plot(fs,  options.max_delay*2*pi*fs, '--', 'color', 'Black', 'LineWidth', 1)
     plot(fs, -options.max_delay*2*pi*fs, '--', 'color', 'Black', 'LineWidth', 1)
     hold off;
     
-    ylim(ylim_phase); grid on;
+    ylim(ylim_phase.*[1,1.5]); grid on;
     legend(["phase delay", "max delay ("+num2str(round(options.max_delay*1000))+"ms)"]); 
     xlabel('Frequency, Hz'); ylabel('Phase, rad')
+
+    saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filter" + ".png"))
+    saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filter" + ".fig"))
+        %%
+
+    pix_loc =  round(size(Mr, [1,2])/2);
+
+    w =  squeeze(mean(Wsm(pix_loc(1),pix_loc(2),:,:), [1,2,4], 'omitnan'));
+    zw = fft(w);
+    fs = linspace(0,specs.getFps, length(zw));
+    [~,ind_f0] = min(abs(fs-options.fref));
+ 
+    mg =  squeeze(Mg(pix_loc(1),pix_loc(2),:));
+    mr =  squeeze(Mr(pix_loc(1),pix_loc(2),:));
+    mr_filt = squeeze(Mr_filt(pix_loc(1),pix_loc(2),:));
+    mg_nohemo  = squeeze(Mg(pix_loc(1),pix_loc(2),:)-Mr_filt(pix_loc(1),pix_loc(2),:));
+    a = (mr\mg); % abs(zw(ind_f0)); % 
     
+    fig_time_pix = plt.getFigureByName("movieEstimateHemoGFilt: single pix");
+
+    plt.tracesComparison([mg, mr*a, mr_filt, mg-mr*a, mg_nohemo], ...
+        'labels',["ch1", "ch2 (scaled)", "ch2 (filtered)", "umx regression", "umx filter"],...
+        'fps', specs.getFps(), 'fw', 0.2, ...
+        'nomean', false, 'spacebysd', [0,3,0,3,0], 'f0', specs.getFrequencyRange(1));
+    sgtitle(['pixel ' , sprintf('(%d, %d)', pix_loc(1),  pix_loc(2))]);
+    
+    saveas(fig_time_pix, fullfile(options.diagnosticdir, filename_out + "_pixtraces" + ".png"))
+    saveas(fig_time_pix, fullfile(options.diagnosticdir, filename_out + "_pixtraces" + ".fig"))
+    %%
+        
+    w =  squeeze(mean(Wsm, [1,2,4], 'omitnan'));
+    
+    zw = fft(w);
+    fs = linspace(0,specs.getFps, length(zw));
+    [~,ind_f0] = min(abs(fs-options.fref));
+      
+    fig_time = plt.getFigureByName("movieEstimateHemoGFilt: Spatially-averaged traces");
+ 
+    mg =  squeeze(mean(Mg,[1,2],'omitnan'));
+    mr =  squeeze(mean(Mr,[1,2],'omitnan'));
+    mr_filt = squeeze(mean(Mr_filt,[1,2],'omitnan'));
+    mg_nohemo  = squeeze(mean(Mg-Mr_filt, [1,2],'omitnan'));
+    a = (mr\mg); % abs(zw(ind_f0)); % 
+
+    plt.tracesComparison([mg, mr*a, mr_filt, mg-mr*a, mg_nohemo], ...
+        'labels',["ch1", "ch2 (scaled)", "ch2 (filtered)", "umx regression", "umx filter"],...
+        'fps', specs.getFps(), 'fw', 0.2, ...
+        'nomean', false, 'spacebysd', [0,3,0,3,0], 'f0', specs.getFrequencyRange(1));
+    sgtitle('spatially averaged');
+    
+    saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".png"))
+    saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".fig"))
+    %%
+
+    W =  squeeze(mean(Wsm, [1,2], 'omitnan'));
+    w = mean(W,2);
+    ZW = fft(W);
+    zw = mean(ZW,2);
+    zw(fs < specs.getFrequencyRange(1)) = NaN;
+
+    ts = ((1:length(w))-(length(w)+1)/2)/specs.getFps();
+
+    fig_filt= plt.getFigureByName("movieEstimateHemoGFilt: Spatially-averaged filter");
+    fig_filt.Position(4) = 630;
+    
+    sgtitle('Unmixing filter')
+    subplot(3,1,1)
+    plot( ts, w, 'LineWidth', 1.5);
+    legend('time representation'); grid();
+    xlabel('Time, s'); xlim([min(ts), max(ts)])
+
+    subplot(3,1,2)
+
+%     semilogy(fs, abs(ZW), ':')
+    semilogy(fs, abs(zw), '.-', 'LineWidth', 1.5); xlim([0, specs.getFps()/2]);
+    hold on;
+    grid();
+
+    legend(["spectral amplitude"]);
+
+    if(options.max_amp_rel < inf)
+        line([0, options.flim_max], ...
+             [1, 1]*options.max_amp_rel*abs(zw(ind_f0)), ...
+            'LineStyle', '--', 'Color', 'black', 'LineWidth', 1);
+        hold on;
+        scatter(options.fref, abs(zw(ind_f0)), 'o')
+        hold off;
+
+        legend(["spectral amplitude", ...
+            "limit ("+num2str(options.max_amp_rel)+"*ref)", "reference"]);
+    end
+
+    hold off;
+    ylim([0.9, 1.2].*[min(abs(zw')), max(abs(zw'))]); grid on;
+    xlabel('Frequency, Hz');
+    
+    subplot(3,1,3)
+    
+    idf = zeros(size(w)); idf(floor((length(w)+1)/2)) = 1;
+    ids = fft(idf);
+
+    phase_delay = -mod(unwrap(angle(zw./abs(zw)./ids))+pi/2, pi)+pi/2;
+
+    plot(fs, phase_delay, '.-', 'LineWidth', 1.5); xlim([0, specs.getFps()/2])
+    hold on
+   
+    ylim_phase = ylim();
+    
+    plot(fs,  options.max_delay*2*pi*fs, '--', 'color', 'Black', 'LineWidth', 1)
+    plot(fs, -options.max_delay*2*pi*fs, '--', 'color', 'Black', 'LineWidth', 1)
+    hold off;
+    
+    ylim(ylim_phase.*[1,1.5]); grid on;
+    legend(["phase delay", "max delay ("+num2str(round(options.max_delay*1000))+"ms)"]); 
+    xlabel('Frequency, Hz'); ylabel('Phase, rad')
+
     saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filter" + ".png"))
     saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filter" + ".fig"))
     %%
+        
+    W =  squeeze(mean(Wxy, [1,2], 'omitnan'));
+    w = mean(W,2);
+    ZW = fft(W);
+    zw = mean(ZW,2);
+    zw(fs < specs.getFrequencyRange(1)) = NaN;
+
+    ts = ((1:length(w))-(length(w)+1)/2)/specs.getFps();
+
+    fig_filt= plt.getFigureByName("movieEstimateHemoGFilt: Spatially-averaged filter (local)");
+    fig_filt.Position(4) = 630;
+    
+    sgtitle('Unmixing filter (local)')
+    subplot(3,1,1)
+    plot( ts, w, 'LineWidth', 1.5);
+    legend('time representation'); grid();
+    xlabel('Time, s'); xlim([min(ts), max(ts)])
+
+    subplot(3,1,2)
+
+%     semilogy(fs, abs(ZW), ':')
+    semilogy(fs, abs(zw), '.-', 'LineWidth', 1.5); xlim([0, specs.getFps()/2]);
+    hold on;
+    grid();
+
+    legend(["spectral amplitude"]);
+
+    if(options.max_amp_rel < inf)
+        line([0, options.flim_max], ...
+             [1, 1]*options.max_amp_rel*abs(zw(ind_f0)), ...
+            'LineStyle', '--', 'Color', 'black', 'LineWidth', 1);
+        hold on;
+        scatter(options.fref, abs(zw(ind_f0)), 'o')
+        hold off;
+
+        legend(["spectral amplitude", ...
+            "limit ("+num2str(options.max_amp_rel)+"*ref)", "reference"]);
+    end
+
+    hold off;
+    ylim([0.9, 1.2].*[min(abs(zw')), max(abs(zw'))]); grid on;
+    xlabel('Frequency, Hz');
+    
+    subplot(3,1,3)
+    
+    idf = zeros(size(w)); idf(floor((length(w)+1)/2)) = 1;
+    ids = fft(idf);
+
+    phase_delay = -mod(unwrap(angle(zw./abs(zw)./ids))+pi/2, pi)+pi/2;
+
+    plot(fs, phase_delay, '.-', 'LineWidth', 1.5); xlim([0, specs.getFps()/2])
+    hold on
+   
+    ylim_phase = ylim();
+    
+    plot(fs,  options.max_delay*2*pi*fs, '--', 'color', 'Black', 'LineWidth', 1)
+    plot(fs, -options.max_delay*2*pi*fs, '--', 'color', 'Black', 'LineWidth', 1)
+    hold off;
+    
+    ylim(ylim_phase.*[1,1.5]); grid on;
+    legend(["phase delay", "max delay ("+num2str(round(options.max_delay*1000))+"ms)"]); 
+    xlabel('Frequency, Hz'); ylabel('Phase, rad')
+
+    saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filterxy" + ".png"))
+    saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filterxy" + ".fig"))
 end
 %%

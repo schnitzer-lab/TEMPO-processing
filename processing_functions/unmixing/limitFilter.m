@@ -56,9 +56,6 @@ function w = limitFilter(w, varargin)
         max(cos(-angle(s(phase_too_large_n))-options.max_phase(phase_too_large_n)), 0).*...
         exp(-1.i*options.max_phase(phase_too_large_n));
 
-
-
-
     w = real(fftshift(ifft(s)));
 end
 %%

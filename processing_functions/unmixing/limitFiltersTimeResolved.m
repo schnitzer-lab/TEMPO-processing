@@ -9,8 +9,8 @@ function W = limitFiltersTimeResolved(W, varargin)
     
     W_flat = reshape(W, [nx*ny,nt,nchunks]);
 
-    for i_s = 1:(nx*ny)
-%     parfor i_s = 1:(nx*ny)
+%     for i_s = 1:(nx*ny)
+    parfor i_s = 1:(nx*ny)
         
         ws = squeeze(W_flat(i_s,:,:));
         if(size(ws,1) == 1), ws = ws'; end

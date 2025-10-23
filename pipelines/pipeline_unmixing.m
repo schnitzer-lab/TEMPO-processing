@@ -1,4 +1,5 @@
-% % 
+%%
+% 
 % clear; 
 % close all;
 % warning on;
@@ -9,13 +10,13 @@
 %           strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 % %%
 % 
-% recording_name = "Spontaneous\mly2002bi\20250821\meas01"; % "Anesthesia\m46\20221221\meas04"; 
+% recording_name = "Visual\rfm002mjr\20231209\meas00"; % "Anesthesia\m46\20221221\meas04"; 
 % postfix_in1 = "cG_bin8*_mc";
 % postfix_in2 = "cR_bin8*_mc_reg";
 % 
 % skip_if_final_exists = false;
-%
-% mouse_state = "anesthesia"; %"anesthesia"; % "awake"; %"transition";
+% 
+% mouse_state = "awake"; %"anesthesia"; % "awake"; %"transition";
 % unmix_time_resolved = true;
 % 
 % basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
@@ -156,7 +157,7 @@ options_hfilt = mergeStructs({options_hfilt,  ...
 
 if(unmix_time_resolved)
     options_hfilt.dt_slow = 10*options_hfilt.dt; 
-    options_hfilt.npixatonce = [];
+    options_hfilt = rmfield(options_hfilt, 'npixatonce');
     fullpathGhemo = movieEstimateHemoGFiltTR(fullpathGhp, fullpathRhp, options_hfilt);
 else
     fullpathGhemo = movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_hfilt);

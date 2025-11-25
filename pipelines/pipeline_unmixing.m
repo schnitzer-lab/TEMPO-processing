@@ -23,8 +23,9 @@
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 % basefolder_output = "N:\GEVI_Wave\Analysis\";    
 % 
-% crosstalk_matrix =  [[1, 0]; [0.07, 1]]; 
-% % 0.07 for ASAP3
+% crosstalk_matrix =  [[1, 0]; [0.080, 1]]; 
+% % 0.080 for ASAP3
+% % 0.165 for ASAP7y
 % % 0.095 for old ace recordings seems good - based on m14 visual v1
 % % 0.141 (?) for older ASAP2s with different filters
 % frame_range = [50, inf];
@@ -82,11 +83,15 @@ if(~strcmp(folder_preprocessed, folder_processing))
 end
 %%
 
+% movieCopyReference(fullpathGin, []);
+% movieCopyReference(fullpathRin, []);
+% fullpathRin = movieExtractRegionTrace(fullpathGin, 'V1');
+% fullpathRin = movieExtractRegionTrace(fullpathRin, 'V1');
 % fullpaths_in_mean = movieMeanTraces([fullpathGin, fullpathRin], ...
-    % 'processingdir', folder_processing);
+%     'processingdir', folder_processing);
 % fullpathGin = fullpaths_in_mean(1); fullpathRin = fullpaths_in_mean(2);
 %%
-
+         
 fullpathGex = movieExtractFrames(fullpathGin, frame_range);
 fullpathRex = movieExtractFrames(fullpathRin, frame_range);
 %%
@@ -102,7 +107,7 @@ fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, ...
 fullpathGdl = fullpathGor;
 % fullpathRdl = fullpathRor;
 %%
-
+    
 [fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, ...
     crosstalk_matrix, 'skip', true);
 % fullpathGdx = fullpathGdl; fullpathRdx = fullpathRdl;
@@ -111,17 +116,18 @@ fullpathGdl = fullpathGor;
 fullpathGbl = movieExpBaselineCorrection(fullpathGdx, 'divide', false); 
 fullpathRbl = movieExpBaselineCorrection(fullpathRdx, 'divide', false);
 % fullpathGbl = movieRemoveMean(fullpathGdx, 'skip', true); 
-% fullpathRbl = movieRemoveMean(fullpathRdx, 'skip', true);
+% fullpathRbl = movieRem    oveMean(fullpathRdx, 'skip', true);
 %%
 
 % Make sure that filter resonable, if not increase wp or decrease attn;
-if mouse_state == "anesthesia",     f0_hp = 0.5; wp = 0.25; 
+if mouse_state == "anesthesia",     f0_hp = 0.25; wp = 0.2; 
+elseif mouse_state == "iso",        f0_hp = 0.15; wp = 0.075; 
 elseif mouse_state == "awake",      f0_hp = 1.5; wp = 0.5; 
 elseif mouse_state == "transition", f0_hp = 0.5; wp = 0.25; 
 else, error("unknown mouse_state = " + mouse_state); 
 end
 
-options_highpass = struct( 'attn', 1e5, 'rppl', 1e-2, 'skip', true);
+options_highpass = struct( 'attn', 1e4, 'rppl', 1e-1, 'skip', true);
 options_highpass.filtersdir = "P:\GEVI_Wave\ConvolutionFilters\";    
 options_highpass.exepath = "..\analysis\c_codes\compiled\hdf5_movie_convolution.exe";    % to use compiled executable. 3-4 times faster
 
@@ -143,6 +149,8 @@ movieMeanTraceSpectrogram(fullpaths_mean(1), options_spectrogram);
 
 if mouse_state == "anesthesia"
     options_hfilt = struct('dt', 2.5, 'fref_lims', [1.5, 15], 'max_amp_rel', 1.1);
+elseif mouse_state == "iso"
+    options_hfilt = struct('dt', 8, 'fref_lims', [1.5, 15], 'max_amp_rel', 1.1);
 elseif mouse_state == "awake" 
     options_hfilt = struct('dt', 1.5, 'fref_lims', [5.0, 20], 'max_amp_rel', 1.2);
 elseif mouse_state == "transition"

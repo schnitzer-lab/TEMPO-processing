@@ -9,27 +9,32 @@ diary(fullfile("P:\GEVI_Wave\Logs", ...
 %%
 
 % recording_names = ...
-%     pathspattern("P:\GEVI_Wave\Preprocessed\", "\Visual\m88*\**\meas*", true)';
+%     pathspattern("\\oak-smb-mschnitz.stanford.edu\groups\mschnitz\michelle\GEVI_Wave\Preprocessed\", ...
+%                  "Visual\*mjr\*\meas*", true)';
 recording_names = ...
-    readlines("N:\GEVI_Wave\filelists\filelis_anesthesia_transition_asap3.txt");
+    pathspattern("P:\GEVI_Wave\Preprocessed\", ...
+                 "Spontaneous\mv0105\2024031*\meas*", true)';
+% recording_names = ...
+%     readlines("N:\GEVI_Wave\filelists\filelist_michelle_unprocessed20240715.txt"); 
+
+% recording_names = flip(recording_names);
 %%
 
 basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
-basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
+basefolder_processing = "P:\GEVI_Wave\Preprocessed\";
 basefolder_output = "N:\GEVI_Wave\Analysis\";    
 %%
 
-skip_if_final_exists = true;
+skip_if_final_exists = false;
 
-mouse_state = "transition";% "awake"; %"anesthesia" "transition"
+mouse_state = "transition";% "iso"; "awake"; %"anesthesia" "transition"
 unmix_time_resolved = true;
 
-crosstalk_matrix =  [[1, 0]; [0.07, 1]]; %[[1, 0]; [0.095, 1]]; %
-% crosstalk_matrix =  [[1, 0]; [0.07, 1]]; %[[1, 0]; [0.095, 1]]; %
-% for newer ASAP3 but 0.07 seems to work much better; 
-% 0.1 for older ASAP2s with different filters 
-% 0.095 for very old ace recordings seems good - based on m14 visual v1
-% not sure this is correct, but it works for ASAP3 recordings
+crosstalk_matrix =  [[1, 0]; [0.080, 1]];
+% % 0.080 for ASAP3
+% % 0.165 for ASAP7y
+% % 0.095 for old ace recordings seems good - based on m14 visual v1
+% % 0.141 (?) for older ASAP2s with different filters
 
 frame_range = [50, inf];
 

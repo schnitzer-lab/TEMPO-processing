@@ -9,14 +9,14 @@ diary(fullfile("P:\GEVI_Wave\Logs", ...
 %%
 
 recording_names = ...
-    pathspattern("R:\GEVI_Wave\Raw\", "Spontaneous\mly*wt\2025082*\meas00*", true)';
+    pathspattern("Z:\GEVI_Wave\Raw\", "Visual\m*\20251120\meas*", true)';
 % recording_names = ...
 %     readlines("N:\GEVI_Wave\filelists\filelist_michelle_unprocessed20240715.txt"); 
 
-% recording_names = recording_names(2:3);
+recording_names = flip(recording_names);
 %% 
 
-basefolder_raw = "R:\GEVI_Wave\Raw\"; %"\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %%
+basefolder_raw = "Z:\GEVI_Wave\Raw\"; %"\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %%
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\"; %"S:\GEVI_Wave\Preprocessed\";
 basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\"; %"P:\GEVI_Wave\Preprocessed\";
@@ -32,8 +32,15 @@ unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not a
 
 shifts0 = [0,0]; %[0,0.5]; % mm, between R and G channel due to cameras misalignment
 
-mouse_state = "anesthesia";% "awake"; %"anesthesia" %"transition";
-crosstalk_matrix =  [[1, 0]; [0.07, 1]]; %[[1, 0]; [0.095, 1]]; %
+mouse_state = "awake";% "awake"; %"anesthesia" %"transition";
+unmix_time_resolved = true;
+
+crosstalk_matrix =  [[1, 0]; [0.07, 1]];
+% % 0.080 for ASAP3
+% % 0.165 for ASAP7y
+% % 0.095 for old ace recordings seems good - based on m14 visual v1
+% % 0.141 (?) for older ASAP2s with different filters
+
 frame_range = [50, inf];
 %%
 

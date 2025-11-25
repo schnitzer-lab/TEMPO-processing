@@ -61,7 +61,7 @@ function axes_all = signalSpectrogram(st, ts, fs, varargin)
     set(gca,'YDir','normal')
 %     set(gca,'xticklabel',[], 'yticklabel', [])
     
-    xlim(minmax(ts'));
+    xlim([min(ts), max(ts)]);
     ylim(options.flims_plot);
 
     caxis([quantile(st(fs >= options.flims_plot(1) & fs <= options.flims_plot(2),:), options.q(1), 'all'), ...
@@ -93,7 +93,7 @@ function axes_all = signalSpectrogram(st, ts, fs, varargin)
         xlabel("s"); ylabel('signal');
         grid on;
         
-        xlim(minmax(ts'));
+        xlim([min(ts), max(ts)]);
         
         linkaxes([ax_spectrogram ax_trace],'x')
     end

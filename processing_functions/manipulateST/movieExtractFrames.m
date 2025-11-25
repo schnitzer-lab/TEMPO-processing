@@ -25,15 +25,23 @@ function fullpath_out = movieExtractFrames(fullpath, frames_range, varargin)
         end     
     end
     %%
+
+    nframes = rw.h5getDatasetSize(fullpath, '/mov', 3);
+    %%
     
     if(frames_range(2) == Inf )
        frames_range(2) = 0;
     end
  
+    if(frames_range(1) <= 0)
+       frames_range(1) =  nframes + frames_range(1);
+    end
+
     if(frames_range(2) <= 0)
-       frames_range(2) =  rw.h5getDatasetSize(fullpath, '/mov', 3) + frames_range(2);
+       frames_range(2) =  nframes + frames_range(2);
     end
     %%
+    
     disp("movieExtractFrames: reading movie")
     [M, specs] = rw.h5readMovie(fullpath, ...
             'frames_num', frames_range(2) - frames_range(1) + 1, ...
@@ -42,6 +50,7 @@ function fullpath_out = movieExtractFrames(fullpath, frames_range, varargin)
     
     specs.AddToHistory(functionCallStruct({'fullpath', 'frames_range', 'options'}));
     %%
+
     disp("movieExtractFrames: saving")
     rw.h5saveMovie( fullpath_out, M,  specs); 
     

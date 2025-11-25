@@ -1,5 +1,5 @@
         
-basepath = "N:\GEVI_Wave\Analysis\Isofluorane\m45\20211005\meas00\";
+basepath = "N:\GEVI_Wave\Analysis\Visual\mv0105\20230824\meas01\";
 postfix = "cG_unmixed*_dFF"; 
 
 file = dir(fullfile(basepath, "/*" +  postfix + ".h5"));
@@ -28,8 +28,9 @@ copyfile(fullfile(allen_path, "allen_reference_points.txt"), ... % allen_referen
           fullfile(filepath, "alignment_images", name + "_allen.txt"))
 %%  
 
-movieSaveSingleFrame(fullfile(file.folder, "cG_unmixedTR_dFF.h5"), ...  
-    'frametype', 'std', 'outdir', fullfile(filepath, "alignment_images"), 'mask', false);
+movieSaveSingleFrame(fullpath, ...  
+    'frametype', 'std', 'outdir', fullfile(filepath, "alignment_images"),...
+    'mask', true, 'skip', false);
 %%
 
 movieAddAllen(fullpath, fullfile(filepath, "alignment_images", name + "_allenManual.png"),...

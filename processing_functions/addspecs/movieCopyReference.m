@@ -42,9 +42,15 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     specs_ref = rw.h5readMovieSpecs(fullpath_movie_ref);
 %     specs_mov = rw.h5readMovieSpecs(fullpath_movie);
     specs_out = copy(specs_mov);
-    
+
     F1 = specs_ref.extra_specs('F0');
-    F2 = specs_mov.extra_specs('F0');    
+    if(specs_mov.extra_specs.isKey('F0'))
+        F2 = specs_mov.extra_specs('F0');
+    else
+        M = rw.h5readMovie(fullpath_movie);
+        F2 = mean(M,3);
+    end
+
     %%
 
     disp("movieCopyReference: performing registration")
@@ -58,10 +64,11 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
         spatial_filter = @(data) ...
             smoothdata(smoothdata(data, 1, 'gaussian', upper_threshold), 2, 'gaussian', upper_threshold)-...
             smoothdata(smoothdata(data, 1, 'gaussian', lower_threshold), 2, 'gaussian', lower_threshold);
-        hann2d = cast(hann(size(frame_fixed,1))*hann(size(frame_fixed,2))', class(frame_fixed));
+        hann2d_fixed = cast(hann(size(frame_fixed,1))*hann(size(frame_fixed,2))', class(frame_fixed));
+        hann2d_moving = cast(hann(size(frame_moving,1))*hann(size(frame_moving,2))', class(frame_moving));
     
-        template_fixed  = spatial_filter(frame_fixed).*hann2d; 
-        template_moving = spatial_filter(frame_moving).*hann2d;
+        template_fixed  = spatial_filter(frame_fixed).*hann2d_fixed; 
+        template_moving = spatial_filter(frame_moving).*hann2d_moving;
     else
         template_fixed = frame_fixed;
         template_moving = frame_moving;
@@ -75,8 +82,9 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
 
     %%
 
-    ref = imref2d(size(template_fixed));
-    center = [mean(ref.XWorldLimits), mean(ref.YWorldLimits)];
+    ref_fixed = imref2d(size(template_fixed));
+    ref_moving = imref2d(size(template_moving));
+    center = [mean(ref_fixed.XWorldLimits), mean(ref_fixed.YWorldLimits)];
     
     rot = @(t) [cosd(t) sind(t); -sind(t) cosd(t)];
 
@@ -88,7 +96,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     % move origin to center, rotate, shift, move origin back
     tform0 = rigid2d(tform00.invert.T*tform02.T*tform01.T*tform00.T);
 
-    template_reg0 = imwarp(template_moving, ref, tform0, 'OutputView', ref, ...
+    template_reg0 = imwarp(template_moving, ref_moving, tform0, 'OutputView', ref_moving, ...
         'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
     %%
     
@@ -98,17 +106,20 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
         % 'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
 
     [opt, met] = imregconfig("multimodal");
-    tform_mul =  imregtform(template_reg0, ref, template_fixed, ref,...
+    tform_mul =  imregtform(template_reg0, ref_moving, template_fixed, ref_fixed,...
         'rigid', opt, met);
 
     tform_full = rigid2d(tform_mul.T*tform0.T); % *tform_cor.T
-    template_reg = imwarp(template_moving, ref, tform_full, 'OutputView', ref, ...
+    template_reg = imwarp(template_moving, ref_moving, tform_full, 'OutputView', ref_moving, ...
+        'SmoothEdges', true, 'FillValues', options.fillval, 'interp', options.interp);
+
+    template_fixed_m = imwarp(template_fixed, ref_fixed, rigid2d(), 'OutputView', ref_moving, ...
         'SmoothEdges', true, 'FillValues', options.fillval, 'interp', options.interp);
     %%
 
-    nan_mask = isnan(template_reg) | isnan(template_fixed) | isnan(template_moving);
-    corr_mov = corr(template_moving(~nan_mask), template_fixed(~nan_mask));
-    corr_reg = corr(template_reg(~nan_mask), template_fixed(~nan_mask));
+    nan_mask = isnan(template_reg) | isnan(template_fixed_m) | isnan(template_moving);
+    corr_mov = corr(template_moving(~nan_mask), template_fixed_m(~nan_mask));
+    corr_reg = corr(template_reg(~nan_mask), template_fixed_m(~nan_mask));
 
     fig_overlap = plt.getFigureByName("movieCopyReference: templates overlap");
     subplot(1,2,1);
@@ -183,8 +194,8 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
         specs_out.extra_specs("customOutlines") = ...
             customOutlines_moving*specs_out.binning;
     end
-
     %%
+
     fig_allen = plt.getFigureByName("register_two_frames: outlines");
 
     subplot(1,2,1)

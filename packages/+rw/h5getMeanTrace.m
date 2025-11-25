@@ -1,4 +1,4 @@
-function movie_mean = h5getMeanTrace(h5filename, varargin)
+function [movie_mean, specs] = h5getMeanTrace(h5filename, varargin)
    
     options = defaultOptions();
     if(~isempty(varargin))

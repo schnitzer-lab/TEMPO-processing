@@ -45,6 +45,10 @@ options_dcimgtoh5 = struct('expPath', char(folder_converted), ...
                         options_dcimgtoh5);
 %%
 
+% movieSaveSingleFrame(h5path2, 'frametype', 'median', 'frames_range',  [1,1000]+100);
+movieSaveSingleFrame(h5path1, 'frametype', 'median', 'frames_range', -[1000,1]-100);
+%%
+
 fullpaths_mean = movieMeanTraces([string(h5path1), string(h5path2)]);
     
 movieMeanTraceSpectrogram(fullpaths_mean(2), 'frange', [2, Inf], 'timewindow', 5, 'fw', 0.75, ...

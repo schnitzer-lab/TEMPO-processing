@@ -30,13 +30,11 @@ function fullpath_out = movieExtractFrames(fullpath, frames_range, varargin)
     %%
     
     if(frames_range(2) == Inf )
-       frames_range(2) = 0;
+       frames_range(2) = nframes;
     end
- 
     if(frames_range(1) <= 0)
        frames_range(1) =  nframes + frames_range(1);
     end
-
     if(frames_range(2) <= 0)
        frames_range(2) =  nframes + frames_range(2);
     end

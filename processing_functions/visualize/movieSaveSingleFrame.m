@@ -1,6 +1,6 @@
 function fullpath_out = movieSaveSingleFrame(fullpath_movie, varargin)
     
-    [basepath, basefilename, ext, postfix] = filenameSplit(fullpath_movie, '_');
+    [basepath, basefilename, ~, postfix] = filenameSplit(fullpath_movie, '_');
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -28,42 +28,57 @@ function fullpath_out = movieSaveSingleFrame(fullpath_movie, varargin)
         end     
     end
 
-    if(~isfolder(options.outdir)) mkdir(options.outdir); end    
+    if(~isfolder(options.outdir)), mkdir(options.outdir); end    
+    %%
+    
+    specs = rw.h5readMovieSpecs(fullpath_movie);
+    nframes = rw.h5getDatasetSize(fullpath_movie, '/mov', 3);
+    if(options.frames_range(2) == Inf )
+       options.frames_range(2) = nframes;
+    end
+    if(options.frames_range(1) <= 0)
+       options.frames_range(1) =  nframes + options.frames_range(1);
+    end
+    if(options.frames_range(2) <= 0)
+       options.frames_range(2) =  nframes + options.frames_range(2);
+    end
     %%
     disp("movieSaveSingleFrame: reading movie")
     
     if(isnumeric(options.frametype))
         [frame, ~] = rw.h5readMovie(fullpath_movie, ...
             'frame_start', options.frametype, 'frames_num', 1);
-    else
+    else 
         options.frametype = string(options.frametype);
-        switch options.frametype
-            case "mean" 
-                [M, specs] = rw.h5readMovie(fullpath_movie);
-                frame = mean(M, 3);
-            case "median" 
-                [M, specs] = rw.h5readMovie(fullpath_movie);    
-                frame = median(M, 3); 
-            case "std" 
-                [M, specs] = rw.h5readMovie(fullpath_movie);
-                frame = std(M,[], 3); 
-            case "F0" 
-                specs = rw.h5readMovieSpecs(fullpath_movie);
-                frame = []; 
-                if(specs.extra_specs.isKey("expBaseline_A"))
-                    frame = specs.extra_specs("expBaseline_A");
-                elseif(specs.extra_specs.isKey("mean_substracted")) 
-                    frame = specs.extra_specs.isKey("mean_substracted");
-                end
         
-                if(isempty(frame))
-                    error("No F0 found");
-                end
+        if (options.frametype == "F0")
+            frame = []; 
+            if(specs.extra_specs.isKey("expBaseline_A"))
+                frame = specs.extra_specs("expBaseline_A");
+            elseif(specs.extra_specs.isKey("mean_substracted")) 
+                frame = specs.extra_specs.isKey("mean_substracted");
+            end
+    
+            if(isempty(frame))
+                error("No F0 found");
+            end
+        else
+            options.frametype = string(options.frametype);
+            [M, ~] = rw.h5readMovie(fullpath_movie, ...
+                'frames_num', options.frames_range(2) - options.frames_range(1) + 1, ...
+                'frame_start', options.frames_range(1));
+            switch options.frametype
+                case "mean" 
+                    frame = mean(M, 3);
+                case "median" 
+                    frame = median(M, 3); 
+                case "std" 
+                    frame = std(M,[], 3);     
+            end
         end
     end
     %%
 
-    specs = rw.h5readMovieSpecs(fullpath_movie);
     if(options.mask && ~isempty(specs.getMask()))
         nan_mask = double(specs.getMask()); nan_mask(nan_mask==0) = NaN;
         frame = frame.*nan_mask;
@@ -90,13 +105,15 @@ end
 
 function options = defaultOptions(basepath)
     
-    options.outdir = basepath;
+    options.outdir = fullfile(basepath, 'processing', 'singleFrame');
     options.fileroot_out = [];
     
     options.skip = true;
     options.mask = true;
     options.frametype = "mean"; % "mean", "std", "median", "F0" frame number
     options.saturate = [0.02,0.98];
+
+    options.frames_range = [1,Inf];
     
     options.format = ".bmp"; %.bmp or .h5
 end

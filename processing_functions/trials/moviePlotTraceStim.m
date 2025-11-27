@@ -1,6 +1,6 @@
 function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
     
-    [basepath, filename, ext, basefilename, channel, postfix] = ...
+    [basepath, filename, ~, ~, ~, ~] = ...
         filenameParts(fullpath_movie);
 
     options = defaultOptions(basepath);
@@ -154,7 +154,7 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
         % hpc = pcolor(ts, fs,  plt.saturate(wt1, [0.05, 0.999])); 
         % set(hpc, 'EdgeColor', 'none');
         % set(ax1,'XTickLabel',[]);
-        % xlim(minmax(ts))
+        % xlim([min(ts), max(ts)])
         % 
         % % ts = (1:size(wt1, 2))/specs.getFps();
         % ax2 = subplot(5,1,5)
@@ -162,7 +162,7 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
         % hold on;
         % plot(ts, options.ttl_signal*2*std(m_reg))
         % hold off;
-        % xlim(minmax(ts))
+        % xlim([min(ts), max(ts)])
         % % grid on
         % 
         % pos1 = get(ax1, 'Position');

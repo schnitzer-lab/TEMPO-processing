@@ -62,7 +62,7 @@ end
 try
     A=fileread(fullfile(lvSettingsFolder,options.LVSettingsFile)); B=strfind(A, 'Binning (px)');
     if(isempty(B)), error("Cannot detect Hardware Binning"); end   
-    metadata.hardwareBinning=str2double(A(B+26:B+26));
+    metadata.hardwareBinning=str2double(A(B(1)+26:B(1)+26));
     fprintf('Hardware Binning: %1.0f \n',metadata.hardwareBinning);
 catch
     warning('Cannot detect Hardware Binning');

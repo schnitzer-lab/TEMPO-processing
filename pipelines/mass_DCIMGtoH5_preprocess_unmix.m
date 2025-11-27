@@ -9,9 +9,8 @@ diary(fullfile("P:\GEVI_Wave\Logs", ...
 %%
 
 recording_names = ...
-    pathspattern("Z:\GEVI_Wave\Raw\", "Visual\m*\20251120\meas*", true)';
-% recording_names = ...
-%     readlines("N:\GEVI_Wave\filelists\filelist_michelle_unprocessed20240715.txt"); 
+    pathspattern("P:\GEVI_Wave\Preprocessed\", ...
+                 "Spontaneous\mv0105\2024031*\meas*", true)';
 
 % recording_names = flip(recording_names);
 %% 
@@ -35,7 +34,7 @@ shifts0 = [0,0]; %[0,0.5]; % mm, between R and G channel due to cameras misalign
 mouse_state = "awake";% "awake"; %"anesthesia" %"transition";
 unmix_time_resolved = true;
 
-crosstalk_matrix =  [[1, 0]; [0.07, 1]];
+crosstalk_matrix =  [[1, 0]; [0.08, 1]];
 % % 0.080 for ASAP3
 % % 0.165 for ASAP7y
 % % 0.095 for old ace recordings seems good - based on m14 visual v1

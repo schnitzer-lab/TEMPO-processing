@@ -128,7 +128,7 @@ else, error("unknown mouse_state = " + mouse_state);
 end
 
 options_highpass = struct( 'attn', 1e4, 'rppl', 1e-1, 'skip', true);
-options_highpass.filtersdir = "P:\GEVI_Wave\ConvolutionFilters\";    
+options_highpass.filtersdir = "..\analysis\convolution_filters\";    
 options_highpass.exepath = "..\analysis\c_codes\compiled\hdf5_movie_convolution.exe";    % to use compiled executable. 3-4 times faster
 
 fullpathGhp = movieFilterHighpass(fullpathGbl, f0_hp, wp, options_highpass);

@@ -18,6 +18,8 @@ local_*
 # no matlab autosave files
 *.asv
 
+analysis/convolution_filters/
+
 # no extra files from c project:
 analysis/compiled/hdf5_movie_fft/
 analysis/compiled/hdf5_movie_convolution/

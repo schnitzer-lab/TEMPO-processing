@@ -8,7 +8,7 @@ analysis\allen_map\allen_reference_points.txt
 # necessary for .dcimg to .h5 conversion
 utilities\dcimg\dcimgmex.mexw64
 utilities\dcimg\dcimgmatlab.mexw64
-utilities\dcimg\dct_readtimestamps\dct_readtimestamps.exe
+utilities\dcimg\dct_readtimestamps.exe
 
 # optional for filtering
 analysis\c_codes\compiled\hdf5_movie_convolution.exe

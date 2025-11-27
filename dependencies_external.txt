@@ -1,3 +1,4 @@
+# MATLAB Central packages 
 _matlab_libs\Inpaint_nans\inpaint_nans.m
-_matlab_libs\NoRMCorre\dftregistration_min_max.m
-_matlab_libs\rdir\rdir.m
+_matlab_libs\efficient_subpixel_registration\dftregistration.m
+_matlab_libs\Enhanced_rdir\rdir.m

@@ -3,8 +3,8 @@ function ConvolutionalBandpassFilter(conv_trans, fps, f0, wp, wr, attn, rppl )
     subplot(1,4,1)
     ts_plot = linspace(-length(conv_trans)/2, length(conv_trans)/2, length(conv_trans))/fps;
     plot(ts_plot, conv_trans)
-    xlim(minmax(ts_plot))
-    ylim(minmax(conv_trans'))
+    xlim([min(ts_plot), max(ts_plot)])
+    ylim([min(conv_trans'), max(conv_trans')] )
     xlabel('time, s')
     title(['\tau ~', num2str(length(conv_trans)/fps/2, '%.2f'), 's'])
     grid

@@ -13,7 +13,7 @@ recording_names = ...
 % recording_names = ...
 %     readlines("N:\GEVI_Wave\filelists\filelist_michelle_unprocessed20240715.txt"); 
 
-recording_names = flip(recording_names);
+% recording_names = flip(recording_names);
 %% 
 
 basefolder_raw = "Z:\GEVI_Wave\Raw\"; %"\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %%

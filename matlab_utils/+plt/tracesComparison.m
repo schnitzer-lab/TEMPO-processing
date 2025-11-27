@@ -1,9 +1,6 @@
 function tracesComparison(traces, varargin)
     
-    options = DefaultOptions();
-    if(~isempty(varargin))
-        options=getOptions(options,varargin);
-    end
+    options = parseInputs(varargin{:});
     
     if(options.fw ~= 0)
         options.nw = options.fw*size(traces,1)/options.fps/2;
@@ -19,7 +16,7 @@ function tracesComparison(traces, varargin)
     end
     ts = (0:(size(traces,1)-1))/options.fps + options.t0;
     xs = traces- mean(traces)*options.nomean + cumsum(spacings.*options.spacebysd); 
-    plot(ts, xs*options.x_plot_scale, 'LineWidth', options.linewidth); xlim(minmax(ts));
+    plot(ts, xs*options.x_plot_scale, 'LineWidth', options.linewidth); xlim([min(ts), max(ts)]);
 %     if(~isempty(options.labels)) legend(options.labels, 'Interpreter', 'none','FontSize', 6); end
     title("Time trace"); xlabel("t, s"); ylabel('x'); grid(); 
     
@@ -34,35 +31,43 @@ function tracesComparison(traces, varargin)
         % norm0 = options.fps^2/(2*pi*size(traces,1)); % sum(traces.^2*1/options.fps) / sum(z0/norm0*mean(diff(fs))) == 1 % ylabel("[x^2]·s/Hz")
 
         z0(fs < options.f0,:) = NaN;
+        z0(end,:) = NaN;
 
         semilogy(fs, z0/norm0, 'LineWidth', options.linewidth);  grid(); 
         if(~isempty(options.labels)) legend(options.labels, 'Interpreter', 'none','FontSize', 6); end
         title("PSD"); xlabel("f, Hz"); ylabel("[x^2]/Hz")
-        xlim(minmax(fs)); 
-        ylim([min(z0(fs >= options.f0,:)/norm0, [], 'all'), max(z0(fs >= options.f0,:)/norm0, [], 'all')].*[1,10])
+        xlim([min(fs), max(fs)]); 
+        ylim([0.9,2].*[...
+            min(z0(fs >= options.f0,:)/norm0, [], 'all'), ...
+            max(z0(fs >= options.f0,:)/norm0, [], 'all')])
     end
 end
 
-function options = DefaultOptions()
+function [options,p] = parseInputs(varargin)
     
-    options.spectra = true;
 
-    options.fw = 0;
-    options.nw = 1.25;
+    p = inputParser();
+    p.addParameter('spectra', true);
+
+    p.addParameter('fw', 0);
+    p.addParameter('nw', 1.25);
     
-    options.fps = 1;
-    options.x_plot_scale = 1;
-    options.labels = [];
-    options.nomean = true;
-    options.nomean_psd = true;
-    options.spacebysd = false;
-    options.horizontal = false;
+    p.addParameter('fps', 1);
+    p.addParameter('x_plot_scale', 1);
+    p.addParameter('labels', []);
+    p.addParameter('nomean', true);
+    p.addParameter('nomean_psd', true);
+    p.addParameter('spacebysd', false);
+    p.addParameter('horizontal', false);
 %     options.colors = [];
     
-    options.f0 = 0;
-    options.t0 = 0;
+    p.addParameter('f0', 0)
+    p.addParameter('t0', 0);
     
-    options.linewidth = 1;
+    p.addParameter('linewidth', 1);
+
+    p.parse(varargin{:});
+    options = p.Results;
 end
 
 

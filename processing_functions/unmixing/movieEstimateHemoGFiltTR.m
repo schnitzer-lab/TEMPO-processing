@@ -15,14 +15,19 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     [~,filename_out,~] = fileparts(fullpath_out);
     %%
     
-    disp("movieEstimateHemoGFiltTR: loading mean traces")
+    disp("movieEstimateHemoGFiltTR: reading movies")
         
-    % To avoid extra data in the ram, movies are loaded from hard drive
-    % when passed to processing functions 
-    
     [Mg, ~] = rw.h5readMovie(fullpath_sig);
     [Mr, specs_r] = rw.h5readMovie(fullpath_ref);
     sz = size(Mr);
+    
+    % on the edges after registration/motion correction + filtering, there are some
+    % pixels with hf noise ~= 0, which cases instability
+    Mr_std = std(Mr,[], 3); Mr_std_rel = log(Mr_std./median(Mr_std(:), 'omitnan'));
+    make_nan = (Mr_std_rel < -4*std(Mr_std_rel(:),[], 'omitnan'));
+    mask_nan = nan(size(Mr_std)); mask_nan(make_nan==0) = 1;
+    Mr = Mr .* mask_nan;
+
     mr = squeeze(mean(Mr, [1,2], 'omitnan'));%rw.h5getMeanTrace(fullpath_ref);
     mg = squeeze(mean(Mg, [1,2], 'omitnan'));%rw.h5getMeanTrace(fullpath_sig);
     %%

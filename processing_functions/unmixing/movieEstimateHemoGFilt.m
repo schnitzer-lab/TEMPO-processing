@@ -45,13 +45,14 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
         options.fref = locs(1);
     end
 
-    options_estimate = struct('npixatonece', options.npixatonce, ...
+    options_estimate_sm = struct('npixatonece', options.npixatonce, ...
         'usereg', options.usereg, 'fref', options.fref/specs_r.getFps());
-
+    options_estimate_xy = struct('npixatonece', options.npixatonce, ...
+        'usereg', options.usereg, 'fref', []);
     options_limit = struct(...
         'fref', options.fref/specs_r.getFps(), 'max_amp_rel', options.max_amp_rel, ...
         'flim_max', options.flim_max/specs_r.getFps(), ...
-        'max_phase', options.max_phase, 'max_delay', options.max_delay*specs_r.getFps() );
+        'max_phase', options.max_phase, 'max_delay', options.max_delay*specs_r.getFps());
     
     if(isempty(options.naverage))
         options.naverage = round(options.average_mm/specs_r.getPixSize()/2)*2+1;
@@ -85,14 +86,14 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
         disp("movieEstimateHemoGFilt: estimating filter for smoothed ref traces"...
             + sprintf(" (%d/%d)",iter,options.niter))
 
-        Wsm = estimateFilters(Mg-Mr_xy_filt,  Mr_sm, wn, no, options_estimate);  
+        Wsm = estimateFilters(Mg-Mr_xy_filt,  Mr_sm, wn, no, options_estimate_sm);  
         Wsm = limitFiltersTimeResolved(Wsm, options_limit);       
         Mr_sm_filt = applyFilters(Mr_sm, Wsm);  
   
         disp("movieEstimateHemoGFilt: estimating filter for single-pixel traces"...
             + sprintf(" (%d/%d)",iter,options.niter))
 
-        Wxy = estimateFilters(Mg-Mr_sm_filt, Mr, wn, no, options_estimate);
+        Wxy = estimateFilters(Mg-Mr_sm_filt, Mr, wn, no, options_estimate_xy);
         Wxy = limitFiltersTimeResolved(Wxy, options_limit);
         Mr_xy_filt = applyFilters(Mr, Wxy);   
         %%        
@@ -124,7 +125,7 @@ end
 %%
 
 function options = defaultOptions(basepath)
-% 5x ram + overhead ~< 6x(one movie size) ram     
+
     options.dt = 2; % s, time window for single filter estimation
     options.overlap = 0.75; % time windows relative overlap 
 

@@ -64,10 +64,14 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     end
     if(any(isnan(frefs))), error('movieEstimateHemoGFiltTR: NaN reference freq'); end
 
+    options_estimate_sm = struct('npixatonece', options.npixatonce, ...
+        'usereg', options.usereg, 'frefs', frefs/specs_r.getFps());
+    options_estimate_xy = struct('npixatonece', options.npixatonce, ...
+        'usereg', options.usereg, 'frefs', []);
     options_limit = struct(...
         'fref', frefs/specs_r.getFps(), 'max_amp_rel', options.max_amp_rel, ...
         'flim_max', options.flim_max/specs_r.getFps(), ...
-        'max_phase', options.max_phase, 'max_delay', options.max_delay*specs_r.getFps() );
+        'max_phase', options.max_phase, 'max_delay', options.max_delay*specs_r.getFps());
     
     if(isempty(options.naverage))
         options.naverage = round(options.average_mm/specs_r.getPixSize()/2)*2+1;
@@ -102,7 +106,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
             + sprintf(" (%d/%d)",iter,options.niter))
 
         Wsm = estimateFiltersTimeResolved(Mg-Mr_xy_filt,  Mr_sm, wn, no,...
-            chunks, 'usereg', false, 'frefs', frefs/specs_r.getFps());  
+            chunks, options_estimate_sm);  
         Wsm = limitFiltersTimeResolved(Wsm, options_limit);       
         Mr_sm_filt = applyFiltersTimeResolved(Mr_sm, Wsm, chunks, chunks_nooverlap);  
   
@@ -110,7 +114,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
             + sprintf(" (%d/%d)",iter,options.niter))
 
         Wxy = estimateFiltersTimeResolved(Mg-Mr_sm_filt, Mr, wn, no,...
-            chunks, 'usereg', false, 'frefs', []); %frefs/specs_r.getFps()
+            chunks, options_estimate_xy); % Mr-Mr_sm?
         Wxy = limitFiltersTimeResolved(Wxy, options_limit);
         Mr_xy_filt = applyFiltersTimeResolved(Mr, Wxy, chunks, chunks_nooverlap);   
         %%        
@@ -153,7 +157,8 @@ function options = defaultOptions(basepath)
     options.average_mm = Inf; % mm, scale for reference ch spatial averaging 
     options.niter = 3; % number of times to repeat the estimation
     options.usereg = false; % use regularized version of the filter estimation 
-
+    options.npixatonce = Inf;  % number of spatial pixel to process simultaneously
+    
     options.fref = []; % Hz,  main hemodynamic peak frequency
     options.fref_lims = [1.5, 20]; % Hz, limits for finding main hemodynamic peak frequency
     options.fref_resolution = 0.4; % for finding main hemodynamic peak frequency

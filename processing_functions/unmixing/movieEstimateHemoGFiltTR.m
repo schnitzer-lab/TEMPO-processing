@@ -96,33 +96,44 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     end
     %%
     
-    Mr_xy_filt = 0; Mr_sm_filt = 0;
-    Wxy = 0; Wsm = 0;   
+    Mr_xy_filt = zeros(size(Mr), class(Mr)); Mr_sm_filt = zeros(size(Mr), class(Mr));
+    Wxy = zeros([size(Mg,[1,2]), wn, size(chunks,1)], class(Mg)); 
+    Wsm = zeros([size(Mg,[1,2]), wn, size(chunks,1)], class(Mg));   
+    
+    nrowsatonce = floor(options.npixatonce/size(Mg,2));
+  
+   for iter = 1:options.niter 
+        %%
 
-    for iter = 1:options.niter 
+        for r1 = 1:nrowsatonce:size(Mg,1)
+            r2 = min(r1 + nrowsatonce - 1, size(Mg,1));
         %%
         
-        disp("movieEstimateHemoGFiltTR: estimating filter for smoothed ref traces"...
-            + sprintf(" (%d/%d)",iter,options.niter))
-
-        Wsm = estimateFiltersTimeResolved(Mg-Mr_xy_filt,  Mr_sm, wn, no,...
-            chunks, options_estimate_sm);  
-        Wsm = limitFiltersTimeResolved(Wsm, options_limit);       
-        Mr_sm_filt = applyFiltersTimeResolved(Mr_sm, Wsm, chunks, chunks_nooverlap);  
-  
-        disp("movieEstimateHemoGFiltTR: estimating filter for single-pixel traces"...
-            + sprintf(" (%d/%d)",iter,options.niter))
-
-        Wxy = estimateFiltersTimeResolved(Mg-Mr_sm_filt, Mr, wn, no,...
-            chunks, options_estimate_xy); % Mr-Mr_sm?
-        Wxy = limitFiltersTimeResolved(Wxy, options_limit);
-        Mr_xy_filt = applyFiltersTimeResolved(Mr, Wxy, chunks, chunks_nooverlap);   
-        %%        
+            disp("movieEstimateHemoGFiltTR: estimating filter for smoothed ref traces"...
+                + sprintf(" (%d:%d/%d, %d/%d)",r1,r2,size(Mg,1),iter,options.niter))
+    
+            Wsm(r1:r2,:,:,:) = estimateFiltersTimeResolved(...
+                Mg(r1:r2,:,:)-Mr_xy_filt(r1:r2,:,:),  Mr_sm(r1:r2,:,:), ...
+                wn, no, chunks, options_estimate_sm);  
+            Wsm(r1:r2,:,:,:) = limitFiltersTimeResolved(Wsm(r1:r2,:,:,:), options_limit);       
+            Mr_sm_filt(r1:r2,:,:) = applyFiltersTimeResolved(...
+                Mr_sm(r1:r2,:,:), Wsm(r1:r2,:,:,:), chunks, chunks_nooverlap);  
+      
+            disp("movieEstimateHemoGFiltTR: estimating filter for single-pixel traces"...
+                + sprintf(" (%d:%d/%d, %d/%d)",r1,r2,size(Mg,1),iter,options.niter))
+    
+            Wxy(r1:r2,:,:,:) = estimateFiltersTimeResolved(...
+                Mg(r1:r2,:,:)-Mr_sm_filt(r1:r2,:,:), Mr(r1:r2,:,:), ...
+                wn, no, chunks, options_estimate_xy); % Mr-Mr_sm?
+            Wxy(r1:r2,:,:,:) = limitFiltersTimeResolved(Wxy(r1:r2,:,:,:), options_limit);
+            Mr_xy_filt(r1:r2,:,:) = applyFiltersTimeResolved(...
+                Mr(r1:r2,:,:), Wxy(r1:r2,:,:,:), chunks, chunks_nooverlap);   
+        end
     end
     %%
     
     Mr_filt = (Mr_sm_filt + Mr_xy_filt);
-    % clear('Mr_sm');
+    clear('Mr_sm'); clear('Mr_sm_filt'); clear('Mr_xy_filt');
     %%
    
     disp("movieEstimateHemoGFiltTR: saving")

@@ -77,31 +77,43 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     end
     %%
     
-    Mr_xy_filt = 0; Mr_sm_filt = 0;
-    Wxy = 0; Wsm = 0;   
+    Mr_xy_filt = zeros(size(Mr), class(Mr)); Mr_sm_filt = zeros(size(Mr), class(Mr));
+    Wxy = zeros([size(Mg,[1,2]), wn], class(Mg)); 
+    Wsm = zeros([size(Mg,[1,2]), wn], class(Mg));    
+
+    nrowsatonce = floor(options.npixatonce/size(Mg,2));
 
     for iter = 1:options.niter 
+        %%        
+         
+        for r1 = 1:nrowsatonce:size(Mg,1)
+            r2 = min(r1 + nrowsatonce - 1, size(Mg,1));
         %%
-  
-        disp("movieEstimateHemoGFilt: estimating filter for smoothed ref traces"...
-            + sprintf(" (%d/%d)",iter,options.niter))
-
-        Wsm = estimateFilters(Mg-Mr_xy_filt,  Mr_sm, wn, no, options_estimate_sm);  
-        Wsm = limitFiltersTimeResolved(Wsm, options_limit);       
-        Mr_sm_filt = applyFilters(Mr_sm, Wsm);  
-  
-        disp("movieEstimateHemoGFilt: estimating filter for single-pixel traces"...
-            + sprintf(" (%d/%d)",iter,options.niter))
-
-        Wxy = estimateFilters(Mg-Mr_sm_filt, Mr, wn, no, options_estimate_xy);
-        Wxy = limitFiltersTimeResolved(Wxy, options_limit);
-        Mr_xy_filt = applyFilters(Mr, Wxy);   
+        
+            disp("movieEstimateHemoGFilt: estimating filter for smoothed ref traces"...
+                + sprintf(" (%d:%d/%d, %d/%d)",r1,r2,size(Mg,1),iter,options.niter)) 
+   
+            Wsm(r1:r2,:,:) = estimateFilters(...
+                Mg(r1:r2,:,:)-Mr_xy_filt(r1:r2,:,:), Mr_sm(r1:r2,:,:), ...
+                wn, no, options_estimate_sm);  
+            Wsm(r1:r2,:,:) = limitFiltersTimeResolved(Wsm(r1:r2,:,:), options_limit);       
+            Mr_sm_filt(r1:r2,:,:) = applyFilters(Mr_sm(r1:r2,:,:), Wsm(r1:r2,:,:));  
+      
+            disp("movieEstimateHemoGFilt: estimating filter for single-pixel traces"...
+                + sprintf(" (%d:%d/%d, %d/%d)",r1,r2,size(Mg,1),iter,options.niter))
+    
+            Wxy(r1:r2,:,:) = estimateFilters(...
+                Mg(r1:r2,:,:)-Mr_sm_filt(r1:r2,:,:), Mr(r1:r2,:,:), ...
+                wn, no, options_estimate_xy);
+            Wxy(r1:r2,:,:) = limitFiltersTimeResolved(Wxy(r1:r2,:,:), options_limit);
+            Mr_xy_filt(r1:r2,:,:) = applyFilters(Mr(r1:r2,:,:), Wxy(r1:r2,:,:));   
+        end
         %%        
     end
     %%
 
     Mr_filt = (Mr_sm_filt + Mr_xy_filt);
-    % clear('Mr_sm');
+    clear('Mr_sm'); clear('Mr_sm_filt'); clear('Mr_xy_filt');
     %%
     
     disp("movieEstimateHemoGFilt: saving")

@@ -165,7 +165,6 @@ options_hfilt = mergeStructs({options_hfilt,  ...
 
 if(unmix_time_resolved)
     options_hfilt.dt_slow = 10*options_hfilt.dt; 
-    options_hfilt = rmfield(options_hfilt, 'npixatonce');
     fullpathGhemo = movieEstimateHemoGFiltTR(fullpathGhp, fullpathRhp, options_hfilt);
 else
     fullpathGhemo = movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_hfilt);

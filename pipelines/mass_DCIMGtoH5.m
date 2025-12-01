@@ -1,4 +1,4 @@
-
+% 
 clear; 
 close all;
 warning on;
@@ -9,9 +9,9 @@ diary(fullfile("P:\GEVI_Wave\Logs", ...
 %%
 
 
-recording_names = ...
-    pathspattern("R:\GEVI_Wave\Raw\", "**\*\202505*\meas*", true)';
-
+% recording_names = ...
+%     pathspattern("R:\GEVI_Wave\Raw\", "Iso*\*\2025*\meas*", true)';
+recording_names = "Isofluorane\mv0108\20251026\meas0" + string(0:9)';
 %     [rw.readlines("N:\GEVI_Wave\filelists\filelist_anesthesia_ace.txt")];
 %%
 

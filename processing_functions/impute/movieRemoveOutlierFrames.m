@@ -30,7 +30,9 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
     
     disp("movieRemoveOutlierFrames: reading movie")
     specs = rw.h5readMovieSpecs(fullpath_movie);
-    m = rw.h5getMeanTrace(fullpath_movie, 'mask', false);
+
+    fullpaths_mean = movieMeanTraces(fullpath_movie);
+    m = rw.h5getMeanTrace(fullpaths_mean);
 %     [M, specs] = rw.h5readMovie(fullpath_movie);
 %     m = squeeze(mean(M,[1,2],'omitnan'));
     %%

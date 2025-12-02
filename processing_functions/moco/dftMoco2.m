@@ -21,7 +21,7 @@ function [M, shifts, template_out] = dftMoco2(M,varargin)
 
     z = zeros(size(M, [1,2]) + psize_pre + psize_post);
     z( floor((size(z,1)+1)/2), floor((size(z,2)+1)/2) ) = 1;
-    filter = options.spatial_filter(z);     % imagesc(options.spatial_filter(template) -conv2(template, options.spatial_filter(z), 'same'))
+    filter = options.spatial_filter(z); % imagesc(options.spatial_filter(template)-conv2(template, options.spatial_filter(z), 'same'))
     filter_ft = fftn(filter)./fftn(z);
 
     template = medianOfMedians(M, options.nmedian);
@@ -29,19 +29,19 @@ function [M, shifts, template_out] = dftMoco2(M,varargin)
     % template = options.spatial_filter(template);
     template_ft = filter_ft.*fftn(pad_to2n(template.*hann2d,0));
 
-    % even with windiwing a little different at the edges
+    % even with windowing a little different at the edges
     % imshow(options.spatial_filter(template.*hann2d) - ifftn(template_ft), [])
     %%
     
     shifts = NaN([size(M,3),2]);
-    Mft = filter_ft.*fft2(pad_to2n(M.*hann2d,0));
-
+%     Mft = filter_ft.*fft2(pad_to2n(M.*hann2d,0));
+    %%
+    
     parfor i_f = 1:size(M,3)
 
-        current_frame_ft = Mft(:,:,i_f);
+        current_frame_ft = filter_ft.*fft2(pad_to2n(M(:,:,i_f).*hann2d,0)); %Mft(:,:,i_f);
         output = dftregistration( ...
             current_frame_ft, template_ft, options.upsample);
-%            -options.max_shift, options.max_shift, options.phase_flag);
         
         shifts(i_f,:) = output(:,[4,3]);
     end
@@ -67,6 +67,4 @@ function options = defaultOptions()
     options.interpolation_method = 'linear';
     options.spatial_filter = @(x) x;
     options.upsample = 8;
-    % options.max_shift = Inf;
-    % options.phase_flag = true;
 end

@@ -8,3 +8,4 @@ Curve Fitting Toolbox
 Parallel Computing Toolbox
 Computer Vision Toolbox
 Phased Array Toolbox
+Wavelet toolbox

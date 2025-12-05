@@ -85,11 +85,18 @@ function fullpath_out = movieSaveSingleFrame(fullpath_movie, varargin)
     end
     %%
 
+    if(options.scalebar)
+        scalebar_length = round(1/specs.getPixSize);
+        scalebar_width = round(0.2*scalebar_length);
+        frame(((end-scalebar_width):end)-1, (1:scalebar_length)+1) = max(frame(:));
+    end
+    %%
+
     disp("movieSaveSingleFrame: plotting and saving")
     
     plt.getFigureByName("Movie frame");
     imshow(plt.saturate(frame, options.saturate), []);
-
+    %%
     switch options.format
         case ".bmp"
             imwrite(plt.to01(double(frame), options.saturate), fullpath_out)
@@ -110,6 +117,7 @@ function options = defaultOptions(basepath)
     
     options.skip = true;
     options.mask = true;
+    options.scalebar = true;
     options.frametype = "mean"; % "mean", "std", "median", "F0" frame number
     options.saturate = [0.02,0.98];
 

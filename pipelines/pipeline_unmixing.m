@@ -179,6 +179,9 @@ fullpathGnh = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, ...
 
 moviesSavePreviewVideos([fullpathGnh, fullpathGhemo, fullpathGhp], ...
     'titles', ["unmixed", "reference filt", "voltage ch"])
+
+movieSaveSingleFrame(fullpathGnh, ...  
+    'frametype', 'std', 'outdir', fullfile(folder_processing, "alignment_images"));
 %%
 
 fullpathRfDFF = movieDFF(fullpathRhp);

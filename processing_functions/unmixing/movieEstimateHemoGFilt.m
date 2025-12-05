@@ -20,16 +20,18 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     [Mg, ~] = rw.h5readMovie(fullpath_sig);
     [Mr, specs_r] = rw.h5readMovie(fullpath_ref);
 
-    % on the edges after registration/motion correction + filtering, there are some
-    % pixels with hf noise ~= 0, which cases instability
-    Mr_std = std(Mr,[], 3); Mr_std_rel = log(Mr_std./median(Mr_std(:), 'omitnan'));
-    make_nan = (Mr_std_rel < -4*std(Mr_std_rel(:),[], 'omitnan'));
-    mask_nan = nan(size(Mr_std)); mask_nan(make_nan==0) = 1;
+    % on the edges after registration/motion correction + filtering, there 
+    % are some pixels with hf noise ~= 0, which cases instability. Setting 
+    % all the edge pixels (near NaN's and at the image boundaty) to NaNs
+    mask_nan = ones(size(Mr, [1,2])); mask_nan(isnan(mean(Mr,3))) = NaN;
+    mask_nan = conv2(mask_nan, ones(3,3), 'same'); mask_nan(~isnan(mask_nan)) = 1;
+    mask_nan(1,:) = NaN; mask_nan(end,:) = NaN; 
+    mask_nan(:,1) = NaN; mask_nan(:,end) = NaN;
     Mr = Mr .* mask_nan;
 
     sz = size(Mr);
     mr = squeeze(mean(Mr, [1,2], 'omitnan'));%rw.h5getMeanTrace(fullpath_ref);
-    mg = squeeze(mean(Mg, [1,2], 'omitnan'));%rw.h5getMeanTrace(fullpath_sig);
+%     mg = squeeze(mean(Mg, [1,2], 'omitnan'));%rw.h5getMeanTrace(fullpath_sig);
     %%
     
     wn = round(specs_r.getFps()*options.dt);
@@ -38,7 +40,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     
     if(isempty(options.fref))
         % find first hemodynamic peak
-        [~,locs,~, ~, zr] = findpeaksspectral(mr, options.fref_resolution, ...
+        [~,locs,~, ~, ~] = findpeaksspectral(mr, options.fref_resolution, ...
             specs_r.getFps(),  options.fref_lims, ...
             'MinPeakWidth', options.fref_minpeakwidth, ...
             'MinPeakProminence', options.fref_minpeakprominance, 'SortStr', 'descend');
@@ -170,7 +172,7 @@ end
 function [fullpath_out, fullpathWxy_out, fullpathW0_out, do_skip] = ...
     setupOutput(fullpath_sig, fullpath_ref, options)
 
-    [basepath_ref, filename_ref, ext, ~, ch_ref, ~] = filenameParts(fullpath_ref);
+    [~, filename_ref, ext, ~, ~, ~] = filenameParts(fullpath_ref);
     [~, ~, ~, ~, ch_sig, ~] = filenameParts(fullpath_sig);
    
     postfix_new = options.postfix_new + "to"+ch_sig+...
@@ -221,10 +223,10 @@ function savePlots(Mg, Mr, Mr_filt, Wsm, Wxy, specs, filename_out, options)
 
     pix_loc =  round(size(Mr, [1,2])/2);
 
-    w =  squeeze(mean(Wsm(pix_loc(1),pix_loc(2),:,:), [1,2,4], 'omitnan'));
-    zw = fft(w);
-    fs = linspace(0,specs.getFps, length(zw));
-    [~,ind_f0] = min(abs(fs-options.fref));
+%     w =  squeeze(mean(Wsm(pix_loc(1),pix_loc(2),:,:), [1,2,4], 'omitnan'));
+%     zw = fft(w);
+%     fs = linspace(0,specs.getFps, length(zw));
+%     [~,ind_f0] = min(abs(fs-options.fref));
  
     mg =  squeeze(Mg(pix_loc(1),pix_loc(2),:));
     mr =  squeeze(Mr(pix_loc(1),pix_loc(2),:));
@@ -292,7 +294,7 @@ function savePlots(Mg, Mr, Mr_filt, Wsm, Wxy, specs, filename_out, options)
     hold on;
     grid();
 
-    legend(["spectral amplitude"]);
+    legend("spectral amplitude");
 
     if(options.max_amp_rel < inf)
         line([0, options.flim_max], ...
@@ -358,7 +360,7 @@ function savePlots(Mg, Mr, Mr_filt, Wsm, Wxy, specs, filename_out, options)
     hold on;
     grid();
 
-    legend(["spectral amplitude"]);
+    legend("spectral amplitude");
 
     if(options.max_amp_rel < inf)
         line([0, options.flim_max], ...

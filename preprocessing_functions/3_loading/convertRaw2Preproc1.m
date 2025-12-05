@@ -142,7 +142,7 @@ function options =  defaultOptions(dcimgPath)
     options.verbose=true;
     
     options.useMovieSpecs = false;
-    options.pixsize = 8/2048; %mm, from Radek, non-binned
+    options.pixsize = 9/2170; %mm/pix, non-binned, measured with Leica (Vasily)
     
     options.binning=8;
     options.skip=false;

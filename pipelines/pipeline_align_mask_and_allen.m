@@ -1,5 +1,5 @@
         
-basepath = "N:\GEVI_Wave\Analysis\Visual\mv0105\20230824\meas01\";
+basepath = "N:\GEVI_Wave\Analysis\Visual\mv3101\20251120\meas00\";
 postfix = "cG_unmixed*_dFF"; 
 
 file = dir(fullfile(basepath, "/*" +  postfix + ".h5"));
@@ -22,7 +22,7 @@ allen_path = "..\analysis\allen_map\";
 
 if(~isfolder(fullfile(filepath, "alignment_images"))), mkdir(fullfile(filepath, "alignment_images")); end
 
-copyfile(fullfile(allen_path, "allen_reference_toalign.png"), ... %  allen_reference_toalign or allen_reference_toalign_V1
+copyfile(fullfile(allen_path, "allen_reference_image_scaled_toalign.png"), ... %  allen_reference_toalign or allen_reference_toalign_V1
           fullfile(filepath, "alignment_images", name + "_allen.png"))
 copyfile(fullfile(allen_path, "allen_reference_points.txt"), ... % allen_reference_points or allen_reference_points_V1
           fullfile(filepath, "alignment_images", name + "_allen.txt"))
@@ -30,10 +30,10 @@ copyfile(fullfile(allen_path, "allen_reference_points.txt"), ... % allen_referen
 
 movieSaveSingleFrame(fullpath, ...  
     'frametype', 'std', 'outdir', fullfile(filepath, "alignment_images"),...
-    'mask', true, 'skip', false);
+    'mask', false, 'skip', true);
 %%
 
-movieAddAllen(fullpath, fullfile(filepath, "alignment_images", name + "_allenManual.png"),...
+movieAddAllen(fullpath, fullfile(filepath, "alignment_images", name + "_allenManual.bmp"),...
     fullfile(filepath, "alignment_images", name + "_allen.txt"), fullfile(allen_path, "allenmap.mat"))
 %%
 
@@ -55,25 +55,27 @@ fullpath_ref = fullfile(file_ref.folder, file_ref.name);
 
 % saves alignmet results to reference folder so that it can be reused
  
-specs = rw.h5readMovieSpecs (fullpath);
+specs = rw.h5readMovieSpecs(fullpath);
     
-fileroot_ref = specs.getMouseId() + "_c" + specs.getChannelId() + "_" + ...
+fileroot_ref = specs.channel_id + "_c" + specs.mouse_id + "_" + ...
     string(datetime(specs.extra_specs('recordingDate')), 'yyyyMMdd') + "_" + ...
     strjoin(string(rw.h5getDatasetSize(fullpath, '/mov', [1,2])*specs.binning), 'x');
 
 movieSaveSingleFrame(fullpath, ...
     'frametype', 'std', 'mask', false, 'format', ".h5",...
-    'outdir', "P:\GEVI_Wave\MiceAlignment\", 'fileroot_out', fileroot_ref);
+    'outdir', "P:\GEVI_Wave\MiceAlignment\", 'fileroot_out', fileroot_ref, ...
+    'skip', false);
 
 specs_ref = rw.h5readMovieSpecs(fullpath_ref);
 
-fileroot_ref = specs_ref.getMouseId() + "_c" + specs_ref.getChannelId() + "_" + ...
+fileroot_ref = specs_ref.mouse_id + "_c" + specs_ref.channel_id + "_" + ...
     string(datetime(specs_ref.extra_specs('recordingDate')), 'yyyyMMdd') + "_" + ...
     strjoin(string(rw.h5getDatasetSize(fullpath_ref, '/mov', [1,2])*specs_ref.binning), 'x');
 
 movieSaveSingleFrame(fullpath_ref, ...
     'frametype', 'std', 'mask', false, 'format', ".h5",...
-    'outdir', "P:\GEVI_Wave\MiceAlignment\", 'fileroot_out', fileroot_ref);
+    'outdir', "P:\GEVI_Wave\MiceAlignment\", 'fileroot_out', fileroot_ref, ...
+    'skip', false);
 %%
 
 movieSavePreviewVideos(fullpath, 'skip', false, 'mask', true)

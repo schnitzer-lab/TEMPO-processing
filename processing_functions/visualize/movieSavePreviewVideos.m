@@ -1,4 +1,4 @@
-function movieSavePreviewVideos(fullpath_movie, varargin)
+function fullpaths_out = movieSavePreviewVideos(fullpath_movie, varargin)
     
     [basepath, filename, ~, ~] = ...
         filenameSplit(fullpath_movie);

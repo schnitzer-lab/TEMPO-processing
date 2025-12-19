@@ -1,4 +1,4 @@
-%%
+% %%
 % 
 % clear; 
 % close all;
@@ -10,13 +10,13 @@
 %           strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 % %%
 % 
-% recording_name = "Visual\rfm002mjr\20231209\meas00"; % "Anesthesia\m46\20221221\meas04"; 
+% recording_name = "Anesthesia\mv0105\20230831\meas00"; % "Anesthesia\m46\20221221\meas04"; 
 % postfix_in1 = "cG_bin8*_mc";
 % postfix_in2 = "cR_bin8*_mc_reg";
 % 
 % skip_if_final_exists = false;
 % 
-% mouse_state = "awake"; %"anesthesia"; % "awake"; %"transition";
+% mouse_state = "transition"; %"anesthesia"; % "awake"; %"transition";
 % unmix_time_resolved = true;
 % 
 % basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
@@ -29,7 +29,7 @@
 % % 0.095 for old ace recordings seems good - based on m14 visual v1
 % % 0.141 (?) for older ASAP2s with different filters
 % frame_range = [50, inf];
-%%
+% %%
 
 % postfixes for the final files in the output location
 if(unmix_time_resolved), postfix_out1 = "_unmixedTR_dFF"; 
@@ -105,18 +105,16 @@ fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, ...
     'lag_estimator', 'phase', 'f0', 30,...
     'min_lag_frames', 0.75, 'max_lag_frames', 100); 
 fullpathGdl = fullpathGor;
-% fullpathRdl = fullpathRor;
 %%
     
 [fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, ...
     crosstalk_matrix, 'skip', true);
-% fullpathGdx = fullpathGdl; fullpathRdx = fullpathRdl;
 %%
 
 fullpathGbl = movieExpBaselineCorrection(fullpathGdx, 'divide', false); 
 fullpathRbl = movieExpBaselineCorrection(fullpathRdx, 'divide', false);
 % fullpathGbl = movieRemoveMean(fullpathGdx, 'skip', true); 
-% fullpathRbl = movieRem    oveMean(fullpathRdx, 'skip', true);
+% fullpathRbl = movieRemoveMean(fullpathRdx, 'skip', true);
 %%
 
 % Make sure that filter resonable, if not increase wp or decrease attn;
@@ -134,17 +132,17 @@ options_highpass.exepath = "..\analysis\c_codes\compiled\hdf5_movie_convolution.
 fullpathGhp = movieFilterHighpass(fullpathGbl, f0_hp, wp, options_highpass);
 fullpathRhp = movieFilterHighpass(fullpathRbl, f0_hp, wp, options_highpass);
 
-movieSavePreviewVideos(fullpathGhp, 'title', 'filtered', 'skip', options_highpass.skip)
-movieSavePreviewVideos(fullpathRhp, 'title', 'filtered', 'skip', options_highpass.skip)
+movieSavePreviewVideos(fullpathGhp, 'title', 'filtered', 'skip', options_highpass.skip);
+movieSavePreviewVideos(fullpathRhp, 'title', 'filtered', 'skip', options_highpass.skip);
 %%
 
-fullpaths_mean = movieMeanTraces(...
+fullpathshp_mean = movieMeanTraces(...
     [string(fullpathGhp), string(fullpathRhp)], 'space', true);
     
 options_spectrogram = struct('timewindow', 4, 'fw', 0.75, ...
     'processingdir', fullfile(folder_processing, 'processing', 'meanTraceSpectrogram')); %'correct1f', false, 
-movieMeanTraceSpectrogram(fullpaths_mean(2), options_spectrogram);
-movieMeanTraceSpectrogram(fullpaths_mean(1), options_spectrogram);
+movieMeanTraceSpectrogram(fullpathshp_mean(2), options_spectrogram);
+movieMeanTraceSpectrogram(fullpathshp_mean(1), options_spectrogram);
 %%
 
 if mouse_state == "anesthesia"
@@ -171,65 +169,83 @@ else
 end
 
 moviesSavePreviewVideos([fullpathGhemo, fullpathRhp], ...
-    'titles', ["reference filt", "reference ch"])
+    'titles', ["reference filt", "reference ch"]);
 %%
 
 fullpathGnh = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, ...
     'divide', false, 'postfix', "_nohemoTR");
 
 moviesSavePreviewVideos([fullpathGnh, fullpathGhemo, fullpathGhp], ...
-    'titles', ["unmixed", "reference filt", "voltage ch"])
+    'titles', ["unmixed", "reference filt", "voltage ch"]);
 
 movieSaveSingleFrame(fullpathGnh, ...  
     'frametype', 'std', 'outdir', fullfile(folder_processing, "alignment_images"));
 %%
 
-fullpathRfDFF = movieDFF(fullpathRhp);
-movieSavePreviewVideos(fullpathRfDFF, 'title', 'R dF/F')
+fullpathRDFF = movieDFF(fullpathRhp);
+fullpathRDFF_videos = movieSavePreviewVideos(fullpathRDFF, 'title', 'R dF/F');
 
 fullpathGnhDFF = movieDFF(fullpathGnh);
-movieSavePreviewVideos(fullpathGnhDFF, 'title', 'G unmixed dF/F')
+fullpathGnhDFF_videos = movieSavePreviewVideos(fullpathGnhDFF, 'title', 'G unmixed dF/F');
 %%
 
-fullpaths_mean = movieMeanTraces(...
-    [string(fullpathGnhDFF), string(fullpathRfDFF)], 'space', true);
+fullpathsDFF_mean = movieMeanTraces(...
+    [string(fullpathGnhDFF), string(fullpathRDFF)], 'space', true);
     
 options_spectrogram = struct('timewindow', 4, 'fw', 0.75, ...
     'processingdir', fullfile(folder_processing, 'processing', 'meanTraceSpectrogram')); %'correct1f', false, 
-movieMeanTraceSpectrogram(fullpaths_mean(2), options_spectrogram);
-movieMeanTraceSpectrogram(fullpaths_mean(1), options_spectrogram);
-%%
-% copy renamed final files to the output location
+fullpathRDFF_spec = movieMeanTraceSpectrogram(fullpathsDFF_mean(2), options_spectrogram);
+fullpathGnhDFF_spec = movieMeanTraceSpectrogram(fullpathsDFF_mean(1), options_spectrogram);
 
-if(~strcmp(folder_processing, folder_output))
-    if(~isfolder(folder_output)), mkdir(folder_output); end
-    
-    paths_out_new = [];
-    for f_out = [string(fullpathGnhDFF), string(fullpathRfDFF)]
-        %%
-        [filedir, ~, fileext, ~, channel, postfix_out] = filenameParts(f_out);
-        
-        if(contains(postfix_out, 'nohemo'))
-            fullpath_new = fullfile(folder_output, channel + postfix_out1 + fileext);
-        else
-            fullpath_new = fullfile(folder_output, channel + postfix_out2 + fileext);
-        end
-        
-        copyfile(f_out, fullpath_new); 
-        paths_out_new = [paths_out_new, fullpath_new];
-        
-        movieSavePreviewVideos(fullpath_new, 'title', channel + " dFF", 'skip', false);
-    end
+%% copy final files to the output location and rename
+[~, filenameG] = fileparts(fullpathGnhDFF);
+filenameG_start_out = 'cG' + postfix_out1;
+[~, filenameR] = fileparts(fullpathRDFF);
+filenameR_start_out = 'cR' + postfix_out2;
 
-    fullpaths_mean_new = movieMeanTraces(paths_out_new, 'space', true, 'skip', false);
-    
-    options_spectrogram.processingdir = ...
-        fullfile(folder_output, 'processing', 'meanTraceSpectrogram');
-    movieMeanTraceSpectrogram(fullpaths_mean_new(2), options_spectrogram);
-    movieMeanTraceSpectrogram(fullpaths_mean_new(1), options_spectrogram);
+% copy movie files
+fullpathGnhDFF_out = copyfileWithRelativePath(...
+    fullpathGnhDFF, folder_output, ...
+    folder_processing, filenameG, filenameG_start_out);
+fullpathRDFF_out = copyfileWithRelativePath(...
+    fullpathRDFF, folder_output, ...
+    folder_processing, filenameR, filenameR_start_out);
+
+% copy mean traces and spectrograms
+[folder, ~, ~] = fileparts(fullpathsDFF_mean(1));
+files = dir(fullfile(folder, filenameG) + "*");
+for f = string(fullfile({files.folder}, {files.name}))
+    copyfileWithRelativePath(f, folder_output, ...
+        folder_processing, filenameG, filenameG_start_out);
 end
-%%
-% delete all intermediate files
+
+fullpathRDFF_mean_out = copyfileWithRelativePath(...
+    fullpathsDFF_mean(2), folder_output, ...
+    folder_processing, filenameR, filenameR_start_out);
+
+[folder, ~, ~] = fileparts(fullpathGnhDFF_spec);
+files = dir(fullfile(folder, filenameG) + "*");
+for f = string(fullfile({files.folder}, {files.name}))
+    copyfileWithRelativePath(f, folder_output, ...
+        folder_processing, filenameG, filenameG_start_out);
+end
+[folder, ~, ~] = fileparts(fullpathRDFF_spec);
+files = dir(fullfile(folder, filenameR) + "*");
+for f = string(fullfile({files.folder}, {files.name}))
+    copyfileWithRelativePath(f, folder_output, ...
+        folder_processing, filenameR, filenameR_start_out);
+end
+
+% copy videos
+copyfileWithRelativePath(fullpathGnhDFF_videos(1), folder_output, ...
+    folder_processing, filenameG, filenameG_start_out);
+copyfileWithRelativePath(fullpathGnhDFF_videos(2), folder_output, ...
+    folder_processing, filenameG, filenameG_start_out);
+copyfileWithRelativePath(fullpathRDFF_videos(1), folder_output, ...
+    folder_processing, filenameR, filenameR_start_out);
+copyfileWithRelativePath(fullpathRDFF_videos(1), folder_output, ...
+    folder_processing, filenameR, filenameR_start_out);
+%% delete all intermediate files
 
 if(~strcmp(fullpathGin, fullpathGpreproc)), delete(fullpathGin); end
 if(~strcmp(fullpathRin, fullpathRpreproc)), delete(fullpathRin); end
@@ -254,16 +270,14 @@ if(~strcmp(fullpathRdx, fullpathRhp)), delete(fullpathRhp); end
 
 delete(fullpathGhemo); 
 delete(fullpathGnh);
-%%
-% copy all remaining files to the preprocessed location
+%% copy all remaining files to the preprocessed location
 
 if(~strcmp(folder_preprocessed, folder_processing))
     disp("moving processed data to: "+folder_preprocessed)
     allfiles = dir(folder_processing);
     cellfun(@(n) movefile(fullfile(folder_processing, n),  folder_preprocessed), {allfiles(3:end).name})
 end
-%%
-% save current .m file to the preprocessed location
+%% save current .m file to the preprocessed location
 
 currentfile = mfilename('fullpath') + ".m"; 
 copyfile(currentfile, folder_preprocessed)

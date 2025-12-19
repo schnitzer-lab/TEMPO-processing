@@ -44,11 +44,13 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     %%
     % a - baseline fluorescence (F0); b1 - bleaching timescale; c1 - fraction of bleaching; c2 - first order approximation to slower dynamics
 %     baseline = @(a, b1, c1, c2, x) a.*(1 + c1.*exp(-x./b1) - c2.*x);  
-    baseline = @(a, b1, c1, b2, c2, x) a.*(1 + c1.*exp(-x./b1) + c2.*exp(-x./b2));  
+%     baseline = @(a, b1, c1, b2, c2, x) a.*(1 + c1.*exp(-x./b1) + c2.*exp(-x./b2));  
+    baseline = @(a, b1, c1, b2, c2, x) (a + c1.*exp(-x./b1) + c2.*exp(-x./b2));  
     
     fo = fitoptions('Method','NonlinearLeastSquares',...
-                    'StartPoint', [min(meanmovie), 20*specs.getFps(), 0.1, 200*specs.getFps(), 0],...
-                    'lower',[0 options.tmin*specs.getFps() 0 options.tmin*specs.getFps() 0],'upper',[Inf Inf 1 Inf 1]);
+                    'StartPoint', [min(meanmovie)/2, 20*specs.getFps(), min(meanmovie)/2, 200*specs.getFps(), 0],...
+                    'lower',[0 options.tmin*specs.getFps() 0 options.tmin*specs.getFps() 0], ...
+                    'upper',[Inf Inf Inf Inf Inf]);
 
     f0=fit(ts, meanmovie, baseline, fo);
     %%
@@ -91,25 +93,28 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     X1 = f0.a*ones(size(Min,2),1);
     X2 = f0.a*f0.c1*exp(-ts/f0.b1);
     X3 = f0.a*f0.c2*exp(-ts/f0.b2);
-    nan_pos = any(isnan(Min), 2);
+    nan_pos = isnan(mean(Min,2));
     %%
-    
+
+%     X = double([X1, X2, X3]);
+%     ft = zeros(3, size(Min,1));
     if(useC2)
         ft = [X1, X2, X3]\Min(~nan_pos, :)';
+%         ft(:, ipix) = lsqnonneg(X,  double(Min(ipix,:))');
     else 
         ft = [X1, X2]\Min(~nan_pos, :)';
+%         ft(:, ipix) = [lsqnonneg(X,  double(Min(ipix,:))'); 0];
     end
-
     %%
         
-    A(~nan_pos) = ft(1,:)*f0.a; A(A<0) = 0;
+    A(~nan_pos) = ft(1,:)*f0.a; %A(A<0) = 0;
     B1(~nan_pos) = f0.b1; 
-    C1(~nan_pos) = ft(2,:)*f0.c1./(ft(1,:)+eps); C1(C1 < 0) = 0; %C1(C1>1) = 1;
+    C1(~nan_pos) = ft(2,:)*f0.c1.*f0.a;%./(ft(1,:)+eps(class(ft))); C1(C1 < 0) = 0; %C1(C1>1) = 1;
     
     B2(~nan_pos) = f0.b2; 
     C2(~nan_pos) = f0.c2;
     if(useC2) 
-        C2(~nan_pos) = ft(3,:)*f0.c2./(ft(1,:)+eps); C2(C2 < 0) = 0; %C2(C2>1) = 1;
+        C2(~nan_pos) = ft(3,:)*f0.c2.*f0.a; %./(ft(1,:)+eps(class(ft))); C2(C2 < 0) = 0; %C2(C2>1) = 1;
     end 
     C2(C2<0) = 0;
     %%
@@ -132,7 +137,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     subplot(2,3,5); histogram(plt.saturate(C1,[0,0.99])); 
     subplot(2,3,6); histogram(plt.saturate(C2,[0,0.99])); 
     
-    sgtitle(["M = A(1 + C_1exp(-t/b_1) + C_2exp(-t/b_2)), " + ...
+    sgtitle(["M = (A + C_1exp(-t/b_1) + C_2exp(-t/b_2)), " + ...
              sprintf("b_1=%.1fs, b_2=%.1fs", f0.b1/specs.getFps(), f0.b2/specs.getFps())])
     %%
     
@@ -154,7 +159,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
         squeeze(mean(Min, [1,2], 'omitnan')), ...
         squeeze(mean(Mout, [1,2], 'omitnan')), ...
         squeeze(mean(Mbl, [1,2], 'omitnan'))], ...
-        'fps', specs.getFps(), 'fw', 0.5, 'labels', ["raw", "baseline-corrected", "baseline"], ...
+        'fps', specs.getFps(), 'fw', 0.1, 'labels', ["raw", "baseline-corrected", "baseline"], ...
         'nomean', false)
     %%
     disp("movieExpBaselineCorrection: saving")

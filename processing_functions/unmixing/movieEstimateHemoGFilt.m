@@ -110,7 +110,8 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
             Wxy(r1:r2,:,:) = limitFiltersTimeResolved(Wxy(r1:r2,:,:), options_limit);
             Mr_xy_filt(r1:r2,:,:) = applyFilters(Mr(r1:r2,:,:), Wxy(r1:r2,:,:));   
         end
-        %%        
+        % do not propagate NaN's from red if possible
+        Mr_xy_filt(isnan(Mr_xy_filt) & ~isnan(Mr_sm_filt)) = 0;        
     end
     %%
 

@@ -106,7 +106,6 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
   
    for iter = 1:options.niter 
         %%
-
         for r1 = 1:nrowsatonce:size(Mg,1)
             r2 = min(r1 + nrowsatonce - 1, size(Mg,1));
         %%
@@ -131,6 +130,8 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
             Mr_xy_filt(r1:r2,:,:) = applyFiltersTimeResolved(...
                 Mr(r1:r2,:,:), Wxy(r1:r2,:,:,:), chunks, chunks_nooverlap);   
         end
+        % do not propagate NaN's from red if possible
+        Mr_xy_filt(isnan(Mr_xy_filt) & ~isnan(Mr_sm_filt)) = 0;
     end
     %%
     

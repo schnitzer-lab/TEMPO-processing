@@ -117,9 +117,11 @@ else
         extra_specs = containers.Map({'hardwareBinning', 'convertionDate', 'recordingDate'},...
                                      {metadata.hardwareBinning, convertionDate, fileInfo(1).date}); 
         frame0 = 1;
-        if(~isempty(options.frameRange)) frame0 = options.frameRange(1); end
-        specs = MovieSpecs(fps, 1, frame0, ...
+        if(~isempty(options.frameRange)), frame0 = options.frameRange(1); end
+        specs = MovieSpecsTEMPO( ...
+                           fps, 1, frame0, ...
                            options.pixsize, options.binning, [1,1], ...
+                           options.mouse_id, options.recording_id, options.channel_id,...
                            dcimgPath, {}, {}, ...
                            extra_specs);
 
@@ -152,6 +154,11 @@ function options =  defaultOptions(dcimgPath)
     options.binning_postfix = false;
     options.hardware_binning = 1; %will replace the metadata value
     options.frameRange = [];
+
+    path_parts = strsplit(char(dcimgPath), filesep);
+    options.mouse_id = path_parts{end-3};
+    options.recording_id = fullfile(path_parts{end-4}, path_parts{end-3}, path_parts{end-2}, path_parts{end-1});
+    options.channel_id = regexp(path_parts{end}, '(?<=-c)[A-Z]', 'match', 'once');
 
     options.expPath="DEFAULT";
     

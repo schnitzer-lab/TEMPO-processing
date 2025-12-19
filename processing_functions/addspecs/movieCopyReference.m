@@ -26,12 +26,12 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
         disp("movieCopyReference: looking for reference file")
 
         files = dir(fullfile(options.folder_ref, ...
-            specs_mov.getMouseId() + "_c" + specs_mov.getChannelId() + "*.h5"));
+            specs_mov.mouse_id() + "_c" + specs_mov.channel_id + "*.h5"));
 
         if (length(files) > 1)
             error("more than one reference for the mouse")
         elseif(length(files) < 1)
-            error("no reference for the mouse " + specs_mov.getMouseId())
+            error("no reference for the mouse " + specs_mov.mouse_id())
         end
         fullpath_movie_ref = fullfile(files(1).folder, files(1).name);
     end

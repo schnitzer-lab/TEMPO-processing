@@ -3,40 +3,50 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
     % and provides simple operations for history manipulations
     %
     % by Vasily
-    
-    properties (Constant = true)
-        history_sep = ';'; %separator of the history string
+        
+    properties (SetAccess = private)
+        mouse_id;
+        recording_id;
+        channel_id;
     end
     
-    properties (SetAccess = protected)
-        history; % string that contains the history of data processing steps
-        history_params; % cell array of structs
-        binning; % spatial downsampling factor > 1
+    properties (SetAccess = private, GetAccess = protected)
+        fps; %TODO: rename fps0, use getFps and AddBinningTime
+        pixsize; %TODO: rename pixsize0, use getPixSize and AddBinning
+    end
+    
+    properties(SetAccess = protected, Hidden = true)
+        binning; % spatial downsampling factor, use AddBinning
         spaceorigin;
         timebinning;
-        timeorigin;
-        sourcePath;
-        
-        extra_specs = containers.Map;
+        timeorigin; 
+
+        sourcePath; % TODO: fix older naming convention for sourcePath
+
+        history; % cell array of strings - history of data processing steps
+        history_params; % cell array of structs
+  
+        extra_specs; %containers.Map;
+    end
+
+    properties (Constant = true, Hidden = true)
+        history_sep = ';'; %separator of the history string when saved
     end
     
-    properties (SetAccess = private)
-        fps; %use getFps function to account for binning
-        pixsize; %use getPixSize function to account for binning
-     end
-    
     methods
-        function obj = MovieSpecs(fps, timebinning, timeorigin, ...
+          function obj = MovieSpecs(fps, timebinning, timeorigin, ...
                                   pixsize, binning, spaceorigin,...
-                                  sourcePath, history, history_params,...
+                                  mouse_id, recording_id, channel_id,...
+                                  source_path, history, history_params,...
                                   extra_specs)
-            if(nargin < 10), extra_specs = containers.Map; end
+            if(nargin < 13), extra_specs = containers.Map; end
 
             [fps, timebinning, timeorigin, pixsize, binning, spaceorigin,...
-             sourcePath, history, history_params, extra_specs] = ...
+             source_path, history, history_params, extra_specs] = ...
                 obj.CheckInputs(fps, timebinning, timeorigin, ...
                                 pixsize, binning, spaceorigin,...
-                                sourcePath, history, history_params,...
+                                .... % mouse_id, recording_id, channel_id,...
+                                source_path, history, history_params,...
                                 extra_specs);
 
 
@@ -45,45 +55,66 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
 
             obj.fps = fps;
             obj.pixsize = pixsize;
+            
             obj.binning = binning;
             obj.spaceorigin = spaceorigin;
             obj.timebinning = timebinning;
             obj.timeorigin = timeorigin;
-            obj.sourcePath = sourcePath;
             
+            obj.mouse_id = mouse_id;
+            obj.recording_id = recording_id;
+            obj.channel_id = channel_id;
+
+            obj.sourcePath = source_path;
+                       
             obj.extra_specs = extra_specs;
         end
-        %% core specs interaction      
+    end
 
-        function history_array = GetHistory(obj,n)
+    %% getter methods
+    
+    methods
+        function [history, history_params] = GetHistory(obj,n)
             if(nargin > 1)
-                if(n<0) n = length(obj.history)-abs(n)+1; end % e.g., n=-1 means last
-                history_array = obj.history{n};
+                if(n<0), n = length(obj.history)-abs(n)+1; end % e.g., n=-1 means last
+                history = obj.history{n};
+                history_params = obj.history_params{n};
             else
-                history_array = obj.history;
+                history = obj.history';
+                history_params = obj.history_params';
             end
-
-%             history_array = strsplit(obj.history, obj.history_sep);
-%             history_array(history_array == "") = [];
-%             
-%             if(nargin > 1)
-%                 n(n < 0) = length(history_array) + 1 + n(n < 0);
-%                 history_array = history_array(n);
-%             end
         end
+    
+        function fps = getFps(obj)
+            fps = obj.fps/obj.timebinning;
+        end
+
+        function pixsize = getPixSize(obj)
+            pixsize = obj.pixsize*obj.binning;
+        end
+
+        function s = getSpaceOrign(obj,dim)
+            if(nargin < 2), dim = [1,2]; end
+            s = (obj.spaceorigin- [1,1])/obj.binning + [1,1];
+            s = s(dim);
+        end
+    end
+    %% setter methods
+
+    methods
+       %% core specs interaction      
 
         function history_array = AddToHistory(obj,new_entry, params_struct)
             if((isstring(new_entry) || ischar(new_entry)) && nargin < 3) 
                 error('function parameters to save not specified') % maybe unnecessarily strict
             end
-            if(nargin < 3) params_struct = struct(); end
+            if(nargin < 3), params_struct = struct(); end
             if(isstruct(new_entry))
                 field_names = fieldnames(new_entry);
-                if(numel(field_names) ~= 1) error("new_entry struct should have one entry"); end
+                if(numel(field_names) ~= 1), error("new_entry struct should have one entry"); end
                 params_struct = new_entry.(field_names{1});
                 new_entry = field_names{1};
             end
-
             if(~isstring(new_entry)&& ~ischar(new_entry))
                 error("new_entry for history shoud be string or char")
             end
@@ -97,22 +128,6 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
             history_array = obj.GetHistory();
         end
 
-        %TODO
-        function mouse_id = getMouseId(obj)
-            sourcepath_parts = strsplit(string(obj.sourcePath), '\'); % not a great way, needs to be a class field
-            mouse_id = sourcepath_parts(end-3);
-        end
-
-        function channel_id = getChannelId(obj)
-            [~, filename] = fileparts(obj.sourcePath);
-
-            channel_id = filename(end); % not a great way, needs to be a class field
-        end
-
-        function fps = getFps(obj)
-            fps = obj.fps/obj.timebinning;
-        end
-
         function timebinning = AddBinningTime(obj,n)
             obj.timebinning = obj.timebinning*n;
             timebinning = obj.timebinning;
@@ -122,21 +137,11 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
             obj.timeorigin = obj.timeorigin + nframes;
             timeorigin = obj.timeorigin;
         end
-        
-        function pixsize = getPixSize(obj)
-            pixsize = obj.pixsize*obj.binning;
-        end
-        
+      
         function binning = AddBinning(obj,n)
             obj.binning = obj.binning*n;
             binning = obj.binning;
         end    
-
-        function s = getSpaceOrign(obj,dim)
-            if(nargin < 2) dim = [1,2]; end
-            s = (obj.spaceorigin- [1,1])/obj.binning + [1,1];
-            s = s(dim);
-        end
         
         function s = AddSpatialCropping(obj,p)
             if(length(p) ~= 2 || any(p < 0) ||  any( floor(p) ~= p) )
@@ -145,131 +150,11 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
             obj.spaceorigin = (obj.spaceorigin) + (p - [1,1])*obj.binning;
             s = obj.getSpaceOrign();
         end
-        %% extra_specs interaction
-        
-        function frange = AddFrequencyRange(obj, f1, f2)
-            if(~isKey(obj.extra_specs, 'frange_valid'))
-                obj.extra_specs('frange_valid') = [0, obj.fps/2];
-            end
 
-            if(nargin < 3), f2 = []; end
-            
-            frange = obj.extra_specs('frange_valid');
-            if(~isempty(f1)), frange(1) = max(frange(1), f1); end
-            if(~isempty(f2)), frange(2) = min(frange(2), f2); end
+    end
 
-            obj.extra_specs('frange_valid') = frange;
-        end
-
-        function frange = getFrequencyRange(obj, ind)
-            if(isKey(obj.extra_specs, 'frange_valid'))
-                frange = obj.extra_specs('frange_valid');
-            else
-                frange = [0, obj.fps/2];
-            end
-            if(nargin > 1)
-                frange = frange(ind);
-            end
-        end
-
-        function outlines = getAllenOutlines(obj, outlines_nums)
-            if(obj.extra_specs.isKey("allenMapEdgeOutline"))
-                raw_outlines = obj.extra_specs("allenMapEdgeOutline");
-                if(nargin < 2), outlines_nums = 1:size(raw_outlines, 3); end
-                outlines = raw_outlines(:,:,outlines_nums)/obj.binning;
-                outlines(:,1,:) = outlines(:,1,:)-obj.getSpaceOrign(2)+1;
-                outlines(:,2,:) = outlines(:,2,:)-obj.getSpaceOrign(1)+1;
-            else
-                warning("No brain regions outlines found");
-                outlines = [];
-            end
-        end
-
-        function outlines = getCustomOutlines(obj, outlines_nums)
-            if(obj.extra_specs.isKey("customOutlines"))
-                raw_outlines = obj.extra_specs("customOutlines");
-                if(nargin < 2), outlines_nums = 1:size(raw_outlines, 3); end
-                outlines = raw_outlines(:,:,outlines_nums)/obj.binning;
-                outlines(:,1,:) = outlines(:,1,:)-obj.getSpaceOrign(2)+1;
-                outlines(:,2,:) = outlines(:,2,:)-obj.getSpaceOrign(1)+1;
-            else
-                warning("No custom brain outlines found");
-                outlines = [];
-            end
-        end
-        
-        function mask = getMask(obj,movie_size)
-            if(nargin < 2) movie_size = []; end
-
-            if(obj.extra_specs.isKey("mask"))
-                raw_mask = obj.extra_specs("mask");
-                mask = imresize(raw_mask, 1/obj.binning, 'bilinear');
-                size_out = floor(size(raw_mask)/obj.binning);
-                mask = round(mask(1:size_out(1),1:size_out(2)));
-                mask = mask(obj.getSpaceOrign(1):end, ...
-                            obj.getSpaceOrign(2):end);
-                if(~isempty(movie_size)) 
-                    mask = mask(1:(movie_size(1)), ...
-                                1:(movie_size(2)));
-                end
-            else
-                % warning("No mask found");
-                mask = [];
-            end
-            mask = logical(mask);
-        end
-        
-        function mask_nan = getMaskNaN(obj, movie_size)
-            if(nargin < 2) movie_size = []; end
-            
-            mask = obj.getMask(movie_size);
-            mask_nan = nan(size(mask));
-            mask_nan(mask) = 1;
-        end
-        
-        function ttl_signal = getTTLTraceFromanalog(obj, nT)
-            if(~obj.extra_specs.isKey('ttl_fromanalog')) 
-                ttl_signal = [];
-                return;
-            end
-            if(nargin < 2), nT = length(obj.extra_specs('ttl_fromanalog'))-(obj.timeorigin-1); end
-            
-            ttl_signal_full = obj.extra_specs('ttl_fromanalog');
-            ttl_signal_raw = ttl_signal_full(obj.timeorigin:end);
-            
-            ttl_signal = ttl_signal_raw;
-            if(obj.timebinning ~= 1)
-                ttl_signal = ttl_signal(1:(length(ttl_signal) - mod(length(ttl_signal), obj.timebinning)));
-                ttl_signal = round(mean(reshape(ttl_signal,obj.timebinning,[]),1)');
-            end
-            ttl_signal = ttl_signal(1:min(nT, length(ttl_signal)));
-            ttl_signal((end+1):nT) = NaN;
-        end   
-
-        function ttl_signal = getTTLTrace(obj, nT)
-            if(~obj.extra_specs.isKey('timestamps_table')) 
-                ttl_signal = [];
-                return;
-            end
-            
-            timestamps_table = obj.extra_specs('timestamps_table');
-
-            if(nargin < 2), nT = size(timestamps_table,1)-(obj.timeorigin-1); end
-
-            ttl_column = find(string(strsplit(obj.extra_specs('timestamps_table_names'), ';')) == "behavior_ttl");
-            
-            ttl_signal_raw = timestamps_table(obj.timeorigin:end, ttl_column);
-            
-            ttl_signal = ttl_signal_raw;
-            if(obj.timebinning ~= 1)
-                ttl_signal = ttl_signal(1:(length(ttl_signal) - mod(length(ttl_signal), obj.timebinning)));
-                ttl_signal = round(mean(reshape(ttl_signal,obj.timebinning,[]),1)');
-            end
-            ttl_signal = ttl_signal(1:min(nT, length(ttl_signal)));
-            ttl_signal((end+1):nT) = NaN;
-        end   
-        %%
-        
+    methods (Hidden = true)
+        % For saving only        
         function [specs_cells, specs_names] = GetAllSpecs(obj)
             %GetAllSpecs - returs all required specs as two array - cell
             % array of actual specs and sting array of names. For data
@@ -277,12 +162,13 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
             specs_cells = horzcat( ...
                 {obj.fps, obj.pixsize, obj.binning, obj.spaceorigin,...
                  obj.timebinning, obj.timeorigin, obj.sourcePath,...
-                 strjoin(obj.history, obj.history_sep), ...
-                 jsonencode(obj.history_params)}, ...
+                 obj.mouse_id, obj.recording_id, obj.channel_id,...
+                 strjoin(obj.history, obj.history_sep), jsonencode(obj.history_params)}, ...
                 obj.extra_specs.values);
             specs_names = ["fps", "pixsize",...
                            "binning", "spaceorigin",...
                            "timebinning",  "timeorigin", "sourcePath",...
+                           "mouse_id", "recording_id", "channel_id",...
                            "history", "history_params", ...
                            "extra_specs/" + string(obj.extra_specs.keys)];
         end
@@ -290,17 +176,17 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
     
     methods(Access = protected)
         function [fps, timebinning, timeorigin, pixsize, binning, spaceorigin,...
-             sourcePath, history, history_params, extra_specs] = ...
+             source_path, history, history_params, extra_specs] = ...
             CheckInputs(obj, fps, timebinning, timeorigin, ...
                         pixsize, binning, spaceorigin,...
-                        sourcePath, history, history_params,...
+                        source_path, history, history_params,...
                         extra_specs)
            
-            if(isstring(history)) history = char(history); end
-            if(ischar(history)) history = strsplit(history, obj.history_sep); end
+            if(isstring(history)), history = char(history); end
+            if(ischar(history)), history = strsplit(history, obj.history_sep); end
             if(ischar(history_params) || isstring(history_params)) 
                 history_params = jsondecode(history_params)';
-                if(isstruct(history_params)) history_params = {history_params}; end
+                if(isstruct(history_params)), history_params = {history_params}; end
             end
             
             if(numel(history) > numel(history_params))
@@ -347,8 +233,8 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
                 error("timeorigin %d should be a round number > 0", timeorigin)
             end           
             
-            if(~ischar(sourcePath))
-                error("sourcePath must be a char array")
+            if(~ischar(source_path))
+                error("source_path must be a char array")
             end
         end
         

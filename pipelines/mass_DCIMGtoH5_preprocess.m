@@ -8,8 +8,9 @@ diary(fullfile("P:\GEVI_Wave\Logs", ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 
-recording_names = ...
-    pathspattern("R:\GEVI_Wave\Raw\", "**\*\202505*\meas*", true)';
+recording_names = "Isofluorane\mv0108\20251026\meas0" + string(0:9)';
+% recording_names = ...
+%     pathspattern("R:\GEVI_Wave\Raw\", "**\*\202505*\meas*", true)';
 % recording_names = ["Spontaneous\mDLRKlMORcre001\20240912\meas00", ...
 %                    "Spontaneous\mRArchLKl001\20240912\meas00"];
 %%
@@ -28,13 +29,14 @@ unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not a
 shifts0 = [0,0]; % [0,0.5] mm
 %%
 
-MEs_conv = {};
+MEs_conv = {}; recording_names_error_conv = [];
 for i_f = 1:length(recording_names)
     recording_name = recording_names(i_f);
     disp(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
     try
         pipeline_DCIMGtoH5
     catch ME
+        recording_names_error_conv = [recording_names_error_conv, recording_name];
         MEs_conv{length(MEs_conv)+1} = ME;
         warning(recording_name);
         warning(ME.message);
@@ -47,7 +49,7 @@ postfix_in2 = "cR_bin8";
 
 skip_if_final_exists  = true;
 
-MEs_pp = {};
+MEs_pp = {}; recording_names_error_pp  = [];
 for i_f = 1:length(recording_names)
 
     recording_name = recording_names(i_f);
@@ -56,6 +58,7 @@ for i_f = 1:length(recording_names)
     try 
         pipeline_preprocessing_2xmoco
     catch ME
+        recording_names_error_pp = [recording_names_error_pp, recording_name];
         MEs_pp{length(MEs_pp)+1} = {recording_name, ME};
         warning(recording_name);
         warning(ME.message);

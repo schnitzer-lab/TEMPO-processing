@@ -9,23 +9,19 @@ diary(fullfile("P:\GEVI_Wave\Logs", ...
 %%
 
 % recording_names = ...
-%     pathspattern("\\oak-smb-mschnitz.stanford.edu\groups\mschnitz\michelle\GEVI_Wave\Preprocessed\", ...
-%                  "Visual\*mjr\*\meas*", true)';
+%     pathspattern("P:\GEVI_Wave\Preprocessed\", ...
+%                  "Visual\mv31*\20251120\meas*", true)';
+
 recording_names = ...
-    pathspattern("P:\GEVI_Wave\Preprocessed\", ...
-                 "Spontaneous\mv0105\2024031*\meas*", true)';
-% recording_names = ...
-%     readlines("N:\GEVI_Wave\filelists\filelist_michelle_unprocessed20240715.txt"); 
-
-% recording_names = flip(recording_names);
+    readlines("N:\GEVI_Wave\filelists\filelis_anesthesia_transition_asap3.txt"); 
 %%
 
-basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
-basefolder_processing = "P:\GEVI_Wave\Preprocessed\";
-basefolder_output = "N:\GEVI_Wave\Analysis\";    
+basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\"; %"P:\GEVI_Wave\Preprocessed\";
+basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
+basefolder_output = "N:\GEVI_Wave\Analysis\"; % "N:\GEVI_Wave\Analysis\";    
 %%
 
-skip_if_final_exists = false;
+skip_if_final_exists = true;
 
 mouse_state = "transition";% "iso"; "awake"; %"anesthesia" "transition"
 unmix_time_resolved = true;
@@ -43,7 +39,7 @@ postfix_in2 = "cR_bin8_mc_reg";
 
 %%
 
-MEs = {};
+MEs = {}; recording_names_error = [];
 for i_f = 1:length(recording_names)
     %%
     recording_name = recording_names(i_f);
@@ -51,6 +47,7 @@ for i_f = 1:length(recording_names)
     try
         pipeline_unmixing
     catch ME
+        recording_names_error = [recording_names_error, recording_name];
         MEs{length(MEs)+1} = {recording_name, ME};
         warning(recording_name);
         warning(ME.message);

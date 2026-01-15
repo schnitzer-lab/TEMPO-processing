@@ -8,14 +8,17 @@ diary(fullfile("P:\GEVI_Wave\Logs", ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 
-recording_names = ...
-    pathspattern("P:\GEVI_Wave\Preprocessed\", ...
-                 "Spontaneous\mv0105\2024031*\meas*", true)';
+% recording_names = ...
+%     pathspattern("P:\GEVI_Wave\Preprocessed\", ...
+%                  "Spontaneous\mv0105\2024031*\meas*", true)';
 
-% recording_names = flip(recording_names);
+recording_names = ["Anesthesia\mv3101\20251210\meas05"; ...
+                   "Anesthesia\mv3101\20251210\meas10"; ...
+                   "Anesthesia\mv3102\20251210\meas05"; ...
+                   "Anesthesia\mv3102\20251210\meas10"];
 %% 
 
-basefolder_raw = "Z:\GEVI_Wave\Raw\"; %"\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %%
+basefolder_raw = "L:\Raw"; %"\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %%
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\"; %"S:\GEVI_Wave\Preprocessed\";
 basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\"; %"P:\GEVI_Wave\Preprocessed\";
@@ -31,19 +34,19 @@ unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not a
 
 shifts0 = [0,0]; %[0,0.5]; % mm, between R and G channel due to cameras misalignment
 
-mouse_state = "awake";% "awake"; %"anesthesia" %"transition";
+mouse_state = "transition";% "awake"; %"anesthesia" %"transition";
 unmix_time_resolved = true;
 
-crosstalk_matrix =  [[1, 0]; [0.08, 1]];
-% % 0.080 for ASAP3
-% % 0.165 for ASAP7y
-% % 0.095 for old ace recordings seems good - based on m14 visual v1
-% % 0.141 (?) for older ASAP2s with different filters
+crosstalk_matrix =  [[1, 0]; [0.165, 1]];
+% 0.080 for ASAP3
+% 0.165 for ASAP7y
+% 0.095 for old ace recordings seems good - based on m14 visual v1
+% 0.141 (?) for older ASAP2s with different filters
 
 frame_range = [50, inf];
 %%
 
-MEs_conv = {};
+MEs_conv = {}; recording_names_error = [];
 for i_f = 1:length(recording_names)
     %%
     
@@ -56,11 +59,11 @@ for i_f = 1:length(recording_names)
     try
         %%
         
-        channels = ["G","R"];
 %         skip_if_final_exists = true;
         pipeline_DCIMGtoH5
         %%
     catch ME
+        recording_names_error = [recording_names_error, recording_name];
         MEs_conv{length(MEs_conv)+1} = ME;
         warning(recording_name);
         warning(getReport(ME));
@@ -69,12 +72,14 @@ for i_f = 1:length(recording_names)
     try
         %%
         
+%         skip_if_final_exists = false;
         basefolder_output = basefolder_preprocessed; 
         postfix_in1 = "cG_bin"+string(binning);
         postfix_in2 = "cR_bin"+string(binning);
         pipeline_preprocessing_2xmoco
         %%
     catch ME
+        recording_names_error = [recording_names_error, recording_name];
         MEs_conv{length(MEs_conv)+1} = ME;
         warning(recording_name);
         warning(getReport(ME));
@@ -83,13 +88,14 @@ for i_f = 1:length(recording_names)
     try
         %%
         
+%         skip_if_final_exists = false;
         basefolder_output = basefolder_analysis;  
         postfix_in1 = "cG_bin"+string(binning)+"*_mc";
         postfix_in2 = "cR_bin"+string(binning)+"*_mc_reg";
-%         skip_if_final_exists = false;
         pipeline_unmixing
         %%  
     catch ME
+        recording_names_error = [recording_names_error, recording_name];
         MEs_conv{length(MEs_conv)+1} = ME;
         warning(recording_name);
         warning(getReport(ME));

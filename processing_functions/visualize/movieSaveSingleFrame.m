@@ -53,8 +53,8 @@ function fullpath_out = movieSaveSingleFrame(fullpath_movie, varargin)
         
         if (options.frametype == "F0")
             frame = []; 
-            if(specs.extra_specs.isKey("expBaseline_A"))
-                frame = specs.extra_specs("expBaseline_A");
+            if(specs.extra_specs.isKey("expBaseline_end"))
+                frame = specs.extra_specs("expBaseline_end");
             elseif(specs.extra_specs.isKey("mean_substracted")) 
                 frame = specs.extra_specs.isKey("mean_substracted");
             end

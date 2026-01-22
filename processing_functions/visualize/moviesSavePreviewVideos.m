@@ -54,6 +54,10 @@ function moviesSavePreviewVideos(fullpaths_movies, varargin)
     for i_f = 1:length(fullpaths_movies)
         Ms{i_f} = Ms{i_f}(:,:,(timeorigin-Ss{i_f}.timeorigin+1):(timeorigin-Ss{i_f}.timeorigin+nframes));
         Ss{i_f}.AddFrameDelay(timeorigin-Ss{i_f}.timeorigin);
+
+        if(options.mask && ~isempty(Ss{i_f}.getMask()))
+            Ms{i_f} = Ms{i_f}.*specs.getMaskNaN(size(Ms{i_f},[1,2]));
+        end
     end
 
     ttl_signal = Ss{1}.getTTLTrace(nframes); 
@@ -109,6 +113,8 @@ function options = defaultOptions(basepath)
     
     options.outdir = fullfile(basepath, 'illustrations');
     options.skip = true;
+
+    options.mask = true;
     
     options.titles = [];
     

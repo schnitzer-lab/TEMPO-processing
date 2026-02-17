@@ -1,11 +1,11 @@
 # MATLAB Toolboxes
-Signal Processing Toolbox
-DSP System Toolbox
-Deep Learning Toolbox
-Image Processing Toolbox
-Statistics and Machine Learning Toolbox
-Curve Fitting Toolbox
-Parallel Computing Toolbox
 Computer Vision Toolbox
+Curve Fitting Toolbox
+Deep Learning Toolbox
+DSP System Toolbox
+Image Processing Toolbox
+Parallel Computing Toolbox
 Phased Array Toolbox
+Signal Processing Toolbox
+Statistics and Machine Learning Toolbox
 Wavelet toolbox

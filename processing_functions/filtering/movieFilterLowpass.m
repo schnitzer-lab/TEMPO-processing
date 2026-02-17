@@ -23,7 +23,7 @@ function fullpath_out = movieFilterBandpass(fullpath, f0, wp, varargin)
     disp("movieFilterBandpass: computing time-domain filter")
 
     if( ~isfile(filterpath) ) 
-        if(isfolder(options.filtersdir)), mkdir(options.filtersdir); end
+        if(~isfolder(options.filtersdir)), mkdir(options.filtersdir); end
         makeFilterLowpass(filterpath, f0, wp, 'fps', movie_specs.getFps(), ...
             'attn', options.attn, 'rppl', options.rppl); 
     end 

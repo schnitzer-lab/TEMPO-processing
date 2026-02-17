@@ -6,9 +6,9 @@ This is a pipeline for converting dual-channel TEMPO microscopy recordings to dF
 
 ## Installation
 
-This pipeline was tested in MATLAB 2019b, 2021b, and 2023a.
+This pipeline was tested in MATLAB 2019b, 2021b, and 2023a. For MATLAB versions prior to 2021b, use "local" parallel pool instead of a threads-based one (parpool("local")). 
 
-Add all folders (except _pipelines_) to MATLAB path. Add all **dependencies** to MATLAB path.
+Add all folders (except _pipelines_) to MATLAB path. Add all **dependencies** to the MATLAB path.
 
 ### Dependencies
 #### matlab toolboxes

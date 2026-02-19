@@ -5,13 +5,10 @@ function outlines(contours, x_lim, y_lim, varargin)
 
     tf = ishold();
     
-    if(~iscell(contours))
+    if(~iscell(contours) && ~isempty(contours))
         contours = squeeze(mat2cell(contours, ...
             size(contours,1), size(contours,2), ones([size(contours,3),1])));
     end
-
-%     ncountors = size(countors, 3);
-%     if(isempty(countors)), ncountors = 0; end
 
     for i_r = 1:length(contours)
         contours{i_r}(contours{i_r}(:,1) < x_lim(1), 1) = NaN;

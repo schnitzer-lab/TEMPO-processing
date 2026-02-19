@@ -52,7 +52,7 @@ function moviesSavePreviewVideos(fullpaths_movies, varargin)
     nframes = min(cellfun(@(M) size(M,3), Ms));
 
     for i_f = 1:length(fullpaths_movies)
-        Ms{i_f} = Ms{i_f}(:,:,(timeorigin-Ss{i_f}.timeorigin+1):(timeorigin-Ss{i_f}.timeorigin+nframes));
+        Ms{i_f} = double(Ms{i_f}(:,:,(timeorigin-Ss{i_f}.timeorigin+1):(timeorigin-Ss{i_f}.timeorigin+nframes)));
         Ss{i_f}.AddFrameDelay(timeorigin-Ss{i_f}.timeorigin);
 
         if(options.mask && ~isempty(Ss{i_f}.getMask()))

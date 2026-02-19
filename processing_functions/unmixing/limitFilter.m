@@ -15,21 +15,24 @@ function w = limitFilter(w, varargin)
     options = parseInputs(varargin{:});
     
     wn = length(w);
-
+    if(length(options.max_phase) == 1)
+        options.max_phase = repelem(options.max_phase, wn)';
+    end
     if(isfinite(options.max_delay))
         if(mod(wn, 2))
-            phase_delay = [linspace(0, options.max_delay*pi, wn/2), pi, ...
-                     linspace(options.max_delay*pi, 0, wn/2)];
+            phase_delay = [linspace(0, options.max_delay*pi, wn/2), options.max_delay*pi, ...
+                           linspace(options.max_delay*pi, 0, wn/2)];
         else
             phase_delay = [linspace(0, options.max_delay*pi, wn/2), ...
-                     linspace(options.max_delay*pi, 0, wn/2)];
+                           linspace(options.max_delay*pi, 0, wn/2)];
         end
 
-        options.max_phase = min(phase_delay, options.max_phase)';
-        options.max_phase(options.max_phase>pi) = pi;
+        options.max_phase = min(phase_delay', options.max_phase);
+        options.max_phase(options.max_phase>pi/2) = pi/2;
     end
 
     s = fft(ifftshift(w));
+
     fs = linspace(0,1,length(s))';
     
     if(~isempty(options.fref))
@@ -47,6 +50,9 @@ function w = limitFilter(w, varargin)
 
     % project s(f) on exp(i*max_phase(f)) direction if phase is too large
     % note: does not commute with max_amp
+    extra_angle = round(angle(s)/pi)*pi;
+    s = s.*exp(-1.i*extra_angle);
+
     phase_too_large_p = angle(s) >  options.max_phase;
     phase_too_large_n = angle(s) < -options.max_phase;
     s(phase_too_large_p) = abs(s(phase_too_large_p)).*...
@@ -56,6 +62,7 @@ function w = limitFilter(w, varargin)
         max(cos(-angle(s(phase_too_large_n))-options.max_phase(phase_too_large_n)), 0).*...
         exp(-1.i*options.max_phase(phase_too_large_n));
 
+    s = s.*exp(1.i*extra_angle);
     w = real(fftshift(ifft(s)));
 end
 %%

@@ -20,7 +20,7 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_comp
     
     if (isfile(fullpath_out))
         if(options.skip)
-            disp("movieRemoveHemoComponents: Output file exists. Skipping: " + fullpath_out);
+            displog("movieRemoveHemoComponents: Output file exists. Skipping: " + fullpath_out);
             return;
         else
             warning("movieRemoveHemoComponents: Output file exists. Deleting: " + fullpath_out);
@@ -29,11 +29,11 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_comp
     end
     %%
     
-    disp("movieRemoveHemoComponents: reading movie");
+    displog("movieRemoveHemoComponents: reading movie");
     [M, specs] = rw.h5readMovie(fullpath_movie);
     %%
     
-    disp("movieRemoveHemoComponents: removing components");
+    displog("movieRemoveHemoComponents: removing components");
     Mout = M;
     M_mean = mean(M, 3);
     if(specs.extra_specs.isKey("mean_substracted")) 
@@ -72,7 +72,7 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_comp
     end
     %%
 
-    disp("movieRemoveHemoComponents: saving");
+    displog("movieRemoveHemoComponents: saving");
     keep_frames = squeeze(~all(isnan(Mout), [1,2]));
     start_frame = find(keep_frames, 1, 'first');
 
@@ -84,7 +84,7 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_comp
     rw.h5saveMovie(fullpath_out, Mout(:,:,keep_frames), specs_new);
     %%
 
-    disp("movieRemoveHemoComponents: saving plots and videos")
+    displog("movieRemoveHemoComponents: saving plots and videos")
     
     savePlots(M(:,:,keep_frames), Mout(:,:,keep_frames), specs, filename_out, options);
 end

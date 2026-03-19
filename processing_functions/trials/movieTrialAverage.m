@@ -18,7 +18,7 @@ function fullpath_out = movieTrialAverage(fullpath_movie, varargin)
     
     if (isfile(fullpath_out))
         if(options.skip)
-            disp("movieTrialAverage: Output file exists. Skipping: " + fullpath_out)
+            displog("movieTrialAverage: Output file exists. Skipping: " + fullpath_out)
             return;
         else
             warning("movieTrialAverage: Output file exists. Deleting: " + fullpath_out);
@@ -27,7 +27,7 @@ function fullpath_out = movieTrialAverage(fullpath_movie, varargin)
     end
     %%
     
-    disp("movieTrialAverage: reading movie")
+    displog("movieTrialAverage: reading movie")
 
     [M,specs] = rw.h5readMovie(fullfile(basepath, filename + ".h5"));
     
@@ -37,7 +37,7 @@ function fullpath_out = movieTrialAverage(fullpath_movie, varargin)
 
     %%
     
-    disp("movieTrialAverage: rearranging movie into trials")
+    displog("movieTrialAverage: rearranging movie into trials")
 
     [M_stim, window_stim, intervals_stim] = signalTrials(M, ttl_signal, ...
         'drop', options.drop, 'iti_scale', options.iti_scale, ...
@@ -48,7 +48,7 @@ function fullpath_out = movieTrialAverage(fullpath_movie, varargin)
     % plt.SliderMovie(plt.saturate(M_stim_av.*nan_mask, 0.0))
     %%
     
-    disp("movieTrialAverage: rearranging timestamps_table into trials")
+    displog("movieTrialAverage: rearranging timestamps_table into trials")
     specs_out = copy(specs);
     specs_out.AddToHistory(functionCallStruct({'options'}));
     
@@ -66,7 +66,7 @@ function fullpath_out = movieTrialAverage(fullpath_movie, varargin)
     end
     %%
 
-    disp("movieTrialAverage: plotting illustrations")
+    displog("movieTrialAverage: plotting illustrations")
     
     m = squeeze(mean(M, [1,2], 'omitnan'));
 
@@ -85,7 +85,7 @@ function fullpath_out = movieTrialAverage(fullpath_movie, varargin)
     title(filename_out, 'interpreter', 'none')
     %%
     
-    disp("movieTrialAverage: saving")
+    displog("movieTrialAverage: saving")
     
     rw.h5saveMovie(fullpath_out, M_stim_av, specs_out);
     saveas(fig_in, fullfile(options.diagnosticdir, filename_out + "_in.png"))

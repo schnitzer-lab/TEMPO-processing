@@ -14,7 +14,7 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     
     if (isfile(fullpath_out))
         if(options.skip)
-            disp("movieRegister: Output file exists. Skipping: " + fullpath_out)
+            displog("movieRegister: Output file exists. Skipping: " + fullpath_out)
             return;
         else
             warning("movieRegister: Output file exists. Deleting: " + fullpath_out);
@@ -23,7 +23,7 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     end
     %%
     
-    disp("movieRegister: reading movie")
+    displog("movieRegister: reading movie")
     
     [Mref, ~] = rw.h5readMovie(fullpath_ref);
     median_fixed = medianOfMedians(Mref, options.nmedian);
@@ -34,7 +34,7 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     median_moving = medianOfMedians(M, options.nmedian);    
     %%
 
-    disp("movieRegister: computing the transform")
+    displog("movieRegister: computing the transform")
     
     if(~isempty(options.bandpass))
         lower_threshold = 2*round(options.bandpass(1)/specs.getPixSize()/2)+1;
@@ -138,7 +138,7 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     end
     %%
     
-    disp("movieRegister: applying transform to the full movie")
+    displog("movieRegister: applying transform to the full movie")
     
     M_reg = nan(size(M), class(M));
     parfor i_f = 1:size(M,3)
@@ -159,7 +159,7 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     sgtitle([basepath, filename], 'Interpreter', 'None')
     %%
        
-    disp("movieRegister: saving output")
+    displog("movieRegister: saving output")
 
     specs_out = copy(specs);
     specs_out.AddToHistory(functionCallStruct({'fullpath_movie','fullpath_ref','options'})); 

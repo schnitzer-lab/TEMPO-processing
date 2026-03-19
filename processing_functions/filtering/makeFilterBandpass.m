@@ -4,9 +4,9 @@ function [conv_trans] = makeFilterBandpass(filterpath, f0, wp, varargin)
     if(~isempty(varargin))
         options=getOptions(options,varargin);
     end
-    if(isempty(options.attn_l)) options.attn_l = options.attn_r; end
+    if(isempty(options.attn_l)), options.attn_l = options.attn_r; end
     
-    if(options.verbose) disp("makeFilterBandpass: Creating filter"); end
+    if(options.verbose), displog("makeFilterBandpass: Creating filter"); end
     
     designSpecs = fdesign.bandpass('Fst1,Fp1,Fp2,Fst2,Ast1,Ap,Ast2', ...
            (f0-wp-options.wr)*2/options.fps, (f0-wp)*2/options.fps, ...
@@ -17,7 +17,7 @@ function [conv_trans] = makeFilterBandpass(filterpath, f0, wp, varargin)
     gd = grpdelay(H); %TODO
     conv_trans = impz(H); %same as cell2mat({H.Numerator}')' for FIR filters 
     
-    if(options.verbose) disp("makeFilterBandpass: Filter created"); end
+    if(options.verbose), displog("makeFilterBandpass: Filter created"); end
     
     writematrix(conv_trans, filterpath);
     

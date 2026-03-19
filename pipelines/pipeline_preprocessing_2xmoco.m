@@ -60,7 +60,7 @@ end
 %%
 
 if(~strcmp(folder_converted, folder_processing))
-    disp("copying data to: "+folder_processing)
+    displog("copying data to: "+folder_processing)
     if(~isfolder(folder_processing)), mkdir(folder_processing); end
     if(~isfile(fullpathGin)), copyfile(fullpathGconv,  fullpathGin); end
     if(~isfile(fullpathRin)), copyfile(fullpathRconv,  fullpathRin); end
@@ -103,7 +103,7 @@ if(~strcmp(fullpathRin, fullpathRconv)), delete(fullpathRin); end
 %%
 
 if(~strcmp(folder_output, folder_processing))
-    disp("moving preprocessed data to: "+folder_output)
+    displog("moving preprocessed data to: "+folder_output)
     if(~isdir(folder_output)), mkdir(folder_output); end
     allfiles = dir(folder_processing);
     cellfun(@(n) movefile(fullfile(folder_processing, n),  fullfile(folder_output, n)), ...

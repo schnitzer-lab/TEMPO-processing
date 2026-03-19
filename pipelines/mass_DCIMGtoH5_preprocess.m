@@ -32,7 +32,7 @@ shifts0 = [0,0]; % [0,0.5] mm
 MEs_conv = {}; recording_names_error_conv = [];
 for i_f = 1:length(recording_names)
     recording_name = recording_names(i_f);
-    disp(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
+    displog(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
     try
         pipeline_DCIMGtoH5
     catch ME
@@ -53,7 +53,7 @@ MEs_pp = {}; recording_names_error_pp  = [];
 for i_f = 1:length(recording_names)
 
     recording_name = recording_names(i_f);
-    disp(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
+    displog(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
 
     try 
         pipeline_preprocessing_2xmoco

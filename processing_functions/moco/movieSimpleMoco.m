@@ -20,7 +20,7 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
     
     if (isfile(fullpath_out))
         if(options.skip)
-            disp("movieSimpleMoco: Output file exists. Skipping: " + fullpath_out)
+            displog("movieSimpleMoco: Output file exists. Skipping: " + fullpath_out)
             return;
         else
             warning("movieSimpleMoco: Output file exists. Deleting: " + fullpath_out);
@@ -29,7 +29,7 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
     end
     %%
 
-    disp("movieSimpleMoco: reading movie")
+    displog("movieSimpleMoco: reading movie")
     specs = rw.h5readMovieSpecs(fullpath_movie);
     [~,~,nt] = rw.h5getDatasetSize(fullpath_movie, '/mov');
 %     [M, specs] = rw.h5readMovie(fullpath_movie);
@@ -57,7 +57,7 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
     nan_poins = false(size(Mf));
     for it = 1:options.niteration
         
-        disp("movieSimpleMoco: finding shifts - iteration " + ...
+        displog("movieSimpleMoco: finding shifts - iteration " + ...
             sprintf("%d/%d", it, options.niteration) );
         [Mf, shifts2, template] = dftMoco2(Mf,...
             'spatial_filter', spatial_filter, ...
@@ -152,7 +152,7 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
     
     sgtitle('per-pix variance change due to mc');
     %%
-    disp("movieSimpleMoco: saving");
+    displog("movieSimpleMoco: saving");
      
     specs_out = copy(specs);
     specs_out.AddToHistory(functionCallStruct({'fullpath_movie', 'options'}));

@@ -19,7 +19,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
     
     if (isfile(fullpath_out))
         if(options.skip)
-            disp("movieRemoveOutlierFrames: Output file exists. Skipping: " + fullpath_out)
+            displog("movieRemoveOutlierFrames: Output file exists. Skipping: " + fullpath_out)
             return;
         else
             warning("movieRemoveOutlierFrames: Output file exists. Deleting: " + fullpath_out);
@@ -28,7 +28,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
     end
     %%
     
-    disp("movieRemoveOutlierFrames: reading movie")
+    displog("movieRemoveOutlierFrames: reading movie")
     specs = rw.h5readMovieSpecs(fullpath_movie);
 
     fullpaths_mean = movieMeanTraces(fullpath_movie);
@@ -37,7 +37,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
 %     m = squeeze(mean(M,[1,2],'omitnan'));
     %%
     
-    disp("movieRemoveOutlierFrames: finding outliers")
+    displog("movieRemoveOutlierFrames: finding outliers")
 
     npoints = round(options.dt*specs.getFps());
     %%
@@ -70,16 +70,16 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
     
     if(n_outliers > 0)     
         %%
-        disp("movieRemoveOutlierFrames: reading movie")
+        displog("movieRemoveOutlierFrames: reading movie")
         [M, specs] = rw.h5readMovie(fullpath_movie);
 
-        disp("movieRemoveOutlierFrames: correcting outliers")
+        displog("movieRemoveOutlierFrames: correcting outliers")
         M(:,:,is_outlier) = NaN;
         M = imputeNaNT(M);
         m_out = squeeze(mean(M,[1,2],'omitnan'));
         %%
     else
-        disp("movieRemoveOutlierFrames: no outliers found, returning");
+        displog("movieRemoveOutlierFrames: no outliers found, returning");
         fullpath_out = fullpath_movie;
         m_out = m;
 %         return;
@@ -87,7 +87,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
 
     %%
 
-    disp("movieRemoveOutlierFrames: plotting")
+    displog("movieRemoveOutlierFrames: plotting")
     
     fig_traces = plt.getFigureByName("movieRemoveOutlierFrames: mean traces");
     plt.tracesComparison([m,m_out],...
@@ -111,7 +111,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
         'interpreter', 'None', 'FontSize', 12)
     drawnow();
     %%
-    disp("movieRemoveOutlierFrames: saving")
+    displog("movieRemoveOutlierFrames: saving")
 
     if(n_outliers > 0)         
         specs_out = copy(specs);

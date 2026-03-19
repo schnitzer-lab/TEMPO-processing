@@ -47,7 +47,7 @@ MEs = {}; recording_names_error = [];
 for i_f = 1:length(recording_names)
     %%
     recording_name = recording_names(i_f);
-    disp(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
+    displog(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
     try
         pipeline_unmixing
     catch ME

@@ -75,7 +75,7 @@ end
 % move the initial files to the processing directory (fast rw location)
 
 if(~strcmp(folder_preprocessed, folder_processing))
-    disp("copying data to: "+folder_processing)
+    displog("copying data to: "+folder_processing)
     if(~isfolder(folder_processing)), mkdir(folder_processing); end
     if(~isfile(fullpathGin)), copyfile(fullpathGpreproc, fullpathGin); end
     if(~isfile(fullpathRin)), copyfile(fullpathRpreproc, fullpathRin); end
@@ -230,7 +230,7 @@ delete(fullpathGnh);
 %% copy all remaining files to the preprocessed location
 
 if(~strcmp(folder_preprocessed, folder_processing))
-    disp("moving processed data to: "+folder_preprocessed)
+    displog("moving processed data to: "+folder_preprocessed)
     allfiles = dir(folder_processing);
     cellfun(@(n) movefile(fullfile(folder_processing, n),  folder_preprocessed), {allfiles(3:end).name})
 end

@@ -5,7 +5,7 @@ function [conv_trans] = makeFilterLowpass(filterpath, f0, wp, varargin)
         options=getOptions(options,varargin);
     end
     
-    if(options.verbose) disp("makeFilterLowpass: Creating filter"); end
+    if(options.verbose), displog("makeFilterLowpass: Creating filter"); end
     
     designSpecs = fdesign.lowpass('Fp,Fst,Ap,Ast', ...
            (f0)*2/options.fps, (f0+wp)*2/options.fps,  ...
@@ -16,7 +16,7 @@ function [conv_trans] = makeFilterLowpass(filterpath, f0, wp, varargin)
     gd = grpdelay(H); %TODO
     conv_trans = impz(H); %same as cell2mat({H.Numerator}')' for FIR filters 
     
-    if(options.verbose) disp("makeFilterBandpass: Filter created"); end
+    if(options.verbose), displog("makeFilterBandpass: Filter created"); end
     
     writematrix(conv_trans, filterpath);
     

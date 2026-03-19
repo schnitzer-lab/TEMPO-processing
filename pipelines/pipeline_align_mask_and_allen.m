@@ -42,7 +42,7 @@ files = dir(fullfile(basepath, "cR*.h5")); %"T:\GEVI_Wave\Analysis\Visual\m200M\
     
 for i_f = 1:length(files)
    fullpath_copy = fullfile(files(i_f).folder, files(i_f).name);
-   disp(fullpath_copy)
+   displog(fullpath_copy)
     
    movieCopyReference(fullpath_copy, fullpath, 'skip', false)
 end

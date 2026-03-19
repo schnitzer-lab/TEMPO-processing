@@ -82,7 +82,7 @@ function [fullpath_out,lag] = ...
     fullpath_out = fullpath_movie;
     if(abs(lag) > options.min_lag_frames)
 
-        disp("moviesCompensateDelay: correcting timeshift");
+        displog("moviesCompensateDelay: correcting timeshift");
         fullpath_out = movieDelay(fullpath_movie, -lag/specs.getFps(), 'frame0', 20,...
             'outdir', options.outdir);
 

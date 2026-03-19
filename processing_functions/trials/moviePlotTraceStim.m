@@ -13,7 +13,7 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
   
     %%
     
-    disp("moviePlotTraceStim: reading movie")
+    displog("moviePlotTraceStim: reading movie")
 
     [M,specs] = rw.h5readMovie(fullfile(basepath, filename + ".h5"));
     
@@ -23,7 +23,7 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
     end    
     %%
     
-    disp("moviePlotTraceStim: getting region trace")
+    displog("moviePlotTraceStim: getting region trace")
     
     if(~iscell(regions)) regions = num2cell(regions); end
 %     region_name = region_names(1);
@@ -59,7 +59,7 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
         fullpath_out = fullfile(options.processingdir, basefilename_out+".h5");
         if(isfile(fullpath_out))
             if(options.skip)
-                disp("moviePlotTraceStim: output file exists. Skipping: " + fullpath_out)
+                displog("moviePlotTraceStim: output file exists. Skipping: " + fullpath_out)
                 return;
             else
                 warning("moviePlotTraceStim: output file exists. Deleting: " + fullpath_out);
@@ -95,7 +95,7 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
         % saveas(fig_traces, fullfile(options.processingdir, filename+"_"+region_name+"_traces.png"))
         %%
     
-        disp("moviePlotTraceStim: getting single-trial traces")
+        displog("moviePlotTraceStim: getting single-trial traces")
     
         [m_stim,window_stim, intervals_stim] = signalTrials(m_reg, options.ttl_signal, ...
             'drop', options.drop, 'iti_scale', options.iti_scale, 'align_to_end', options.align_to=="offset");

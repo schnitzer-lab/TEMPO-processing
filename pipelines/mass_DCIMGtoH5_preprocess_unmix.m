@@ -50,7 +50,7 @@ for i_f = 1:length(recording_names)
     
     recording_name = recording_names(i_f);
     
-    disp(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
+    displog(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
     error_state = false;
     %%
     

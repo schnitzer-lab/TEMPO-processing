@@ -4,7 +4,7 @@ close all;
 warning on;
 if(isempty(gcp('nocreate'))), parpool('Threads'); end 
 
-diary(fullfile("P:\GEVI_Wave\Logs", ...
+diary(fullfile("N:\GEVI_Wave\Logs", ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 
@@ -18,7 +18,7 @@ recording_names = "Isofluorane\mv0108\20251026\meas0" + string(0:9)';
 basefolder_raw =  "R:\GEVI_Wave\Raw\";% 
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
 basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-basefolder_output = "P:\GEVI_Wave\Preprocessed\";
+basefolder_output = "F:\GEVI_Wave\Preprocessed\";
 
 channels = ["G","R"];
 

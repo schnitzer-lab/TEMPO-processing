@@ -4,7 +4,7 @@
 % warning on;
 % if(isempty(gcp('nocreate'))), parpool('Threads'); end 
 % 
-% diary(fullfile("P:\GEVI_Wave\Logs", ...
+% diary(fullfile("N:\GEVI_Wave\Logs", ...
 %         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 % %
 % 

@@ -4,18 +4,19 @@ close all;
 warning on;
 if(isempty(gcp('nocreate'))), parpool('Threads'); end 
 
-diary(fullfile("P:\GEVI_Wave\Logs", ...
+diary(fullfile("N:\GEVI_Wave\Logs", ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 
 
-recording_names = ...
-    pathspattern("Z:\GEVI_Wave\Raw\", "*\*\*\meas*", true)';
-% recording_names = "Isofluorane\mv0108\20251026\meas0" + string(0:9)';
-%     [rw.readlines("N:\GEVI_Wave\filelists\filelist_anesthesia_ace.txt")];
+% recording_names = ...
+%     pathspattern("Z:\GEVI_Wave\Raw\", "*\*\*\meas*", true)';
+
+recording_names = ["Anesthesia\mv3101\20251210\meas"+compose("%02d", 0:17)'; ...
+                   "Anesthesia\mv3102\20251210\meas" + compose("%02d", 0:17)'];
 %%
 
-basefolder_raw = "Z:\GEVI_Wave\Raw\";% 
+basefolder_raw = "B:\GEVI_Wave\Raw";
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
 
 channels = ["G","R"];
@@ -27,6 +28,7 @@ unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not a
 
 MEs = {}; recording_names_error = [];
 for i_f = 1:length(recording_names)
+    %%
     recording_name = recording_names(i_f);
     disp(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
     try

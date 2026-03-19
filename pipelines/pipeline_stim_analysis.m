@@ -18,8 +18,8 @@ for i_f = 1:length(recording_names)
     fullpathRdFF = fullfile(basepath, recording_name, "cR_dFF.h5");
     %%
     
-    movieCopyReference(fullpathGdFF, [], 'folder_ref', "P:\GEVI_Wave\MiceAlignment\");
-    movieCopyReference(fullpathRdFF, [], 'folder_ref', "P:\GEVI_Wave\MiceAlignment\");
+    movieCopyReference(fullpathGdFF, [], 'folder_ref', "N:\GEVI_Wave\MiceAlignment\");
+    movieCopyReference(fullpathRdFF, [], 'folder_ref', "N:\GEVI_Wave\MiceAlignment\");
 
     movieSavePreviewVideos(fullpathGdFF, 'skip', false, 'mask', true)
     %%

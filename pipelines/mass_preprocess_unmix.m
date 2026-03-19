@@ -8,18 +8,17 @@ diary(fullfile("N:\GEVI_Wave\Logs", ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 
-recording_names = ...
-    pathspattern("B:\GEVI_Wave\Raw\", ...
-                 "Spontaneous\*\*\meas*", true)';
-recording_names = [recording_names1; recording_names2];
-% recording_names = ["Anesthesia\mv3101\20251210\meas"+compose("%02d", 0:17)'; ...
-%                    "Anesthesia\mv3102\20251210\meas" + compose("%02d", 0:17)'];
+% recording_names = ...
+%     pathspattern("F:\GEVI_Wave\Preprocessed\", ...
+%                  "Spontaneous\mv0105\2024031*\meas*", true)';
+
+recording_names = ["Anesthesia\mv3101\20251210\meas"+compose("%02d", 0:17)'; ...
+                   "Anesthesia\mv3102\20251210\meas" + compose("%02d", 0:17)'];
 %% 
 
-basefolder_raw = "B:\GEVI_Wave\Raw"; %"\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %%
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\"; %"S:\GEVI_Wave\Preprocessed\";
 basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\"; 
+basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\";
 basefolder_analysis = "N:\GEVI_Wave\Analysis\";
 
 skip_if_final_exists = true;
@@ -32,10 +31,10 @@ unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not a
 
 shifts0 = [0,0]; %[0,0.5]; % mm, between R and G channel due to cameras misalignment
 
-mouse_state = "awake";% "awake"; %"anesthesia" %"transition";
+mouse_state = "transition";% "awake"; %"anesthesia" %"transition";
 unmix_time_resolved = false;
 
-crosstalk_matrix =  [[1, 0]; [0.080, 1]];
+crosstalk_matrix =  [[1, 0]; [0.165, 1]];
 % 0.080 for ASAP3
 % 0.165 for ASAP7y
 % 0.095 for old ace recordings seems good - based on m14 visual v1
@@ -53,20 +52,7 @@ for i_f = 1:length(recording_names)
     disp(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
     error_state = false;
     %%
-    
-    try
-        %%
-        
-%         skip_if_final_exists = true;
-        pipeline_DCIMGtoH5
-        %%
-    catch ME
-        recording_names_error = [recording_names_error, recording_name];
-        MEs_conv{length(MEs_conv)+1} = ME;
-        warning(recording_name);
-        warning(getReport(ME));
-    end   
-    
+
     try
         %%
         

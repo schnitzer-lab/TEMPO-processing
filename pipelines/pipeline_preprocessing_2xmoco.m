@@ -5,7 +5,7 @@
 % if(isempty(gcp('nocreate'))), parpool('Threads'); end 
 % 
 % diary(fullfile( ...
-%         "P:\GEVI_Wave\Logs", ...
+%         "N:\GEVI_Wave\Logs", ...
 %         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 % 
@@ -15,7 +15,7 @@
 % 
 % basefolder_converted = "O:\GEVI_Wave\Preprocessed\";
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-% basefolder_output = "P:\GEVI_Wave\Preprocessed\";
+% basefolder_output = "F:\GEVI_Wave\Preprocessed\";
 % 
 % shifts0 = [0,0]; %[0,0.5]; % mm, between R and G channel due to cameras misalignment
 % 
@@ -69,8 +69,16 @@ if(~strcmp(folder_converted, folder_processing))
 end
 %%
 
-% fullpathGin = movieExtractFrames(fullpathGin, [1, 35000], 'outdir', folder_processing);
-% fullpathRin = movieExtractFrames(fullpathRin, [1, 35000], 'outdir', folder_processing);
+fullpaths_mean = movieMeanTraces([string(fullpathGin), string(fullpathRin)]);
+    
+movieMeanTraceSpectrogram(fullpaths_mean(2), 'frange', [2, Inf], 'timewindow', 5, 'fw', 0.75, ...
+    'processingdir', fullfile(folder_converted, "\processing\meanTraceSpectrogram\"));
+movieMeanTraceSpectrogram(fullpaths_mean(1), 'frange', [2, Inf], 'timewindow', 5, 'fw', 0.75, ...
+    'processingdir', fullfile(folder_converted, "\processing\meanTraceSpectrogram\"));
+%%
+
+fullpathGin = movieExtractFrames(fullpathGin, [1, 63000], 'outdir', folder_processing);
+fullpathRin = movieExtractFrames(fullpathRin, [1, 63000], 'outdir', folder_processing);
 %%
 
 [h5path1_mc, shiftsfile1] = movieSimpleMoco(fullpathGin);

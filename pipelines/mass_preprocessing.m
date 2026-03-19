@@ -4,7 +4,7 @@ close all;
 warning on;
 if(isempty(gcp('nocreate'))), parpool('Threads'); end 
 
-diary(fullfile("P:\GEVI_Wave\Logs", ...
+diary(fullfile("N:\GEVI_Wave\Logs", ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 
@@ -12,12 +12,12 @@ diary(fullfile("P:\GEVI_Wave\Logs", ...
 %     rw.readlines("N:\GEVI_Wave\filelists\filelis_anesthesia_transition_asap3.txt");
 
 recording_names = ...
-    pathspattern("P:\GEVI_Wave\Preprocessed\", "\Iso*\*\**\meas*", true)';
+    pathspattern("F:\GEVI_Wave\Preprocessed\", "\Iso*\*\**\meas*", true)';
 %%
 
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
 basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-basefolder_output = "P:\GEVI_Wave\Preprocessed\";
+basefolder_output = "F:\GEVI_Wave\Preprocessed\";
 %%
 
 skip_if_final_exists  = false;

@@ -91,6 +91,8 @@ function fullpath_out = movieRegister(fullpath_movie, fullpath_ref, varargin)
     % template_cor = imwarp(template_reg0, tform_cor, 'OutputView', ref_fixed, ...
         % 'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
 
+    template_reg0(isnan(template_reg0)) = 0;
+    template_fixed(isnan(template_fixed)) = 0;
     [opt, met] = imregconfig("multimodal");
     tform_mul =  imregtform(template_reg0, ref, template_fixed, ref,...
         'rigid', opt, met);

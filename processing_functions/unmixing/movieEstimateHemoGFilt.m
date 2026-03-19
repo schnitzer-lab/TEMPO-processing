@@ -270,136 +270,109 @@ function savePlots(Mg, Mr, Mr_filt, Wsm, Wxy, specs, filename_out, options)
     saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".png"))
     saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".fig"))
     %%
-
-    W =  squeeze(mean(Wsm, [1,2], 'omitnan'));
-    w = mean(W,2);
-    ZW = fft(W);
-    zw = mean(ZW,2);
-    zw(fs < specs.getFrequencyRange(1)) = NaN;
-
-    ts = ((1:length(w))-(length(w)+1)/2)/specs.getFps();
-
+    
+    options_plotfilter = copyStruct(options, {'fref', 'max_amp_rel', 'flim_max', 'max_delay'});
+    options_plotfilter.frange = specs.getFrequencyRange();
+    
     fig_filt= plt.getFigureByName("movieEstimateHemoGFilt: Spatially-averaged filter");
     fig_filt.Position(4) = 630;
+    sgtitle('Unmixing filter')    
     
-    sgtitle('Unmixing filter')
-    subplot(3,1,1)
-    plot( ts, w, 'LineWidth', 1.5);
-    legend('time representation'); grid();
-    xlabel('Time, s'); xlim([min(ts), max(ts)])
-
-    subplot(3,1,2)
-
-%     semilogy(fs, abs(ZW), ':')
-    semilogy(fs, abs(zw), '.-', 'LineWidth', 1.5); xlim([0, specs.getFps()/2]);
-    hold on;
-    grid();
-
-    legend("spectral amplitude");
-
-    if(options.max_amp_rel < inf)
-        line([0, options.flim_max], ...
-             [1, 1]*options.max_amp_rel*abs(zw(ind_f0)), ...
-            'LineStyle', '--', 'Color', 'black', 'LineWidth', 1);
-        hold on;
-        scatter(options.fref, abs(zw(ind_f0)), 'o')
-        hold off;
-
-        legend(["spectral amplitude", ...
-            "limit ("+num2str(options.max_amp_rel)+"*ref)", "reference"]);
-    end
-
-    hold off;
-    ylim([0.9, 1.2].*[min(abs(zw')), max(abs(zw'))]); grid on;
-    xlabel('Frequency, Hz');
-    
-    subplot(3,1,3)
-    
-    idf = zeros(size(w)); idf(floor((length(w)+1)/2)) = 1;
-    ids = fft(idf);
-
-    phase_delay = -mod(unwrap(angle(zw./abs(zw)./ids))+pi/2, pi)+pi/2;
-
-    plot(fs, phase_delay, '.-', 'LineWidth', 1.5); xlim([0, specs.getFps()/2])
-    hold on
-   
-    ylim_phase = ylim();
-    
-    plot(fs,  options.max_delay*2*pi*fs, '--', 'color', 'Black', 'LineWidth', 1)
-    plot(fs, -options.max_delay*2*pi*fs, '--', 'color', 'Black', 'LineWidth', 1)
-    hold off;
-    
-    ylim(ylim_phase.*[1,1.5]); grid on;
-    legend(["phase delay", "max delay ("+num2str(round(options.max_delay*1000))+"ms)"]); 
-    xlabel('Frequency, Hz'); ylabel('Phase, rad')
+    plotFiter(reshape(Wsm, [], size(Wsm, 3)), ...
+        specs.getFps(), options_plotfilter);
 
     saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filter" + ".png"))
     saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filter" + ".fig"))
     %%
-        
-    W =  squeeze(mean(Wxy, [1,2], 'omitnan'));
-    w = mean(W,2);
-    ZW = fft(W);
-    zw = mean(ZW,2);
-    zw(fs < specs.getFrequencyRange(1)) = NaN;
-
-    ts = ((1:length(w))-(length(w)+1)/2)/specs.getFps();
 
     fig_filt= plt.getFigureByName("movieEstimateHemoGFilt: Spatially-averaged filter (local)");
     fig_filt.Position(4) = 630;
     
     sgtitle('Unmixing filter (local)')
-    subplot(3,1,1)
-    plot( ts, w, 'LineWidth', 1.5);
-    legend('time representation'); grid();
-    xlabel('Time, s'); xlim([min(ts), max(ts)])
-
-    subplot(3,1,2)
-
-%     semilogy(fs, abs(ZW), ':')
-    semilogy(fs, abs(zw), '.-', 'LineWidth', 1.5); xlim([0, specs.getFps()/2]);
-    hold on;
-    grid();
-
-    legend("spectral amplitude");
-
-    if(options.max_amp_rel < inf)
-        line([0, options.flim_max], ...
-             [1, 1]*options.max_amp_rel*abs(zw(ind_f0)), ...
-            'LineStyle', '--', 'Color', 'black', 'LineWidth', 1);
-        hold on;
-        scatter(options.fref, abs(zw(ind_f0)), 'o')
-        hold off;
-
-        legend(["spectral amplitude", ...
-            "limit ("+num2str(options.max_amp_rel)+"*ref)", "reference"]);
-    end
-
-    hold off;
-    ylim([0.9, 1.2].*[min(abs(zw')), max(abs(zw'))]); grid on;
-    xlabel('Frequency, Hz');
     
-    subplot(3,1,3)
-    
-    idf = zeros(size(w)); idf(floor((length(w)+1)/2)) = 1;
-    ids = fft(idf);
-
-    phase_delay = -mod(unwrap(angle(zw./abs(zw)./ids))+pi/2, pi)+pi/2;
-
-    plot(fs, phase_delay, '.-', 'LineWidth', 1.5); xlim([0, specs.getFps()/2])
-    hold on
-   
-    ylim_phase = ylim();
-    
-    plot(fs,  options.max_delay*2*pi*fs, '--', 'color', 'Black', 'LineWidth', 1)
-    plot(fs, -options.max_delay*2*pi*fs, '--', 'color', 'Black', 'LineWidth', 1)
-    hold off;
-    
-    ylim(ylim_phase.*[1,1.5]); grid on;
-    legend(["phase delay", "max delay ("+num2str(round(options.max_delay*1000))+"ms)"]); 
-    xlabel('Frequency, Hz'); ylabel('Phase, rad')
+    plotFiter(reshape(Wxy, [], size(Wxy, 3)), ...
+        specs.getFps(), options_plotfilter);
 
     saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filterxy" + ".png"))
     saveas(fig_filt, fullfile(options.diagnosticdir, filename_out + "_filterxy" + ".fig"))
 end
 %%
+
+function plotFiter(Wall, fps, options)
+    %%
+
+    ts = ((1:size(Wall,2))-(size(Wall,2)+1)/2)/fps;
+    fs = linspace(0, fps, size(Wall,2));
+    %%
+
+    w = squeeze(mean(Wall, 1, 'omitnan'))';
+
+    sampled_points = randsample(1:size(Wall,1), min(size(Wall,1), 1000));
+    
+    Wsampled = Wall(sampled_points, :);
+    ZW = transpose(fft(transpose(Wsampled)));
+    zw = fft(w);
+ 
+    subplot(3,1,1)
+    plot(ts, transpose(Wsampled), ...
+        'color', [0.5,0.5,0.9,10/length(sampled_points)]); hold on;
+    plot( ts, w, 'LineWidth', 1.5, 'Color', 'blue'); 
+    
+    legend([repelem("", length(sampled_points)), "time representation"]); 
+    
+    hold off; grid on;
+    xlim([min(ts), max(ts)]); ylim([floor(min(w)/0.25), ceil(max(w)/0.25)]*0.25)
+    xlabel('Time, s'); 
+    %%
+
+    subplot(3,1,2)
+
+    ZW(:, fs <= options.frange(1)) = NaN;
+    zw(fs <= options.frange(1)) = NaN;
+    [~,ind_f0] = min(abs(fs-options.fref));
+
+    semilogy(fs, abs(ZW), 'color', ...
+        [0.5,0.5,0.9,10/length(sampled_points)]); hold on;
+    semilogy(fs, abs(zw), '.-', 'LineWidth', 1.5, 'Color', 'blue');     
+    legend([repelem("", length(sampled_points)), "spectral amplitude"], ...
+        'Location', 'southeast');
+
+    if(options.max_amp_rel < inf)
+        a = max(abs(zw(ind_f0)), median(abs(zw)));
+        line([0, options.flim_max], ...
+             [1, 1]*options.max_amp_rel*a, ...
+            'LineStyle', '--', 'Color', 'black', 'LineWidth', 1);
+        scatter(options.fref, abs(zw(ind_f0)), 'o', 'red')
+
+        legend([repelem("", length(sampled_points)), "spectral amplitude", ...
+            "limit ("+num2str(options.max_amp_rel)+"*ref)", "reference"]);
+    end
+
+    hold off; grid on;
+    xlim([0, fps/2]); % ylim([0.9, 1.3].*[min(abs(zw')), max(abs(zw'))]);
+    xlabel('Frequency, Hz');
+
+    %%
+
+    subplot(3,1,3)
+    
+    idf = zeros(size(w)); idf(floor((length(w)+1)/2)) = 1;
+    ids = fft(idf);
+
+    pd = -mod(unwrap(angle(zw./abs(zw)./ids))+pi/2, pi)+pi/2;
+    PD = -mod(unwrap(angle(ZW./abs(ZW)./transpose(ids)))+pi/2, pi)+pi/2;
+
+    plot(fs, transpose(PD), 'color', [0.5,0.5,0.9,0.01]); hold on
+    plot(fs, pd, '.-', 'LineWidth', 1.5, 'color', 'blue');
+    
+    plot(fs,  options.max_delay*2*pi*fs, '--', 'color', 'Black', 'LineWidth', 1)
+    plot(fs, -options.max_delay*2*pi*fs, '--', 'color', 'Black', 'LineWidth', 1)
+    
+    legend([repelem("", length(sampled_points)), "phase delay", ...
+        "max delay ("+num2str(round(options.max_delay*1000))+"ms)"]); 
+    
+    hold off; grid on;    
+    xlim([0, fps/2]); ylim([-1,1]*pi/2); 
+    xlabel('Frequency, Hz'); ylabel('Phase, rad')
+end
+

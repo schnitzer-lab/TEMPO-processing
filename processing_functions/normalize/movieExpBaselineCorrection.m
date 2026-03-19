@@ -170,7 +170,7 @@ function options = defaultOptions(basepath)
 
     options.tmin = 2; %s
     options.twoexpimpr = 0; % use 2-exp model if there is relative improvement more than twoexpimpr
-    options.r2_thresh = 0.05;
+    options.r2_thresh = 0.1;
     options.a_thresh = 1; 
 
     options.divide = false;

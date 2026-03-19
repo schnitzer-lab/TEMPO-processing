@@ -11,8 +11,8 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
     postfix_new = "_or";
     %%
     
-    if (~isfolder(options.outdir)) mkdir(options.outdir); end
-    if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
+    if (~isfolder(options.outdir)), mkdir(options.outdir); end
+    if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
 
     filename_out = basefilename+channel+postfix+postfix_new;
     fullpath_out = fullfile(options.outdir, filename_out + ext);
@@ -46,15 +46,24 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
     m_current = m;
     %%
     while true
+        %%
         m_movmean = movmean(m_current, npoints, 'Endpoints', 'shrink');
-        m_std = movstd(m_current, npoints, 'Endpoints', 'shrink');
+        m_std = movmad(m_current, npoints, 'Endpoints', 'shrink');
 
         is_outlier_current = abs(m_current-m_movmean) > options.n_sd*m_std;
+        % is_outlier_current = conv(is_outlier_current, [1,1,1], 'same') > 0;
         if(sum(is_outlier_current) == 0), break; end
+        if(~any(is_outlier_current & ~is_outlier))
+            warning("movieRemoveOutlierFrames: does not converge");
+            break; 
+        end
+        
         is_outlier = (is_outlier | is_outlier_current);
+        is_outlier = conv(is_outlier, [1,1,1], 'same') > 0;
+        
         m_current(is_outlier) = NaN; 
         m_current = squeeze(imputeNaNT(reshape(m_current, [1,1, length(m)])));
-%         plot([m,m_current])
+        % plot([m,m_current]); title(sprintf("current outliers # %d", sum(is_outlier_current))); drawnow;
     end
     n_outliers = sum(is_outlier);
     %%
@@ -82,7 +91,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
     
     fig_traces = plt.getFigureByName("movieRemoveOutlierFrames: mean traces");
     plt.tracesComparison([m,m_out],...
-        'fps', specs.getFps(), 'nomean', false, 'fw', 0.2);
+        'fps', specs.getFps(), 'nomean', false, 'fw', 0.2, 'f0', specs.getFrequencyRange(1));
     
     %%
 
@@ -113,7 +122,6 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
     
     saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "_traces.png"))
     saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "_traces.fig"))
-
 end
 %%
 

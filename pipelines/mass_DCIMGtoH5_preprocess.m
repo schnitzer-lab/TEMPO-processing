@@ -29,17 +29,23 @@ unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not a
 shifts0 = [0,0]; % [0,0.5] mm
 %%
 
-MEs_conv = {}; recording_names_error_conv = [];
+MEs_conv = {}; recording_ids_error_conv = []; recording_ids_skipped_conv = [];
 for i_f = 1:length(recording_names)
+    %%
+
     recording_name = recording_names(i_f);
     displog(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
     try
         pipeline_DCIMGtoH5
     catch ME
-        recording_names_error_conv = [recording_names_error_conv, recording_name];
-        MEs_conv{length(MEs_conv)+1} = ME;
-        warning(recording_name);
-        warning(ME.message);
+        MEs_conv{length(MEs_conv)+1} = {recording_name, ME};
+        if(~contains(ME.message, "Final file exists, ending"))
+            warning("Failed " + recording_name + ": "+ ME.message);
+            recording_ids_error_conv = [recording_ids_error_conv, i_f];            
+        else
+            displog("Skipped " + recording_name+": "+ ME.message)
+            recording_ids_skipped_conv = [recording_ids_skipped_conv, i_f];
+        end
     end   
 end
 %%
@@ -48,21 +54,27 @@ postfix_in1 = "cG_bin8";
 postfix_in2 = "cR_bin8";
 
 skip_if_final_exists  = true;
+%%
 
-MEs_pp = {}; recording_names_error_pp  = [];
+MEs_pp = {}; recording_ids_error_pp = []; recording_ids_skipped_pp = [];
 for i_f = 1:length(recording_names)
-
+    
     recording_name = recording_names(i_f);
     displog(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
-
-    try 
+    %%
+    try
         pipeline_preprocessing_2xmoco
+        %%
     catch ME
-        recording_names_error_pp = [recording_names_error_pp, recording_name];
         MEs_pp{length(MEs_pp)+1} = {recording_name, ME};
-        warning(recording_name);
-        warning(ME.message);
-    end
+        if(~contains(ME.message, "Final file exists, ending"))
+            warning("Failed " + recording_name + ": "+ ME.message);
+            recording_ids_error_pp = [recording_ids_error_pp, i_f];            
+        else
+            displog("Skipped " + recording_name+": "+ ME.message)
+            recording_ids_skipped_pp = [recording_ids_skipped_pp, i_f];
+        end
+    end   
 end
 %%
 

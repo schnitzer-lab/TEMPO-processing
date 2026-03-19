@@ -44,60 +44,39 @@ crosstalk_matrix =  [[1, 0]; [0.080, 1]];
 frame_range = [50, inf];
 %%
 
-MEs_conv = {}; recording_names_error = [];
+MEs = {}; recording_ids_error = []; recording_ids_skipped = [];
 for i_f = 1:length(recording_names)
-    %%
-    
+
     recording_name = recording_names(i_f);
-    
     displog(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
-    error_state = false;
-    %%
-    
-    try
-        %%
-        
+    %%    
+    try    
 %         skip_if_final_exists = true;
         pipeline_DCIMGtoH5
-        %%
-    catch ME
-        recording_names_error = [recording_names_error, recording_name];
-        MEs_conv{length(MEs_conv)+1} = ME;
-        warning(recording_name);
-        warning(getReport(ME));
-    end   
-    
-    try
-        %%
-        
-%         skip_if_final_exists = false;
+
+        %         skip_if_final_exists = false;
         basefolder_output = basefolder_preprocessed; 
         postfix_in1 = "cG_bin"+string(binning);
         postfix_in2 = "cR_bin"+string(binning);
         pipeline_preprocessing_2xmoco
-        %%
-    catch ME
-        recording_names_error = [recording_names_error, recording_name];
-        MEs_conv{length(MEs_conv)+1} = ME;
-        warning(recording_name);
-        warning(getReport(ME));
-    end   
 
-    try
-        %%
-        
-%         skip_if_final_exists = false;
+        %         skip_if_final_exists = false;
         basefolder_output = basefolder_analysis;  
         postfix_in1 = "cG_bin"+string(binning)+"*_mc";
         postfix_in2 = "cR_bin"+string(binning)+"*_mc_reg";
         pipeline_unmixing
-        %%  
+        %%
     catch ME
-        recording_names_error = [recording_names_error, recording_name];
-        MEs_conv{length(MEs_conv)+1} = ME;
-        warning(recording_name);
-        warning(getReport(ME));
+        MEs{length(MEs)+1} = {recording_name, ME};
+        if(~contains(ME.message, "Final file exists, ending"))
+            warning("Failed " + recording_name + ": "+ ME.message);
+            recording_ids_error = [recording_ids_error, i_f];            
+        else
+            displog("Skipped " + recording_name+": "+ ME.message)
+            recording_ids_skipped = [recording_ids_skipped, i_f];
+        end
     end 
+    
 end
 %%
 

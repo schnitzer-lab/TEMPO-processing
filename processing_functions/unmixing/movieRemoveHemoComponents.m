@@ -112,7 +112,7 @@ end
 %%
 
 function savePlots(M, Mout, specs, filename_out, options)
-
+    %%
     fig_time = plt.getFigureByName("movieRemoveHemoComponents: Spatially-averaged traces");
     
     m =  squeeze(mean(M,[1,2],'omitnan'));
@@ -120,9 +120,18 @@ function savePlots(M, Mout, specs, filename_out, options)
     
     plt.tracesComparison([m, m_out], ...
         'labels',["Input", "Nohemo"] + " (mean)",...
-        'fps', specs.getFps(), 'fw', 0.2, 'f0', specs.getFrequencyRange(1))    
+        'fps', specs.getFps(), 'fw', 0.2, 'f0', specs.getFrequencyRange(1))  
+
+    fig_space = plt.getFigureByName("movieRemoveHemoComponents: spatial variance");
+    imagesc(100*(1-var(Mout, [], 3,'omitnan')./var(M, [], 3,'omitnan')));
+    cb = colorbar(); cb.Label.String = "Variance decrease, %"; 
+    cb.Label.Rotation = -90; cb.Label.Position = cb.Label.Position + [1,0,0];
+   
+    %%
     
     saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".png"))
     saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".fig"))
+    saveas(fig_space, fullfile(options.diagnosticdir, filename_out + "_variance" + ".png"))
+    saveas(fig_space, fullfile(options.diagnosticdir, filename_out + "_variance" + ".fig"))
 end
 %%

@@ -1,4 +1,4 @@
-﻿function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
+function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     movieEstimateHemoGFilt(fullpath_sig, fullpath_ref, varargin)
     
     [basepath_ref, ~, ~] = fileparts(fullpath_ref);
@@ -44,6 +44,10 @@
             specs_r.getFps(),  options.fref_lims, ...
             'MinPeakWidth', options.fref_minpeakwidth, ...
             'MinPeakProminence', options.fref_minpeakprominance, 'SortStr', 'descend');
+        if(isempty(locs))
+            error("movieEstimateHemoGFilt: failed to determine fref "+...
+                  "automatically, please specify manually");
+        end
         options.fref = locs(1);
     end
 

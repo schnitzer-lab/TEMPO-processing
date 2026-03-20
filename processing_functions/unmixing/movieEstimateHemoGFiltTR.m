@@ -1,4 +1,4 @@
-function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
+﻿function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     movieEstimateHemoGFiltTR(fullpath_sig, fullpath_ref, varargin)
     
     [basepath_ref, ~, ~] = fileparts(fullpath_ref);
@@ -15,7 +15,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     [~,filename_out,~] = fileparts(fullpath_out);
     %%
     
-    displog("movieEstimateHemoGFiltTR: reading movies")
+    displog("reading movies")
         
     [Mg, ~] = rw.h5readMovie(fullpath_sig);
     [Mr, specs_r] = rw.h5readMovie(fullpath_ref);
@@ -80,7 +80,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     end
     %%
 
-    displog("movieEstimateHemoGFiltTR: performing spatial averaging")
+    displog("performing spatial averaging")
     % local correction in case of ref spatial averaging
     Mr_sm = 0;
     if( options.naverage > 1 )
@@ -110,7 +110,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
             r2 = min(r1 + nrowsatonce - 1, size(Mg,1));
         %%
         
-            displog("movieEstimateHemoGFiltTR: estimating filter for smoothed ref traces"...
+            displog("estimating filter for smoothed ref traces"...
                 + sprintf(" (%d:%d/%d, %d/%d)",r1,r2,size(Mg,1),iter,options.niter))
     
             Wsm(r1:r2,:,:,:) = estimateFiltersTimeResolved(...
@@ -120,7 +120,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
             Mr_sm_filt(r1:r2,:,:) = applyFiltersTimeResolved(...
                 Mr_sm(r1:r2,:,:), Wsm(r1:r2,:,:,:), chunks, chunks_nooverlap);  
       
-            displog("movieEstimateHemoGFiltTR: estimating filter for single-pixel traces"...
+            displog("estimating filter for single-pixel traces"...
                 + sprintf(" (%d:%d/%d, %d/%d)",r1,r2,size(Mg,1),iter,options.niter))
     
             Wxy(r1:r2,:,:,:) = estimateFiltersTimeResolved(...
@@ -139,7 +139,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     clear('Mr_sm'); clear('Mr_sm_filt'); clear('Mr_xy_filt');
     %%
    
-    displog("movieEstimateHemoGFiltTR: saving")
+    displog("saving")
 
     specs_out = copy(specs_r);
     specs_out.AddToHistory(functionCallStruct({'fullpath_sig', 'fullpath_ref', 'options'}));
@@ -153,7 +153,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     end   
     %%
     
-    displog("movieEstimateHemoGFiltTR: saving plots")
+    displog("saving plots")
         
     options.fref = mean(frefs);
     savePlots(Mg, Mr, Mr_filt, Wsm, Wxy, specs_r, filename_out, options);
@@ -216,7 +216,7 @@ function [fullpath_out, fullpathWxy_out, fullpathW0_out, do_skip] = ...
 
     if (isfile(fullpath_out))
         if(options.skip)
-            displog("movieEstimateHemoGFiltTR: Output file exists. Skipping:" + fullpath_out);
+            displog("Output file exists. Skipping:" + fullpath_out);
             do_skip = true;
             return;
         else

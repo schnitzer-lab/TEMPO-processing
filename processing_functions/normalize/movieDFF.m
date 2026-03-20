@@ -1,4 +1,4 @@
-function fullpath_out = movieDFF(fullpath_movie, varargin)
+﻿function fullpath_out = movieDFF(fullpath_movie, varargin)
     
     [basepath, basefilename, ext, postfix] = filenameSplit(fullpath_movie, '_');
 
@@ -18,7 +18,7 @@ function fullpath_out = movieDFF(fullpath_movie, varargin)
     
     if (isfile(fullpath_out))
         if(options.skip)
-            displog("movieDFF: Output file exists. Skipping: " + fullpath_out)
+            displog("Output file exists. Skipping: " + fullpath_out)
             return;
         else
             warning("movieDFF: Output file exists. Deleting: " + fullpath_out);
@@ -27,12 +27,12 @@ function fullpath_out = movieDFF(fullpath_movie, varargin)
     end
     %%
     
-    displog("movieDFF: reading movie")
+    displog("reading movie")
     
     [Mraw, specs] = rw.h5readMovie(fullpath_movie);%rw.h5readMovie(fullfile(basepath, basefilename + "_reg_moco_cropMovie_masked_decross" + ".h5"));
     %%
     
-    displog("movieDFF: estimating F0")
+    displog("estimating F0")
     
     if(~strcmp(options.fullpathM0, fullpath_movie))
         [M0, specs0] = rw.h5readMovie(options.fullpathM0); 
@@ -75,7 +75,7 @@ function fullpath_out = movieDFF(fullpath_movie, varargin)
 
 
     %%
-    displog("movieDFF: computing dF/F0")
+    displog("computing dF/F0")
     Md = Mraw./M_mean;
     nan_mask = double(any(abs(Md) < 10*median(abs(Md(abs(Md) > 0)), 'all', 'omitnan'), 3));
     nan_mask(~nan_mask) = NaN;
@@ -102,7 +102,7 @@ function fullpath_out = movieDFF(fullpath_movie, varargin)
     saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + "traces.fig") );   
     %%   
     
-    displog("movieDFF: saving output")
+    displog("saving output")
     
     specs_out = copy(specs);
     specs_out.AddToHistory(functionCallStruct({'fullpath_movie', 'options'}));

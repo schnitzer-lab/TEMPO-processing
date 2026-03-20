@@ -1,4 +1,4 @@
-function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
+﻿function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
     
     [basepath, filename, ext, ~] = filenameParts(fullpath_movie);
 
@@ -24,7 +24,7 @@ function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
     
     if (isfile(fullpath_out))
         if(options.skip)
-            displog("movieDelay: Output file exists. Skipping: " + fullpath_out)
+            displog("Output file exists. Skipping: " + fullpath_out)
             return;
         else
             warning("movieDelay: Output file exists. Deleting: " + fullpath_out);
@@ -33,7 +33,7 @@ function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
     end
 
 %%
-    displog("movieDelay: computing delayed movie");
+    displog("computing delayed movie");
     [M, specs] = rw.h5readMovie(fullpath_movie);
     m0 = squeeze(mean(M, [1,2], 'omitnan'));
 
@@ -75,7 +75,7 @@ function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
     sgtitle([basepath, filename], 'interpreter', 'none', 'FontSize', 8)
 %%
 
-    displog("movieDelay: saving delayed movie");
+    displog("saving delayed movie");
     
     specs_out = copy(specs);
     specs_out.AddToHistory(functionCallStruct({'fullpath_movie', 'delay', 'options'}));

@@ -1,4 +1,4 @@
-function fullpath_out_all = movieExtractCustomOutlinesTrace(fullpath_movie, contour_ids, varargin)
+﻿function fullpath_out_all = movieExtractCustomOutlinesTrace(fullpath_movie, contour_ids, varargin)
     
     [basepath, filename, ext, basefilename, channel, postfix] = ...
         filenameParts(fullpath_movie);
@@ -18,7 +18,7 @@ function fullpath_out_all = movieExtractCustomOutlinesTrace(fullpath_movie, cont
 
     if (all(isfile(fullpath_out_all)))
         if(options.skip)
-            displog("movieExtractCustomOutlinesTrace: All output files exist. Skipping: " + strjoin(fullpath_out_all, ', '))
+            displog("All output files exist. Skipping: " + strjoin(fullpath_out_all, ', '))
             return;
         else
             warning("movieExtractCustomOutlinesTrace: Output files exist. Deleting: " + strjoin(fullpath_out_all, ', '));
@@ -39,7 +39,7 @@ function fullpath_out_all = movieExtractCustomOutlinesTrace(fullpath_movie, cont
     end
     %%
     
-    displog("movieExtractCustomOutlinesTrace: reading movie")
+    displog("reading movie")
     [M, specs] = rw.h5readMovie(fullpath_movie);
     m = squeeze(mean(M,[1,2], "omitnan"));
     %%
@@ -65,7 +65,7 @@ function fullpath_out_all = movieExtractCustomOutlinesTrace(fullpath_movie, cont
         if(isfile(fullpath_out) && options.skip), continue; end       
         %%
 
-        displog("movieExtractCustomOutlinesTrace: extracting trace " + postfix_new);
+        displog("extracting trace " + postfix_new);
         %%
     
         fig_roi = plt.getFigureByName("movieExtractCustomOutlinesTrace: selected roi");
@@ -91,7 +91,7 @@ function fullpath_out_all = movieExtractCustomOutlinesTrace(fullpath_movie, cont
         drawnow;
         %%
         
-        displog("movieExtractCustomOutlinesTrace: saving")
+        displog("saving")
         
         specs_out = copy(specs);
         specs_out.AddToHistory(functionCallStruct({'fullpath_movie','contour_ids','options'}));

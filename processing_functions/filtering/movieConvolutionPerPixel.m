@@ -1,4 +1,4 @@
-
+﻿
 function [fullpath_out, existed]=movieConvolutionPerPixel(fullpath_movie,...
     fullpath_filter, varargin)
 %% 
@@ -22,7 +22,7 @@ function [fullpath_out, existed]=movieConvolutionPerPixel(fullpath_movie,...
     
     if (isfile(fullpath_out))
         if(options.skip)
-            displog("movieConvolutionPerPixel: Output file exists. Skipping: " + fullpath_out)
+            displog("Output file exists. Skipping: " + fullpath_out)
             existed = true;
             return;
         else
@@ -33,7 +33,7 @@ function [fullpath_out, existed]=movieConvolutionPerPixel(fullpath_movie,...
     existed = false;
     %%
 
-    displog("MovieConvolutionPerPixel: reading movie")
+    displog("reading movie")
 
     if (~exist(fileparts(fullpath_out), 'dir')) mkdir(fileparts(fullpath_out)); end
     
@@ -43,7 +43,7 @@ function [fullpath_out, existed]=movieConvolutionPerPixel(fullpath_movie,...
     m_raw = squeeze(mean(M,[1,2], 'omitnan'));
 
 
-    displog("MovieConvolutionPerPixel: convolving")
+    displog("convolving")
 
     if(options.remove_mean) M = M - mean(M,3); end
     M = convn(M, reshape(conv_trans, 1,1,[]), 'same');
@@ -55,7 +55,7 @@ function [fullpath_out, existed]=movieConvolutionPerPixel(fullpath_movie,...
     valid_range = [offset, size(M, 3) - offset];
     %%
     
-    displog("MovieConvolutionPerPixel: saving")
+    displog("saving")
     
     specs_out = copy(specs);
     specs_out.AddToHistory(functionCallStruct(...

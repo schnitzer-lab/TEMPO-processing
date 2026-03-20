@@ -1,11 +1,12 @@
 function fullpath_out = copyfileWithRelativePath(fullpath_in, folder_new, ...
-    folder_old, filename_start_old, filename_start_new)
+    folder_old, filename_start_old, filename_start_new, skip)
     
     if(nargin < 3), folder_old = fileparts(fullpath_in); end
     if(nargin < 4) 
         filename_start_new = ''; 
         filename_start_old = ''; 
     end
+    if(nargin < 6), skip = false; end
     
     path_rel = erase(fullpath_in, folder_old);
     [folder_rel, filename, ext] =  fileparts(path_rel);
@@ -15,5 +16,9 @@ function fullpath_out = copyfileWithRelativePath(fullpath_in, folder_new, ...
 
     if(~isfolder(fileparts(fullpath_out))), mkdir(fileparts(fullpath_out)); end
 
-    copyfile(fullpath_in, fullpath_out);
+    if(~isfile(fullpath_out) || ~skip)
+        copyfile(fullpath_in, fullpath_out); 
+    else
+        warning("skipping " + fullpath_out)
+    end
 end

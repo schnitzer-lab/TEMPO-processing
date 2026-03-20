@@ -85,8 +85,12 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_comp
     %%
 
     displog("movieRemoveHemoComponents: saving plots and videos")
-    
+
     savePlots(M(:,:,keep_frames), Mout(:,:,keep_frames), specs, filename_out, options);
+
+
+    displog("movieRemoveHemoComponents: saving metrics")
+    saveMetrics(M(:,:,keep_frames), Mout(:,:,keep_frames), specs, filename_out, options);
 end
 %%
 
@@ -133,5 +137,54 @@ function savePlots(M, Mout, specs, filename_out, options)
     saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".fig"))
     saveas(fig_space, fullfile(options.diagnosticdir, filename_out + "_variance" + ".png"))
     saveas(fig_space, fullfile(options.diagnosticdir, filename_out + "_variance" + ".fig"))
+end
+%%
+
+function saveMetrics(M, Mout, specs, filename_out, options)
+    %%
+
+    m     = squeeze(mean(M,    [1,2], 'omitnan'));
+    m_out = squeeze(mean(Mout, [1,2], 'omitnan'));
+
+    % rc_var: variance ratio from spatially averaged traces
+    rc_var = var(m_out) / var(m - m_out);
+
+    % rc_pix: mode of per-pixel var(nohemo)/var(hemo_removed), matching rc_compute histogram approach
+    var_in  = var(M,    [], 3, 'omitnan');
+    var_out = var(Mout, [], 3, 'omitnan');
+    img_data = 100 * (1 - var_out ./ var_in);
+    img_data(img_data < 0) = 0;
+    [counts, edges] = histcounts(log(100./img_data(:) - 1), round(numel(img_data)*0.003));
+    [~, Imod] = max(counts);
+    rc_pix = exp((edges(Imod) + edges(Imod+1)) / 2);
+
+    % rc_psd / rc_lf_psd: Welch PSD ratios
+    fps = specs.getFps();
+    [psd_out, f] = pwelch(m_out, [], [], [], fps);
+    [psd_in,  ~] = pwelch(m,     [], [], [], fps);
+
+    rc_psd = sum(psd_out, 'omitnan') / ...
+        (sum(psd_in, 'omitnan') - sum(psd_out, 'omitnan'));
+
+    flims = [0, 10];
+    lf = f > flims(1) & f < flims(2);
+    rc_lf_psd = sum(psd_out(lf), 'omitnan') / ...
+        (sum(psd_in(lf), 'omitnan') - sum(psd_out(lf), 'omitnan'));
+    %%
+
+    displog("movieRemoveHemoComponents: " + ...
+        sprintf("pix coef %.3f, full coef %.3f (%.3f from psd), lf coef %.3f (from psd)\n", ...
+        rc_pix, rc_var, rc_psd, rc_lf_psd));
+
+    json_string = jsonencode(struct(...
+        'total_in',         var(m), ...
+        'total_nohemo',     var(m_out), ...
+        'total_in_psd',     sum(psd_in), ...
+        'total_nohemo_psd', sum(psd_out), ...
+        'rc_pix', rc_pix, 'rq_var', rc_var, 'rq_psd', rc_psd, 'rq_lf_psd', rc_lf_psd));
+
+    fid = fopen(fullfile(options.diagnosticdir, filename_out + "_metrics.json"), 'w');
+    fprintf(fid, json_string);
+    fclose(fid);
 end
 %%

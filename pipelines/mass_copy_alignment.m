@@ -21,7 +21,7 @@ for i_f = 2:length(recording_names)
     %%
     recording_name = recording_names(i_f);
     
-    disp(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
+    displog(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
    
     try
         %%

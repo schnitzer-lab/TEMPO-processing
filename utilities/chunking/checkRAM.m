@@ -46,13 +46,13 @@ if ismac % Code is on Mac platform
     [~,out] = system('vm_stat | grep "Pages free"');
     mem = sscanf(out,'Pages free: %f.');
     availableRAM = mem*4096;
-elseif isunix % Code is on Linux platform
-    try
-        availableRAM = double(py.psutil.virtual_memory().available);
-    catch
-        [~,freebytes] = system('python -c "import psutil; print(psutil.virtual_memory().available)"');
-        availableRAM = str2double(freebytes);
-    end
+% elseif isunix % Code is on Linux platform
+%     try
+% %         availableRAM = double(py.psutil.virtual_memory().available);
+%     catch
+%         [~,freebytes] = system('python -c "import psutil; print(psutil.virtual_memory().available)"');
+% %         availableRAM = str2double(freebytes);
+%     end
 elseif ispc % Code is on Windows platform
         [~,systemview] = memory;
         availableRAM=systemview.PhysicalMemory.Available;

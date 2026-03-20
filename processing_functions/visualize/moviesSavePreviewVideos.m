@@ -31,12 +31,12 @@ function moviesSavePreviewVideos(fullpaths_movies, varargin)
     fullpaths_out = fullfile(options.outdir, filename) + options.postfixes +".avi";
 
     if (options.skip && all(isfile(fullpaths_out)) )
-        disp("movieSavePreviewVideos: Output files exist. Skipping: " + fullpaths_out(1));
+        displog("movieSavePreviewVideos: Output files exist. Skipping: " + fullpaths_out(1));
         return;
     end
     %%
     
-    disp("movieSavePreviewVideos: reading movie")
+    displog("movieSavePreviewVideos: reading movie")
    
     Ms = cell(length(fullpaths_movies), 1);
     Ss = cell(length(fullpaths_movies), 1);;
@@ -64,7 +64,7 @@ function moviesSavePreviewVideos(fullpaths_movies, varargin)
     if(isempty(ttl_signal)) ttl_signal = zeros(nframes,1); end
     %%
     
-    disp("movieSavePreviewVideos: saving video")
+    displog("movieSavePreviewVideos: saving video")
    
     options.slowdown = options.slowdown/options.upsample_t;
     options_saveavi = ...

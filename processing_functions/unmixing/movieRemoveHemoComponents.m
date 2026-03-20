@@ -20,7 +20,7 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_comp
     
     if (isfile(fullpath_out))
         if(options.skip)
-            disp("movieRemoveHemoComponents: Output file exists. Skipping: " + fullpath_out);
+            displog("movieRemoveHemoComponents: Output file exists. Skipping: " + fullpath_out);
             return;
         else
             warning("movieRemoveHemoComponents: Output file exists. Deleting: " + fullpath_out);
@@ -29,11 +29,11 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_comp
     end
     %%
     
-    disp("movieRemoveHemoComponents: reading movie");
+    displog("movieRemoveHemoComponents: reading movie");
     [M, specs] = rw.h5readMovie(fullpath_movie);
     %%
     
-    disp("movieRemoveHemoComponents: removing components");
+    displog("movieRemoveHemoComponents: removing components");
     Mout = M;
     M_mean = mean(M, 3);
     if(specs.extra_specs.isKey("mean_substracted")) 
@@ -72,7 +72,7 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_comp
     end
     %%
 
-    disp("movieRemoveHemoComponents: saving");
+    displog("movieRemoveHemoComponents: saving");
     keep_frames = squeeze(~all(isnan(Mout), [1,2]));
     start_frame = find(keep_frames, 1, 'first');
 
@@ -84,7 +84,7 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_comp
     rw.h5saveMovie(fullpath_out, Mout(:,:,keep_frames), specs_new);
     %%
 
-    disp("movieRemoveHemoComponents: saving plots and videos")
+    displog("movieRemoveHemoComponents: saving plots and videos")
     
     savePlots(M(:,:,keep_frames), Mout(:,:,keep_frames), specs, filename_out, options);
 end
@@ -112,7 +112,7 @@ end
 %%
 
 function savePlots(M, Mout, specs, filename_out, options)
-
+    %%
     fig_time = plt.getFigureByName("movieRemoveHemoComponents: Spatially-averaged traces");
     
     m =  squeeze(mean(M,[1,2],'omitnan'));
@@ -120,9 +120,18 @@ function savePlots(M, Mout, specs, filename_out, options)
     
     plt.tracesComparison([m, m_out], ...
         'labels',["Input", "Nohemo"] + " (mean)",...
-        'fps', specs.getFps(), 'fw', 0.2, 'f0', specs.getFrequencyRange(1))    
+        'fps', specs.getFps(), 'fw', 0.2, 'f0', specs.getFrequencyRange(1))  
+
+    fig_space = plt.getFigureByName("movieRemoveHemoComponents: spatial variance");
+    imagesc(100*(1-var(Mout, [], 3,'omitnan')./var(M, [], 3,'omitnan')));
+    cb = colorbar(); cb.Label.String = "Variance decrease, %"; 
+    cb.Label.Rotation = -90; cb.Label.Position = cb.Label.Position + [1,0,0];
+   
+    %%
     
     saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".png"))
     saveas(fig_time, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".fig"))
+    saveas(fig_space, fullfile(options.diagnosticdir, filename_out + "_variance" + ".png"))
+    saveas(fig_space, fullfile(options.diagnosticdir, filename_out + "_variance" + ".fig"))
 end
 %%

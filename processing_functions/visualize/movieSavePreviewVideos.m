@@ -28,12 +28,12 @@ function fullpaths_out = movieSavePreviewVideos(fullpath_movie, varargin)
 %     fullpath_out_end = fullfile(options.outdir, filename)+ "_end.avi";
     
     if (options.skip && all(isfile(fullpaths_out)) )
-        disp("movieSavePreviewVideos: Output files exist. Skipping: " + fullpaths_out(1));
+        displog("movieSavePreviewVideos: Output files exist. Skipping: " + fullpaths_out(1));
         return;
     end
     %%
     
-    disp("movieSavePreviewVideos: reading movie")
+    displog("movieSavePreviewVideos: reading movie")
    
     specs = rw.h5readMovieSpecs(fullpath_movie);
     [nx,nt] = rw.h5getDatasetSize(fullpath_movie, '/mov', [1,3]);
@@ -45,7 +45,7 @@ function fullpaths_out = movieSavePreviewVideos(fullpath_movie, varargin)
     end
     %%
  
-    disp("movieSavePreviewVideos: saving video")
+    displog("movieSavePreviewVideos: saving video")
    
     options.slowdown = options.slowdown/options.upsample_t;
     options_saveavi = ...

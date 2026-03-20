@@ -8,7 +8,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
         options = getOptions(options, varargin);
     end
 
-    if (~isfolder(options.processingdir)) mkdir(options.processingdir); end
+    if (~isfolder(options.processingdir)), mkdir(options.processingdir); end
     
     basepath_out = basefilename + postfix+options.postfix_new + ...
         "_tw" + string(options.timewindow) + "fw" + string(options.fw);
@@ -17,7 +17,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     
     if(isfile(filename_out))
         if(options.skip)
-            disp("movieMeanTraceSpectrogram: Output file exists. Skipping: "  + filename_out)
+            displog("movieMeanTraceSpectrogram: Output file exists. Skipping: "  + filename_out)
             return;
         else
             warning("movieMeanTraceSpectrogram: Output file exists. Deleting first: " + filename_out);

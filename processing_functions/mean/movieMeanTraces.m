@@ -17,7 +17,7 @@ function fullpaths_out = movieMeanTraces(fullpaths, varargin)
     
     if(all(isfile(fullpaths_out)))
         if(options.skip)
-            disp("movieMeanTraces: Output file exists. Skipping: "  + fullpaths_out(1))
+            displog("movieMeanTraces: Output file exists. Skipping: "  + fullpaths_out(1))
             return;
         else
             warning("movieMeanTraces: Output file exists. Deleting: "  + fullpaths_out(1));

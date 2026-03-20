@@ -18,7 +18,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     
     if (isfile(fullpath_out))
         if(options.skip)
-            disp("movieExpBaselineCorrection: Output file exists. Skipping: " + fullpath_out)
+            displog("movieExpBaselineCorrection: Output file exists. Skipping: " + fullpath_out)
             return;
         else
             warning("movieExpBaselineCorrection: Output file exists. Deleting: " + fullpath_out);
@@ -27,12 +27,12 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     end
     %%
     
-    disp("movieExpBaselineCorrection: reading movie")
+    displog("movieExpBaselineCorrection: reading movie")
     
     [Min, specs] = rw.h5readMovie(fullpath_movie);
     %%
     
-    disp("movieExpBaselineCorrection: fitting for the mean trace")
+    displog("movieExpBaselineCorrection: fitting for the mean trace")
     ts = (1:size(Min, 3))';
     if(~isempty(specs.getMask()))
         m = squeeze(mean(Min.*specs.getMaskNaN(), [1,2], 'omitnan'));
@@ -68,7 +68,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     drawnow;
     %%
     
-    disp("movieExpBaselineCorrection: fitting for every pix");
+    displog("movieExpBaselineCorrection: fitting for every pix");
     
     nx = size(Min, 1); ny = size(Min, 2);
     
@@ -145,7 +145,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     if(abs(a) > options.a_thresh), error('bad fit - fit asymmetry'); end
     %%
     
-    disp("movieExpBaselineCorrection: saving")
+    displog("movieExpBaselineCorrection: saving")
     
     specs_out = copy(specs);
     specs_out.AddToHistory(functionCallStruct({'fullpath_movie', 'options'}));
@@ -170,7 +170,7 @@ function options = defaultOptions(basepath)
 
     options.tmin = 2; %s
     options.twoexpimpr = 0; % use 2-exp model if there is relative improvement more than twoexpimpr
-    options.r2_thresh = 0.05;
+    options.r2_thresh = 0.1;
     options.a_thresh = 1; 
 
     options.divide = false;

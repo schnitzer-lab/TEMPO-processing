@@ -10,7 +10,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
        ~isempty(specs_mov.getAllenOutlines()) || ...
        ~isempty(specs_mov.getCustomOutlines()) )
         if(options.skip)
-            disp("movieCopyReference: Movie has mask or outlines. Skipping: " + fullpath_movie)
+            displog("movieCopyReference: Movie has mask or outlines. Skipping: " + fullpath_movie)
             return;
         else
             warning("movieCopyReference: Movie has mask or outlines. Overwriting: " + fullpath_movie);
@@ -23,7 +23,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     
     if(isempty(fullpath_movie_ref))
 
-        disp("movieCopyReference: looking for reference file")
+        displog("movieCopyReference: looking for reference file")
 
         files = dir(fullfile(options.folder_ref, ...
             specs_mov.mouse_id() + "_c" + specs_mov.channel_id + "*.h5"));
@@ -37,7 +37,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     end
     %%
     
-    disp("movieCopyReference: reading frames")
+    displog("movieCopyReference: reading frames")
 
     specs_ref = rw.h5readMovieSpecs(fullpath_movie_ref);
 %     specs_mov = rw.h5readMovieSpecs(fullpath_movie);
@@ -53,7 +53,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
 
     %%
 
-    disp("movieCopyReference: performing registration")
+    displog("movieCopyReference: performing registration")
     frame_fixed = imputeNaNS(F1); 
     frame_moving = imputeNaNS(F2);
     
@@ -142,7 +142,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     end
     %%
 
-    disp("movieCopyReference: registering mask")
+    displog("movieCopyReference: registering mask")
 
     mask_moving = imwarp(int32(specs_ref.getMask()), tform_full.invert,...
         'OutputView', imref2d(size(frame_moving)), ...
@@ -163,7 +163,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
 
     sgtitle([basepath, filename], 'Interpreter', 'None')
     %%
-    disp("movieCopyReference: registering allen")
+    displog("movieCopyReference: registering allen")
         
     allenOutlines_fixed = specs_ref.getAllenOutlines();
     allenOutlines_moving = nan(size(allenOutlines_fixed));
@@ -221,7 +221,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     sgtitle([basepath, filename], 'Interpreter', 'None')
     %%
 
-    disp("movieCopyReference: saving aligned")
+    displog("movieCopyReference: saving aligned")
     
     rw.h5writeStruct(char(fullpath_movie), ...
         specs_out.extra_specs("mask"), '/specs/extra_specs/mask');
@@ -239,7 +239,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     end
     %%
     
-    disp("movieCopyReference: saving diagnostic")
+    displog("movieCopyReference: saving diagnostic")
     
     saveas(fig_overlap, fullfile(options.diagnosticdir, filename + "_reg_overlap.png"))
     saveas(fig_overlap, fullfile(options.diagnosticdir, filename + "_reg_overlap.fig"))

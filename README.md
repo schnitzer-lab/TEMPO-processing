@@ -48,7 +48,7 @@ Unmixing of physiological and recording artifacts. Decrosstalking, high-pass fil
 
 ## Citations
 
-This processing pipeline is described in **upcoming biorxiv link** [Haziza et al., 2024](https://www.biorxiv.org/). The convolutional unmixing procedure was first introduced in a talk [Kruzhilin et al., 2023](https://www.sfn.org/-/media/SfN/Documents/NEW-SfN/Meetings/Neuroscience-2023/Abstracts/Abstract-PDFs/SFN23_Abstracts-PDF-Nano.pdf). Please cite us if you use this pipeline in your own work.
+This processing pipeline is described in [Haziza et al., 2025](https://www.cell.com/cell/fulltext/S0092-8674(25)00730-5). The convolutional unmixing procedure was first introduced in a talk [Kruzhilin et al., 2023](https://www.sfn.org/-/media/SfN/Documents/NEW-SfN/Meetings/Neuroscience-2023/Abstracts/Abstract-PDFs/SFN23_Abstracts-PDF-Nano.pdf). Please cite us if you use this pipeline in your own work.
 
 ## License
 

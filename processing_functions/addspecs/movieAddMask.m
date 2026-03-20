@@ -12,7 +12,7 @@ function  movieAddMask(fullpath_movie, fullpath_mask, varargin)
     if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
     %%
     
-    disp("movieAddMask: reading movie and mask")
+    displog("movieAddMask: reading movie and mask")
 
     mask_image = imread(fullpath_mask);
     if(size(mask_image, 3) > 1) mask_image = rgb2gray(imread(fullpath_mask)); end

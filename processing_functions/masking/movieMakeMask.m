@@ -17,13 +17,13 @@ function maskfullpath_out = movieMakeMask(fullpath_g, varargin)
     maskfullpath_out = fullfile(options.outdir, maskfilename_out + options.ext);
     meanfullpath_out = fullfile(options.outdir, maskfilename_out + 'mean' + options.ext);
     
-    disp("movieMakeMask: reading movie")
+    displog("movieMakeMask: reading movie")
     [M, ~] = rw.h5readMovie(fullpath_g);
     
     %%
 
     
-    disp("movieMakeMask: computing the mask")
+    displog("movieMakeMask: computing the mask")
     Mmean = median(M,3, 'omitnan');
     Mmean(isnan(Mmean)) = 0;
     mask = mm.getImageMask(Mmean, ...
@@ -34,7 +34,7 @@ function maskfullpath_out = movieMakeMask(fullpath_g, varargin)
     drawnow();
     
     %%
-    disp("movieMakeMask: Saving")
+    displog("movieMakeMask: Saving")
     
     imwrite(mat2gray(mask), maskfullpath_out);
     imwrite(mat2gray(Mmean), meanfullpath_out);

@@ -6,7 +6,7 @@
 % if(isempty(gcp('nocreate'))), parpool('Threads'); end 
 % 
 % diary(fullfile( ...
-%           "P:\GEVI_Wave\Logs", ...
+%           "N:\GEVI_Wave\Logs", ...
 %           strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 % %%
 % 
@@ -19,7 +19,7 @@
 % mouse_state = "transition"; %"anesthesia"; % "awake"; %"transition";
 % unmix_time_resolved = true;
 % 
-% basefolder_preprocessed = "P:\GEVI_Wave\Preprocessed\";
+% basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\";
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 % basefolder_output = "N:\GEVI_Wave\Analysis\";    
 % 
@@ -32,14 +32,14 @@
 % %%
 
 % postfixes for the final files in the output location
-if(unmix_time_resolved), postfix_out1 = "_unmixedTR_dFF"; 
-else, postfix_out1 = "_unmixed_dFF"; end
-postfix_out2 = "_dFF";
+if(unmix_time_resolved), postfix_out1 = "_nohemoTRS_dFF"; 
+else, postfix_out1 = "_nohemoS_dFF"; end
+% postfix_out2 = "_dFF";
 %%
 
 folder_preprocessed = fullfile(basefolder_preprocessed, recording_name);
 folder_processing = fullfile(basefolder_processing, recording_name);
-folder_output = fullfile(basefolder_output, recording_name);
+% folder_output = fullfile(basefolder_output, recording_name);
 %%
 % look for input files in the preprocessed location
 
@@ -62,7 +62,7 @@ fullpathRin = fullfile(folder_processing, file2.name);%basefilename2+channel2+"_
 %%
 % form the final file name and check if it already exists
 
-finalfile_find = dir( fullfile(folder_output, strcat("cG" + postfix_out1 + ".h5")) );
+finalfile_find = dir( fullfile(folder_preprocessed, strcat("*cG*" + postfix_out1 + ".h5")) );
 if(~isempty(finalfile_find)) 
     finalfile = fullfile(finalfile_find.folder, finalfile_find.name);
     if(skip_if_final_exists)
@@ -75,7 +75,7 @@ end
 % move the initial files to the processing directory (fast rw location)
 
 if(~strcmp(folder_preprocessed, folder_processing))
-    disp("copying data to: "+folder_processing)
+    displog("copying data to: "+folder_processing)
     if(~isfolder(folder_processing)), mkdir(folder_processing); end
     if(~isfile(fullpathGin)), copyfile(fullpathGpreproc, fullpathGin); end
     if(~isfile(fullpathRin)), copyfile(fullpathRpreproc, fullpathRin); end
@@ -83,10 +83,13 @@ if(~strcmp(folder_preprocessed, folder_processing))
 end
 %%
 
+% to process individual traces
+
 % movieCopyReference(fullpathGin, []);
 % movieCopyReference(fullpathRin, []);
-% fullpathRin = movieExtractRegionTrace(fullpathGin, 'V1');
+% fullpathGin = movieExtractRegionTrace(fullpathGin, 'V1');
 % fullpathRin = movieExtractRegionTrace(fullpathRin, 'V1');
+
 % fullpaths_in_mean = movieMeanTraces([fullpathGin, fullpathRin], ...
 %     'processingdir', folder_processing);
 % fullpathGin = fullpaths_in_mean(1); fullpathRin = fullpaths_in_mean(2);
@@ -96,23 +99,25 @@ fullpathGex = movieExtractFrames(fullpathGin, frame_range);
 fullpathRex = movieExtractFrames(fullpathRin, frame_range);
 %%
 
-fullpathGor = movieRemoveOutlierFrames(fullpathGex, 'n_sd', 6, 'dt', 15);
-fullpathRor = movieRemoveOutlierFrames(fullpathRex, 'n_sd', 6, 'dt', 15);
-%%
-
 % for movies where cameras weren't started synchroniously 
-fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, ...
+fullpathRdl = movieCompensateDelay(fullpathRex, fullpathGex, ...
     'lag_estimator', 'phase', 'f0', 30,...
     'min_lag_frames', 0.75, 'max_lag_frames', 100); 
-fullpathGdl = fullpathGor;
+fullpathGdl = fullpathGex;
 %%
     
 [fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, ...
     crosstalk_matrix, 'skip', true);
 %%
 
-fullpathGbl = movieExpBaselineCorrection(fullpathGdx, 'divide', false); 
-fullpathRbl = movieExpBaselineCorrection(fullpathRdx, 'divide', false);
+% fullpathGor = movieRemoveOutlierFrames(fullpathGdx, 'n_sd', 20, 'dt', 20);
+% fullpathRor = movieRemoveOutlierFrames(fullpathRdx, 'n_sd', 20, 'dt', 20);
+fullpathGor = fullpathGdx;
+fullpathRor = fullpathRdx;
+%%
+
+fullpathGbl = movieExpBaselineCorrection(fullpathGor, 'divide', false); 
+fullpathRbl = movieExpBaselineCorrection(fullpathRor, 'divide', false);
 % fullpathGbl = movieRemoveMean(fullpathGdx, 'skip', true); 
 % fullpathRbl = movieRemoveMean(fullpathRdx, 'skip', true);
 %%
@@ -158,13 +163,13 @@ else
 end  
 
 options_hfilt = mergeStructs({options_hfilt,  ...
-    struct('average_mm', 1, 'niter', 3, 'npixatonce', 1*1e4, ...
-           'flim_max', 20, 'max_delay', 30*1e-3)});
+    struct('average_mm', 1, 'niter', 3, 'flim_max', 20, 'max_delay', 30*1e-3)});
 
 if(unmix_time_resolved)
-    options_hfilt.dt_slow = 10*options_hfilt.dt; 
+    options_hfilt.dt_slow = 20*options_hfilt.dt; 
     fullpathGhemo = movieEstimateHemoGFiltTR(fullpathGhp, fullpathRhp, options_hfilt);
 else
+    options_hfilt.npixatonce = 5e3; % to prevent ram overflow
     fullpathGhemo = movieEstimateHemoGFilt(fullpathGhp, fullpathRhp, options_hfilt);
 end
 
@@ -172,8 +177,9 @@ moviesSavePreviewVideos([fullpathGhemo, fullpathRhp], ...
     'titles', ["reference filt", "reference ch"]);
 %%
 
+postfix_nh = "_nohemo"; if(unmix_time_resolved), postfix_nh = "_nohemoTR"; end
 fullpathGnh = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, ...
-    'divide', false, 'postfix', "_nohemoTR");
+    'divide', false, 'postfix', postfix_nh);
 
 moviesSavePreviewVideos([fullpathGnh, fullpathGhemo, fullpathGhp], ...
     'titles', ["unmixed", "reference filt", "voltage ch"]);
@@ -196,55 +202,6 @@ options_spectrogram = struct('timewindow', 4, 'fw', 0.75, ...
     'processingdir', fullfile(folder_processing, 'processing', 'meanTraceSpectrogram')); %'correct1f', false, 
 fullpathRDFF_spec = movieMeanTraceSpectrogram(fullpathsDFF_mean(2), options_spectrogram);
 fullpathGnhDFF_spec = movieMeanTraceSpectrogram(fullpathsDFF_mean(1), options_spectrogram);
-
-%% copy final files to the output location and rename
-[~, filenameG] = fileparts(fullpathGnhDFF);
-filenameG_start_out = 'cG' + postfix_out1;
-[~, filenameR] = fileparts(fullpathRDFF);
-filenameR_start_out = 'cR' + postfix_out2;
-
-% copy movie files
-fullpathGnhDFF_out = copyfileWithRelativePath(...
-    fullpathGnhDFF, folder_output, ...
-    folder_processing, filenameG, filenameG_start_out);
-fullpathRDFF_out = copyfileWithRelativePath(...
-    fullpathRDFF, folder_output, ...
-    folder_processing, filenameR, filenameR_start_out);
-
-% copy mean traces and spectrograms
-[folder, ~, ~] = fileparts(fullpathsDFF_mean(1));
-files = dir(fullfile(folder, filenameG) + "*");
-for f = string(fullfile({files.folder}, {files.name}))
-    copyfileWithRelativePath(f, folder_output, ...
-        folder_processing, filenameG, filenameG_start_out);
-end
-
-fullpathRDFF_mean_out = copyfileWithRelativePath(...
-    fullpathsDFF_mean(2), folder_output, ...
-    folder_processing, filenameR, filenameR_start_out);
-
-[folder, ~, ~] = fileparts(fullpathGnhDFF_spec);
-files = dir(fullfile(folder, filenameG) + "*");
-for f = string(fullfile({files.folder}, {files.name}))
-    copyfileWithRelativePath(f, folder_output, ...
-        folder_processing, filenameG, filenameG_start_out);
-end
-[folder, ~, ~] = fileparts(fullpathRDFF_spec);
-files = dir(fullfile(folder, filenameR) + "*");
-for f = string(fullfile({files.folder}, {files.name}))
-    copyfileWithRelativePath(f, folder_output, ...
-        folder_processing, filenameR, filenameR_start_out);
-end
-
-% copy videos
-copyfileWithRelativePath(fullpathGnhDFF_videos(1), folder_output, ...
-    folder_processing, filenameG, filenameG_start_out);
-copyfileWithRelativePath(fullpathGnhDFF_videos(2), folder_output, ...
-    folder_processing, filenameG, filenameG_start_out);
-copyfileWithRelativePath(fullpathRDFF_videos(1), folder_output, ...
-    folder_processing, filenameR, filenameR_start_out);
-copyfileWithRelativePath(fullpathRDFF_videos(1), folder_output, ...
-    folder_processing, filenameR, filenameR_start_out);
 %% delete all intermediate files
 
 if(~strcmp(fullpathGin, fullpathGpreproc)), delete(fullpathGin); end
@@ -253,27 +210,27 @@ if(~strcmp(fullpathRin, fullpathRpreproc)), delete(fullpathRin); end
 if(~strcmp(fullpathGex, fullpathGin)), delete(fullpathGex); end
 if(~strcmp(fullpathRex, fullpathRin)), delete(fullpathRex); end
 
-if(~strcmp(fullpathGor, fullpathGex)), delete(fullpathGor); end
-if(~strcmp(fullpathRor, fullpathRex)), delete(fullpathRor); end
-
-if(~strcmp(fullpathGdl, fullpathGor)), delete(fullpathGdl); end
-if(~strcmp(fullpathRdl, fullpathRor)), delete(fullpathRdl); end
+if(~strcmp(fullpathGdl, fullpathGex)), delete(fullpathGdl); end
+if(~strcmp(fullpathRdl, fullpathRex)), delete(fullpathRdl); end
 
 if(~strcmp(fullpathGdx, fullpathGdl)), delete(fullpathGdx); end
 if(~strcmp(fullpathRdx, fullpathRdl)), delete(fullpathRdx); end
 
-if(~strcmp(fullpathGbl, fullpathGdx)), delete(fullpathGbl); end
-if(~strcmp(fullpathRbl, fullpathRdx)), delete(fullpathRbl); end
+if(~strcmp(fullpathGor, fullpathGdx)), delete(fullpathGor); end
+if(~strcmp(fullpathRor, fullpathRdx)), delete(fullpathRor); end
 
-if(~strcmp(fullpathGdx, fullpathGhp)), delete(fullpathGhp); end
-if(~strcmp(fullpathRdx, fullpathRhp)), delete(fullpathRhp); end
+if(~strcmp(fullpathGbl, fullpathGor)), delete(fullpathGbl); end
+if(~strcmp(fullpathRbl, fullpathRor)), delete(fullpathRbl); end
+
+% if(~strcmp(fullpathGbl, fullpathGhp)), delete(fullpathGhp); end
+% if(~strcmp(fullpathRbl, fullpathRhp)), delete(fullpathRhp); end
 
 delete(fullpathGhemo); 
 delete(fullpathGnh);
 %% copy all remaining files to the preprocessed location
 
 if(~strcmp(folder_preprocessed, folder_processing))
-    disp("moving processed data to: "+folder_preprocessed)
+    displog("moving processed data to: "+folder_preprocessed)
     allfiles = dir(folder_processing);
     cellfun(@(n) movefile(fullfile(folder_processing, n),  folder_preprocessed), {allfiles(3:end).name})
 end

@@ -23,7 +23,7 @@ function [fullpath_out_g, fullpath_out_r] =...
     
     if (isfile(fullpath_out_g) && isfile(fullpath_out_r))
         if(options.skip)
-            disp("moviesDecrosstalk: Output file exists. Skipping: "  + fullpath_out_g)
+            displog("moviesDecrosstalk: Output file exists. Skipping: "  + fullpath_out_g)
             return;
         else
             warning("moviesDecrosstalk: Output file exists. Deleting: "  + fullpath_out_g);
@@ -33,7 +33,7 @@ function [fullpath_out_g, fullpath_out_r] =...
     end
     %%
     
-    disp("moviesDecrosstalk: reading movies")
+    displog("moviesDecrosstalk: reading movies")
     [Mg, specs_g] = rw.h5readMovie(fullpath_movie_g);
     [Mr, specs_r] = rw.h5readMovie(fullpath_movie_r);
     %%
@@ -46,7 +46,7 @@ function [fullpath_out_g, fullpath_out_r] =...
     specs_out_r.AddToHistory(functionCallStruct(...
         {'fullpath_movie_g', 'fullpath_movie_r', 'crosstalk', 'options'}));
     
-    disp("moviesDecrosstalk: decrosstalking")
+    displog("moviesDecrosstalk: decrosstalking")
     decrosstalk = inv(crosstalk);
     %%
         

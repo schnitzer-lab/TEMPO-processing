@@ -20,7 +20,7 @@ function moviesCompareTimestamps(basepath, varargin)
 %     filename_out = fullfile(options.processingdir, timestamps_filestruct1.name + "_between.fig");
 %     if(isfile(filename_out))
 %         if(options.skip)
-%             disp("moviesCompareTimestamps: Output file exists. Skipping: "  + filename_out)
+%             displog("moviesCompareTimestamps: Output file exists. Skipping: "  + filename_out)
 %             return;
 %         else
 %             warning("moviesCompareTimestamps: Output file exists. Overwriting: " + filename_out);

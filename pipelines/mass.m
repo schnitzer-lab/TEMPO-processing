@@ -1,40 +1,16 @@
-% 
-clear; 
-close all;
-warning on;
-if(isempty(gcp('nocreate'))), parpool('Threads'); end 
 
-diary(fullfile("N:\GEVI_Wave\Logs", ...
+diary(fullfile(logs_path, ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
-%%
-
-
-% recording_names = ...
-%     pathspattern("Z:\GEVI_Wave\Raw\", "*\*\*\meas*", true)';
-
-recording_names = ["Anesthesia\mv3101\20251210\meas"+compose("%02d", 0:17)'; ...
-                   "Anesthesia\mv3102\20251210\meas" + compose("%02d", 0:17)'];
-%%
-
-basefolder_raw = "B:\GEVI_Wave\Raw";
-basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
-
-channels = ["G","R"];
-
-binning = 8;
-maxRAM = 0.5;
-unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not accounted for.
 %%
 
 MEs = {}; recording_ids_error = []; recording_ids_skipped = [];
 for i_f = 1:length(recording_names)
-    
+    %%
+
     recording_name = recording_names(i_f);
     displog(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
-    %%
     try
-        pipeline_DCIMGtoH5
-        %%
+        pipeline_handle()
     catch ME
         MEs{length(MEs)+1} = {recording_name, ME};
         if(~contains(ME.message, "Final file exists, ending"))

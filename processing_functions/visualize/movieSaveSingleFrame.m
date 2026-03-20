@@ -20,7 +20,7 @@ function fullpath_out = movieSaveSingleFrame(fullpath_movie, varargin)
     
     if (isfile(fullpath_out))
         if(options.skip)
-            disp("movieSaveSingleFrame: Output file exists. Skipping: " + fullpath_out)
+            displog("movieSaveSingleFrame: Output file exists. Skipping: " + fullpath_out)
             return;
         else
             warning("movieSaveSingleFrame: Output file exists. Deleting: " + fullpath_out);
@@ -43,7 +43,7 @@ function fullpath_out = movieSaveSingleFrame(fullpath_movie, varargin)
        options.frames_range(2) =  nframes + options.frames_range(2);
     end
     %%
-    disp("movieSaveSingleFrame: reading movie")
+    displog("movieSaveSingleFrame: reading movie")
     
     if(isnumeric(options.frametype))
         [frame, ~] = rw.h5readMovie(fullpath_movie, ...
@@ -92,7 +92,7 @@ function fullpath_out = movieSaveSingleFrame(fullpath_movie, varargin)
     end
     %%
 
-    disp("movieSaveSingleFrame: plotting and saving")
+    displog("movieSaveSingleFrame: plotting and saving")
     
     plt.getFigureByName("Movie frame");
     imshow(plt.saturate(frame, options.saturate), []);

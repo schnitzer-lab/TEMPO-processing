@@ -8,18 +8,17 @@ diary(fullfile("N:\GEVI_Wave\Logs", ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 
-recording_names = ...
-    pathspattern("B:\GEVI_Wave\Raw\", ...
-                 "Spontaneous\*\*\meas*", true)';
-recording_names = [recording_names1; recording_names2];
-% recording_names = ["Anesthesia\mv3101\20251210\meas"+compose("%02d", 0:17)'; ...
-%                    "Anesthesia\mv3102\20251210\meas" + compose("%02d", 0:17)'];
+% recording_names = ...
+%     pathspattern("F:\GEVI_Wave\Preprocessed\", ...
+%                  "Spontaneous\mv0105\2024031*\meas*", true)';
+
+recording_names = ["Anesthesia\mv3101\20251210\meas"+compose("%02d", 0:17)'; ...
+                   "Anesthesia\mv3102\20251210\meas" + compose("%02d", 0:17)'];
 %% 
 
-basefolder_raw = "B:\GEVI_Wave\Raw"; %"\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %%
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\"; %"S:\GEVI_Wave\Preprocessed\";
 basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\"; 
+basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\";
 basefolder_analysis = "N:\GEVI_Wave\Analysis\";
 
 skip_if_final_exists = true;
@@ -32,10 +31,10 @@ unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not a
 
 shifts0 = [0,0]; %[0,0.5]; % mm, between R and G channel due to cameras misalignment
 
-mouse_state = "awake";% "awake"; %"anesthesia" %"transition";
+mouse_state = "transition";% "awake"; %"anesthesia" %"transition";
 unmix_time_resolved = false;
 
-crosstalk_matrix =  [[1, 0]; [0.080, 1]];
+crosstalk_matrix =  [[1, 0]; [0.165, 1]];
 % 0.080 for ASAP3
 % 0.165 for ASAP7y
 % 0.095 for old ace recordings seems good - based on m14 visual v1
@@ -46,15 +45,12 @@ frame_range = [50, inf];
 
 MEs = {}; recording_ids_error = []; recording_ids_skipped = [];
 for i_f = 1:length(recording_names)
-
+    
     recording_name = recording_names(i_f);
     displog(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
-    %%    
-    try    
-%         skip_if_final_exists = true;
-        pipeline_DCIMGtoH5
-
-        %         skip_if_final_exists = false;
+    %%
+    try        
+%         skip_if_final_exists = false;
         basefolder_output = basefolder_preprocessed; 
         postfix_in1 = "cG_bin"+string(binning);
         postfix_in2 = "cR_bin"+string(binning);
@@ -64,7 +60,7 @@ for i_f = 1:length(recording_names)
         basefolder_output = basefolder_analysis;  
         postfix_in1 = "cG_bin"+string(binning)+"*_mc";
         postfix_in2 = "cR_bin"+string(binning)+"*_mc_reg";
-        pipeline_unmixing
+        pipeline_unmixing       
         %%
     catch ME
         MEs{length(MEs)+1} = {recording_name, ME};
@@ -75,8 +71,7 @@ for i_f = 1:length(recording_names)
             displog("Skipped " + recording_name+": "+ ME.message)
             recording_ids_skipped = [recording_ids_skipped, i_f];
         end
-    end 
-    
+    end  
 end
 %%
 

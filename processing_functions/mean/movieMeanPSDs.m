@@ -17,7 +17,7 @@ function fullpaths_out = movieMeanPSDs(fullpaths, varargin)
     
     if(all(isfile(fullpaths_out)))
         if(options.skip)
-            disp("movieMeanPSDs: Output file exists. Skipping: "  + fullpaths_out(1))
+            displog("movieMeanPSDs: Output file exists. Skipping: "  + fullpaths_out(1))
             return;
         else
             warning("movieMeanPSDs: Output file exists. Deleting: "  + fullpaths_out(1));

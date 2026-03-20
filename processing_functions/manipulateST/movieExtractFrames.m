@@ -1,4 +1,4 @@
-function fullpath_out = movieExtractFrames(fullpath, frames_range, varargin)
+﻿function fullpath_out = movieExtractFrames(fullpath, frames_range, varargin)
     
     [basepath, basefilename, ext, postfix] = filenameSplit(fullpath, '_');
 
@@ -17,7 +17,7 @@ function fullpath_out = movieExtractFrames(fullpath, frames_range, varargin)
     
     if (isfile(fullpath_out))
         if(options.skip)
-            displog("movieExtractFrames: Output file exists. Skipping: " + fullpath_out)
+            displog("Output file exists. Skipping: " + fullpath_out)
             return;
         else
             warning("movieExtractFrames: Output file exists. Deleting: " + fullpath_out);
@@ -40,7 +40,7 @@ function fullpath_out = movieExtractFrames(fullpath, frames_range, varargin)
     end
     %%
     
-    displog("movieExtractFrames: reading movie")
+    displog("reading movie")
     [M, specs] = rw.h5readMovie(fullpath, ...
             'frames_num', frames_range(2) - frames_range(1) + 1, ...
             'frame_start', frames_range(1));
@@ -49,7 +49,7 @@ function fullpath_out = movieExtractFrames(fullpath, frames_range, varargin)
     specs.AddToHistory(functionCallStruct({'fullpath', 'frames_range', 'options'}));
     %%
 
-    displog("movieExtractFrames: saving")
+    displog("saving")
     rw.h5saveMovie( fullpath_out, M,  specs); 
     
 %     saveas(fig_trace, fullfile(options.processingdir, filename_out + "_traces.png"))

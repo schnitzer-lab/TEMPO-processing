@@ -1,4 +1,4 @@
-function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, varargin)
+﻿function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, varargin)
     
     [basepath, filename, ext, basefilename, channel, postfix] = ...
         filenameParts(fullpath_movie);
@@ -18,7 +18,7 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, 
 
     if (all(isfile(fullpath_out_all)))
         if(options.skip)
-            displog("movieExtractRegionTrace: All output files exist. Skipping: " + strjoin(fullpath_out_all, ', '))
+            displog("All output files exist. Skipping: " + strjoin(fullpath_out_all, ', '))
             return;
         else
             warning("movieExtractRegionTrace: Output files exist. Deleting: " + strjoin(fullpath_out_all, ', '));
@@ -39,7 +39,7 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, 
     end
     %%
     
-    displog("movieExtractRegionTrace: reading movie")
+    displog("reading movie")
     [M, specs] = rw.h5readMovie(fullpath_movie);
     m = squeeze(mean(M,[1,2], "omitnan"));
     %%
@@ -65,7 +65,7 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, 
         if(isfile(fullpath_out) && options.skip), continue; end       
     %%
 
-        displog("movieExtractRegionTrace: extracting trace " + postfix_new);
+        displog("extracting trace " + postfix_new);
 
         if(isstring(region_id) || ischar(region_id))
             region_id = options.regions_map(region_id);
@@ -88,7 +88,7 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, 
         %%
         
         if(options.plot)
-            displog("movieExtractRegionTrace: plotting")
+            displog("plotting")
             
             fig_traces = plt.getFigureByName("movieExtractRegionTrace: mean traces");
             plt.tracesComparison([m,m_reg], 'fps', specs.getFps(), 'fw', 0.25,...
@@ -97,7 +97,7 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, 
         end
         %%
         
-        displog("movieExtractRegionTrace: saving")
+        displog("saving")
         
         specs_out = copy(specs);
         specs_out.AddToHistory(functionCallStruct({'fullpath_movie','region_ids','options'}));

@@ -1,4 +1,4 @@
-
+﻿
 function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
 
     [basepath, basefilename, ext, postfix] = filenameSplit(fullpath, '_');
@@ -17,7 +17,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     
     if(isfile(filename_out))
         if(options.skip)
-            displog("movieMeanTraceSpectrogram: Output file exists. Skipping: "  + filename_out)
+            displog("Output file exists. Skipping: "  + filename_out)
             return;
         else
             warning("movieMeanTraceSpectrogram: Output file exists. Deleting first: " + filename_out);

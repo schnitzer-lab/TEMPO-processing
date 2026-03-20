@@ -1,4 +1,4 @@
-function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
+﻿function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     
     [basepath, basefilename, ext, postfix] = filenameSplit(fullpath_movie, '_');
 
@@ -18,7 +18,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     
     if (isfile(fullpath_out))
         if(options.skip)
-            displog("movieExpBaselineCorrection: Output file exists. Skipping: " + fullpath_out)
+            displog("Output file exists. Skipping: " + fullpath_out)
             return;
         else
             warning("movieExpBaselineCorrection: Output file exists. Deleting: " + fullpath_out);
@@ -27,12 +27,12 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     end
     %%
     
-    displog("movieExpBaselineCorrection: reading movie")
+    displog("reading movie")
     
     [Min, specs] = rw.h5readMovie(fullpath_movie);
     %%
     
-    displog("movieExpBaselineCorrection: fitting for the mean trace")
+    displog("fitting for the mean trace")
     ts = (1:size(Min, 3))';
     if(~isempty(specs.getMask()))
         m = squeeze(mean(Min.*specs.getMaskNaN(), [1,2], 'omitnan'));
@@ -68,7 +68,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     drawnow;
     %%
     
-    displog("movieExpBaselineCorrection: fitting for every pix");
+    displog("fitting for every pix");
     
     nx = size(Min, 1); ny = size(Min, 2);
     
@@ -145,7 +145,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     if(abs(a) > options.a_thresh), error('bad fit - fit asymmetry'); end
     %%
     
-    displog("movieExpBaselineCorrection: saving")
+    displog("saving")
     
     specs_out = copy(specs);
     specs_out.AddToHistory(functionCallStruct({'fullpath_movie', 'options'}));

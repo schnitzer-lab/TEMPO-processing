@@ -1,4 +1,4 @@
-function fullpaths_out = movieMeanTraces(fullpaths, varargin)
+﻿function fullpaths_out = movieMeanTraces(fullpaths, varargin)
 
     [basepath, filename, ext] = fileparts(fullpaths(1));
 
@@ -17,7 +17,7 @@ function fullpaths_out = movieMeanTraces(fullpaths, varargin)
     
     if(all(isfile(fullpaths_out)))
         if(options.skip)
-            displog("movieMeanTraces: Output file exists. Skipping: "  + fullpaths_out(1))
+            displog("Output file exists. Skipping: "  + fullpaths_out(1))
             return;
         else
             warning("movieMeanTraces: Output file exists. Deleting: "  + fullpaths_out(1));

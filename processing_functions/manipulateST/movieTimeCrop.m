@@ -1,4 +1,4 @@
-function fullpath_out = movieTimeCrop(fullpath_movie, valid_range, varargin)
+﻿function fullpath_out = movieTimeCrop(fullpath_movie, valid_range, varargin)
     
     options = defaultOptions();
     if(~isempty(varargin))
@@ -11,7 +11,7 @@ function fullpath_out = movieTimeCrop(fullpath_movie, valid_range, varargin)
 
     if (isfile(fullpath_out))
         if(options.skip)
-            displog("movieTimeCrop: Output file exists. Skipping: " + fullpath_out)
+            displog("Output file exists. Skipping: " + fullpath_out)
             return;
         else
             warning("movieTimeCrop: Output file exists. Deleting: " + fullpath_out);
@@ -19,14 +19,14 @@ function fullpath_out = movieTimeCrop(fullpath_movie, valid_range, varargin)
         end     
     end
     %%
-    displog("movieTimeCrop: reading movie")
+    displog("reading movie")
     [M_filtered, specs_out] = rw.h5readMovie(fullpath_movie);
 
     specs_out_new = copy(specs_out);
     specs_out_new.AddFrameDelay(valid_range(1)-1);
     specs_out_new.AddToHistory(functionCallStruct({'fullpath_movie', 'valid_range', 'options'}));
     
-    displog("movieTimeCrop: saving")
+    displog("saving")
     rw.h5saveMovie(fullpath_out, M_filtered(:,:,valid_range(1):valid_range(2)), specs_out_new);
 end
 

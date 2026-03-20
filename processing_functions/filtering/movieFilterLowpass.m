@@ -20,7 +20,7 @@ function fullpath_out = movieFilterLowpass(fullpath, f0, wp, varargin)
     filterpath = fullfile(options.filtersdir, ['/filter_', paramssummary_complete,  '.csv']);
     %%
 
-    displog("movieFilterLowpass: computing time-domain filter")
+    displog("computing time-domain filter")
 
     if( ~isfile(filterpath) ) 
         if(~isfolder(options.filtersdir)), mkdir(options.filtersdir); end
@@ -36,7 +36,7 @@ function fullpath_out = movieFilterLowpass(fullpath, f0, wp, varargin)
     drawnow();
     %%
     
-    displog("movieFilterLowpass: convolving with the filter")
+    displog("convolving with the filter")
 
     options_conv = struct('diagnosticdir', options.diagnosticdir, ...
             'remove_mean', true, 'shape', 'valid',...

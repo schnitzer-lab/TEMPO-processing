@@ -1,4 +1,4 @@
-function fullpath_out = ...
+﻿function fullpath_out = ...
     movieFilterHighpass(fullpath, f0, wp, varargin)
 
     [basepath, basefilename, ext, postfix] = filenameSplit(fullpath, '_');
@@ -21,7 +21,7 @@ function fullpath_out = ...
     filterpath = fullfile(options.filtersdir, ['/filter_', paramssummary_complete,  '.csv']);  
     %%
 
-    displog("movieFilterHighpass: computing time-domain filter")
+    displog("computing time-domain filter")
 
     if( ~isfile(filterpath) ) 
         if(~isfolder(options.filtersdir)), mkdir(options.filtersdir); end
@@ -37,7 +37,7 @@ function fullpath_out = ...
     drawnow();
     %%
 
-    displog("movieFilterHighpass: convolving with the filter")
+    displog("convolving with the filter")
 
     options_conv = struct('diagnosticdir', options.diagnosticdir, ...
             'remove_mean', true, 'shape', 'valid',...

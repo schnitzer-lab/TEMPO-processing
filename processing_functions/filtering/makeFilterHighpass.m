@@ -1,11 +1,11 @@
-function [conv_trans] = makeFilterHighpass(filterpath, f0, wp, varargin)
+﻿function [conv_trans] = makeFilterHighpass(filterpath, f0, wp, varargin)
 
     options = DefaultOptions(wp);
     if(~isempty(varargin))
         options=getOptions(options,varargin);
     end
     
-    if(options.verbose), displog("makeFilterHighpass: Creating filter"); end
+    if(options.verbose), displog("Creating filter"); end
     
     designSpecs = fdesign.highpass('Fst,Fp,Ast,Ap', ...
            (f0-wp)*2/options.fps, (f0)*2/options.fps, ...
@@ -21,7 +21,7 @@ function [conv_trans] = makeFilterHighpass(filterpath, f0, wp, varargin)
 %     conv_trans = impz(H);
 %     conv_trans = [zeros(length(conv_trans)-1,1); conv_trans]
     
-    if(options.verbose), displog("makeFilterBandpass: Filter created"); end
+    if(options.verbose), displog("Filter created"); end
     
     writematrix(conv_trans, filterpath);
     

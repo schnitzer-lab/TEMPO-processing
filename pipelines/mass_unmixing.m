@@ -17,12 +17,10 @@ recording_names = [...
      readlines("N:\GEVI_Wave\filelists\filelis_anesthesia_transition_asap3.txt"); ...
      readlines("N:\GEVI_Wave\filelists\filelist_sleep_asap3.txt"); ...
      readlines("N:\GEVI_Wave\filelists\filelist_sleep_asap5.txt")]; 
-recording_names = flip(recording_names);
+% recording_names = flip(recording_names);
 %%
 
 basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\";
-basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-% basefolder_output = "N:\GEVI_Wave\Analysis\"; % "N:\GEVI_Wave\Analysis\";    
 %%
 
 skip_if_final_exists = true;

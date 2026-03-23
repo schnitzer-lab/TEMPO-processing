@@ -34,11 +34,12 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     
     displog("fitting for the mean trace")
     ts = (1:size(Min, 3))';
+
+    nan_mask = ones(size(Min,[1,2]));
     if(~isempty(specs.getMask()))
-        m = squeeze(mean(Min.*specs.getMaskNaN(), [1,2], 'omitnan'));
-    else
-        m = squeeze(mean(Min, [1,2], 'omitnan'));
+        nan_mask = nan_mask.*specs.getMaskNaN();
     end
+    m = squeeze(mean(Min.*nan_mask, [1,2], 'omitnan')); 
     %%
 
     baseline = @(a, b1, c1, b2, c2, x) (a + c1.*exp(-x./b1) + c2.*exp(-x./b2));  
@@ -128,8 +129,8 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     end
     %%
 
-    mout = squeeze(mean(Mout, [1,2], 'omitnan'));
-    bl = squeeze(mean(Mbl, [1,2], 'omitnan'));
+    mout = squeeze(mean(Mout.*nan_mask, [1,2], 'omitnan'));
+    bl = squeeze(mean(Mbl.*nan_mask, [1,2], 'omitnan'));
     
     r2 = norm(m-bl) / norm(m);
     a =  median(m-bl) / std(m-bl);

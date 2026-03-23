@@ -87,6 +87,12 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_in, varargin)
         M(:,:,is_outlier) = NaN;
         M = imputeNaNT(M);
         m_out = squeeze(mean(M,[1,2],'omitnan'));
+
+        displog("plotting")
+        fig_traces = plt.getFigureByName("movieRemoveOutlierFrames: mean traces"); clf;
+        plt.tracesComparison([m,m_out],...
+            'fps', specs.getFps(), 'nomean', false, ...
+            'fw', 0.2, 'f0', specs.getFrequencyRange(1));
         %%
     else
         displog("no outliers found");
@@ -96,20 +102,16 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_in, varargin)
             copyfile(fullpath_in, fullpath_out);
         end
 
-        m_out = m;
-%         return;
+        displog("plotting")
+        fig_traces = plt.getFigureByName("movieRemoveOutlierFrames: mean traces"); clf;
+        plt.tracesComparison(m,...
+            'fps', specs.getFps(), 'nomean', false, ...
+            'fw', 0.2, 'f0', specs.getFrequencyRange(1));
+        %%
     end
 
     %%
-
-    displog("plotting")
     
-    fig_traces = plt.getFigureByName("movieRemoveOutlierFrames: mean traces"); clf;
-    plt.tracesComparison([m,m_out],...
-        'fps', specs.getFps(), 'nomean', false, 'fw', 0.2, 'f0', specs.getFrequencyRange(1));
-    
-    %%
-
     subplot(2,1,1);
     hold on;
     plot((0:(length(m_movmean)-1))/specs.getFps(), m_movmean+options.n_sd*m_std, '--', 'color', 'black')
@@ -126,6 +128,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_in, varargin)
         'interpreter', 'None', 'FontSize', 12)
     drawnow();
     %%
+    
     displog("saving")
 
     if(n_outliers > 0)         

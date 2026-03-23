@@ -17,7 +17,7 @@
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 % basefolder_output = "F:\GEVI_Wave\Preprocessed\";
 % 
-% frame_range = [1,Inf];
+% frame_range = [50,Inf];
 % shifts0 = [0,0]; %[0,0.5]; % mm, between R and G channel due to cameras misalignment
 % 
 % maxRAM = 0.1;
@@ -32,12 +32,11 @@ folder_output = fullfile(basefolder_output, recording_name);
 file1 = dir(fullfile(folder_converted, "/*" + postfix_in1 + ".h5"));
 file2 = dir(fullfile(folder_converted, "/*" + postfix_in2 + ".h5"));
 
-if(isempty(file1)) 
-    error("Preprocessing:fileNotFound", "Green channel .h5 file not found")
-elseif isempty(file2)
-    error("Preprocessing:fileNotFound", "Red channel .h5 file not found")
-end
-%%               
+if(isempty(file1) || isempty(file2)) 
+    error("Preprocessing:fileNotFound", "input .h5 file not found")
+elseif (length(file1) > 1 || length(file2) > 1)
+    error("Preprocessing:tooManyFiles", "too many input .h5 files found")
+end             
 
 fullpathGconv = fullfile(file1.folder, file1.name);
 fullpathRconv = fullfile(file2.folder, file2.name);

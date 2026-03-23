@@ -78,7 +78,7 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_in, fullpaths_compone
 
     specs_new = specs;
     specs_new.AddToHistory(functionCallStruct(...
-        {'fullpath_movie', 'fullpaths_components', 'options'}));
+        {'fullpath_in', 'fullpaths_components', 'options'}));
     specs_new.AddFrameDelay(start_frame - 1);
 
     rw.h5saveMovie(fullpath_out, Mout(:,:,keep_frames), specs_new);

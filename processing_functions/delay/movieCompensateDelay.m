@@ -45,7 +45,7 @@ function [fullpath_out,lag] = ...
         %%
         
         fig_phase = plt.getFigureByName("movieCompensateDelay: phase");
-        ind = round(mean(find(relative_phase_filtered)));
+        ind = find(~isnan(relative_phase_filtered), 1, 'first');
         plot(fs, relative_phase_full-relative_phase_full(ind)+relative_phase_filtered(ind));
         hold on
         plot(fs, relative_phase_filtered, 'black');

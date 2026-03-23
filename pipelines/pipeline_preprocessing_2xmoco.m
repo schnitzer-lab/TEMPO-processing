@@ -14,8 +14,8 @@
 % postfix_in2 = "cR_bin8";
 % 
 % basefolder_converted = "O:\GEVI_Wave\Preprocessed\";
+% basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\";
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-% basefolder_output = "F:\GEVI_Wave\Preprocessed\";
 % 
 % frame_range = [50,Inf];
 % shifts0 = [0,0]; %[0,0.5]; % mm, between R and G channel due to cameras misalignment

@@ -1,4 +1,4 @@
-% 
+
 clear; 
 close all;
 warning on;
@@ -8,12 +8,11 @@ diary(fullfile("N:\GEVI_Wave\Logs", ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 
-
 % recording_names = ...
-%     pathspattern("Z:\GEVI_Wave\Raw\", "*\*\*\meas*", true)';
-
-recording_names = ["Anesthesia\mv3101\20251210\meas"+compose("%02d", 0:17)'; ...
-                   "Anesthesia\mv3102\20251210\meas" + compose("%02d", 0:17)'];
+%     pathspattern("F:\GEVI_Wave\Preprocessed\", ...
+%                  "Type\m0000\2003030*\meas*", true)';
+% readlines("N:\GEVI_Wave\filelists\filelist_type.txt")
+recording_names = ["Type\m0000\20030303\meas" + compose("%02d", 0:10)';];
 %%
 
 basefolder_raw = "B:\GEVI_Wave\Raw";
@@ -32,19 +31,20 @@ for i_f = 1:length(recording_names)
     recording_name = recording_names(i_f);
     displog(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
     %%
-    try
-        pipeline_DCIMGtoH5
+    try        
+
+        pipeline_DCIMGtoH5 
         %%
     catch ME
         MEs{length(MEs)+1} = {recording_name, ME};
         if(~contains(ME.message, "Final file exists, ending"))
             warning("Failed " + recording_name + ": "+ ME.message);
-            recording_ids_error = [recording_ids_error, i_f];            
+            recording_ids_error = [recording_ids_error, i_f];
         else
             displog("Skipped " + recording_name+": "+ ME.message)
             recording_ids_skipped = [recording_ids_skipped, i_f];
         end
-    end   
+    end
 end
 %%
 

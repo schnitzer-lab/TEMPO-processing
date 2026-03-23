@@ -8,19 +8,17 @@ diary(fullfile("N:\GEVI_Wave\Logs", ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 
-recording_names = ...
-    pathspattern("B:\GEVI_Wave\Raw\", ...
-                 "Spontaneous\*\*\meas*", true)';
-recording_names = [recording_names1; recording_names2];
-% recording_names = ["Anesthesia\mv3101\20251210\meas"+compose("%02d", 0:17)'; ...
-%                    "Anesthesia\mv3102\20251210\meas" + compose("%02d", 0:17)'];
+% recording_names = ...
+%     pathspattern("F:\GEVI_Wave\Preprocessed\", ...
+%                  "Type\m0000\2003030*\meas*", true)';
+% readlines("N:\GEVI_Wave\filelists\filelist_type.txt")
+recording_names = ["Type\m0000\20030303\meas" + compose("%02d", 0:10)';];
 %% 
 
 basefolder_raw = "B:\GEVI_Wave\Raw"; %"\\VoltageRaw\DCIMG\GEVI_Wave\Raw\"; %"R:\GEVI_Wave\Raw\";% "M:\Raw Data Files\Raw\"; %%
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\"; %"S:\GEVI_Wave\Preprocessed\";
-basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\"; 
-basefolder_analysis = "N:\GEVI_Wave\Analysis\";
+basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 
 skip_if_final_exists = true;
 
@@ -46,25 +44,56 @@ frame_range = [50, inf];
 
 MEs = {}; recording_ids_error = []; recording_ids_skipped = [];
 for i_f = 1:length(recording_names)
-
+    
     recording_name = recording_names(i_f);
     displog(string(i_f)+"/"+string(length(recording_names))+": "+recording_name);
-    %%    
-    try    
-%         skip_if_final_exists = true;
-        pipeline_DCIMGtoH5
+    %%
+    try        
 
-        %         skip_if_final_exists = false;
+        pipeline_DCIMGtoH5 
+        %%
+    catch ME
+        MEs{length(MEs)+1} = {recording_name, ME};
+        if(~contains(ME.message, "Final file exists, ending"))
+            warning("Failed " + recording_name + ": "+ ME.message);
+            recording_ids_error = [recording_ids_error, i_f];   
+            continue;
+        else
+            displog("Skipped " + recording_name+": "+ ME.message)
+            recording_ids_skipped = [recording_ids_skipped, i_f];
+        end        
+    end 
+
+    %%
+    try        
+
+        % skip_if_final_exists = false;
         basefolder_output = basefolder_preprocessed; 
         postfix_in1 = "cG_bin"+string(binning);
         postfix_in2 = "cR_bin"+string(binning);
-        pipeline_preprocessing_2xmoco
+        
+        pipeline_preprocessing_2xmoco    
+        %%
+    catch ME
+        MEs{length(MEs)+1} = {recording_name, ME};
+        if(~contains(ME.message, "Final file exists, ending"))
+            warning("Failed " + recording_name + ": "+ ME.message);
+            recording_ids_error = [recording_ids_error, i_f];   
+            continue;
+        else
+            displog("Skipped " + recording_name+": "+ ME.message)
+            recording_ids_skipped = [recording_ids_skipped, i_f];
+        end        
+    end 
 
-        %         skip_if_final_exists = false;
-        basefolder_output = basefolder_analysis;  
+    %%
+    try        
+
+        % skip_if_final_exists = false;
         postfix_in1 = "cG_bin"+string(binning)+"*_mc";
         postfix_in2 = "cR_bin"+string(binning)+"*_mc_reg";
-        pipeline_unmixing
+
+        pipeline_unmixing       
         %%
     catch ME
         MEs{length(MEs)+1} = {recording_name, ME};
@@ -76,7 +105,6 @@ for i_f = 1:length(recording_names)
             recording_ids_skipped = [recording_ids_skipped, i_f];
         end
     end 
-    
 end
 %%
 

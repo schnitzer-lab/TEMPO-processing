@@ -47,6 +47,10 @@ function [fullpath_out, existed]=movieConvolutionPerPixelExt(fullpath_movie,...
             {'fullpath_movie', 'fullpath_filter', 'options'}));
     rw.h5saveMovieSpecs(fullpath_out, specs_out);  
     %%
+    
+    % need to be read before cropping
+    m_raw = rw.h5getMeanTrace(fullpath_movie);
+    m_filtered = rw.h5getMeanTrace(fullpath_out);
 
     conv_trans = readmatrix(fullpath_filter);
     offset = ceil(length(conv_trans)*0.5);
@@ -61,9 +65,6 @@ function [fullpath_out, existed]=movieConvolutionPerPixelExt(fullpath_movie,...
     %%
 
     fig_traces = plt.getFigureByName('movieConvolutionPerPixel: mean traces');
-
-    m_raw = rw.h5getMeanTrace(fullpath_movie);
-    m_filtered = rw.h5getMeanTrace(fullpath_out);
     
     plt.tracesComparison([m_raw, m_raw - m_filtered, m_filtered], ...
         'spacebysd', [0,0,3], 'fps', specs.getFps(), 'fw', 0.2, ...

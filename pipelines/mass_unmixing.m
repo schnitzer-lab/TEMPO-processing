@@ -36,8 +36,8 @@ crosstalk_matrix =  [[1, 0]; [0.080, 1]];
 % % 0.095 for old ace recordings seems good - based on m14 visual v1
 % % 0.141 (?) for older ASAP2s with different filters
 
-postfix_in1 = "cG_bin8_mc";
-postfix_in2 = "cR_bin8_mc_reg";
+postfix_in1 = "cG_bin8*_mc";
+postfix_in2 = "cR_bin8*_mc_reg";
 %%
 
 MEs = {}; recording_ids_error = []; recording_ids_skipped = [];
@@ -50,10 +50,10 @@ for i_f = 1:length(recording_names)
         pipeline_unmixing
         %%
     catch ME
-        MEs{length(MEs)+1} = {recording_name, ME};
         if(~contains(ME.message, "Final file exists, ending"))
             warning("Failed " + recording_name + ": "+ ME.message);
-            recording_ids_error = [recording_ids_error, i_f];            
+            recording_ids_error = [recording_ids_error, i_f]; 
+            MEs{length(MEs)+1} = {recording_name, ME};           
         else
             displog("Skipped " + recording_name+": "+ ME.message)
             recording_ids_skipped = [recording_ids_skipped, i_f];

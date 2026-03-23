@@ -8,21 +8,16 @@ diary(fullfile("N:\GEVI_Wave\Logs", ...
         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 
+
 % recording_names = ...
 %     pathspattern("F:\GEVI_Wave\Preprocessed\", ...
-%                  "Visual\mv31*\20251120\meas*", true)';
-
-recording_names = [...
-     readlines("N:\GEVI_Wave\filelists\filelist_anesthesia_asap3.txt"); ...
-     readlines("N:\GEVI_Wave\filelists\filelis_anesthesia_transition_asap3.txt"); ...
-     readlines("N:\GEVI_Wave\filelists\filelist_sleep_asap3.txt"); ...
-     readlines("N:\GEVI_Wave\filelists\filelist_sleep_asap5.txt")]; 
-recording_names = flip(recording_names);
+%                  "Type\m0000\2003030*\meas*", true)';
+% readlines("N:\GEVI_Wave\filelists\filelist_type.txt")
+recording_names = ["Type\m0000\20030303\meas" + compose("%02d", 0:10)';];
 %%
 
 basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\";
-basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-% basefolder_output = "N:\GEVI_Wave\Analysis\"; % "N:\GEVI_Wave\Analysis\";    
+basefolder_processing = "T:\GEVI_Wave\Preprocessed\";  
 %%
 
 skip_if_final_exists = true;

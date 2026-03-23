@@ -1,7 +1,6 @@
-﻿function fullpath_out = movieRemoveOutlierFrames(fullpath_movie, varargin)
+function fullpath_out = movieRemoveOutlierFrames(fullpath_in, varargin)
     
-    [basepath, filename, ext, basefilename, channel, postfix] = ...
-        filenameParts(fullpath_movie);
+    [basepath, filename, ext] = fileparts(fullpath_in);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -14,8 +13,8 @@
     if (~isfolder(options.outdir)), mkdir(options.outdir); end
     if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
 
-    filename_out = basefilename+channel+postfix+postfix_new;
-    fullpath_out = fullfile(options.outdir, filename_out + ext);
+    filename_out = filename+postfix_new;
+    fullpath_out = fullfile(options.outdir, filename_out+ext);
     
     if (isfile(fullpath_out))
         if(options.skip)
@@ -29,12 +28,10 @@
     %%
     
     displog("reading movie")
-    specs = rw.h5readMovieSpecs(fullpath_movie);
+    specs = rw.h5readMovieSpecs(fullpath_in);
 
-    fullpaths_mean = movieMeanTraces(fullpath_movie);
+    fullpaths_mean = movieMeanTraces(fullpath_in);
     m = rw.h5getMeanTrace(fullpaths_mean);
-%     [M, specs] = rw.h5readMovie(fullpath_movie);
-%     m = squeeze(mean(M,[1,2],'omitnan'));
     %%
     
     displog("finding outliers")
@@ -71,7 +68,7 @@
     if(n_outliers > 0)     
         %%
         displog("reading movie")
-        [M, specs] = rw.h5readMovie(fullpath_movie);
+        [M, specs] = rw.h5readMovie(fullpath_in);
 
         displog("correcting outliers")
         M(:,:,is_outlier) = NaN;
@@ -79,8 +76,13 @@
         m_out = squeeze(mean(M,[1,2],'omitnan'));
         %%
     else
-        displog("no outliers found, returning");
-        fullpath_out = fullpath_movie;
+        displog("no outliers found");
+        
+        fullpath_out = fullfile(options.outdir, filename+ext);
+        if(~strcmp(fullpath_in, fullpath_out))
+            copyfile(fullpath_in, fullpath_out);
+        end
+
         m_out = m;
 %         return;
     end

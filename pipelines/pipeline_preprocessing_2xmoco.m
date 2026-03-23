@@ -26,7 +26,7 @@
 
 folder_converted = fullfile(basefolder_converted, recording_name);
 folder_processing = fullfile(basefolder_processing, recording_name);
-folder_output = fullfile(basefolder_output, recording_name);
+folder_preprocessed = fullfile(basefolder_preprocessed, recording_name);
 %%
 
 file1 = dir(fullfile(folder_converted, "/*" + postfix_in1 + ".h5"));
@@ -46,7 +46,7 @@ fullpathRin = fullfile(folder_processing, file2.name);
 %%
 
 [~, filename, ~] = fileparts(fullpathRconv);
-final_file = fullfile(folder_output, filename + "*_mc_reg.h5");
+final_file = fullfile(folder_preprocessed, filename + "*_mc_reg.h5");
 result = dir(final_file);
 if(~isempty(result)) 
     if(skip_if_final_exists)
@@ -98,18 +98,18 @@ movieMakeMask(h5path1_mc); movieMakeMask(h5path2_reg);
 if(~strcmp(h5path2_mc, h5path2_reg)), delete(h5path2_mc); end
 if(~strcmp(fullpathGex, fullpathGin)), delete(fullpathGex); end
 if(~strcmp(fullpathRex, fullpathRin)), delete(fullpathRex); end
-if(~strcmp(fullpathGex, fullpathGconv)), delete(fullpathGin); end
-if(~strcmp(fullpathRex, fullpathRconv)), delete(fullpathRin); end
+if(~strcmp(fullpathGin, fullpathGconv)), delete(fullpathGin); end
+if(~strcmp(fullpathRin, fullpathRconv)), delete(fullpathRin); end
 %%
 
-if(~strcmp(folder_output, folder_processing))
-    displog("moving preprocessed data to: "+folder_output)
-    if(~isfolder(folder_output)), mkdir(folder_output); end
+if(~strcmp(folder_preprocessed, folder_processing))
+    displog("moving preprocessed data to: "+folder_preprocessed)
+    if(~isfolder(folder_preprocessed)), mkdir(folder_preprocessed); end
     allfiles = dir(folder_processing);
-    cellfun(@(n) movefile(fullfile(folder_processing, n),  fullfile(folder_output, n)), ...
+    cellfun(@(n) movefile(fullfile(folder_processing, n),  fullfile(folder_preprocessed, n)), ...
         {allfiles(3:end).name})
 end
 %%
 
 currentfile = mfilename('fullpath') + ".m"; 
-copyfile(currentfile, folder_output)
+copyfile(currentfile, folder_preprocessed)

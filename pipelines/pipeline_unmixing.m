@@ -21,7 +21,6 @@
 % 
 % basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\";
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
-% basefolder_output = "N:\GEVI_Wave\Analysis\";    
 % 
 % crosstalk_matrix =  [[1, 0]; [0.080, 1]]; 
 % % 0.080 for ASAP3
@@ -38,7 +37,6 @@ else, postfix_out1 = "_nohemoS_dFF"; end
 
 folder_preprocessed = fullfile(basefolder_preprocessed, recording_name);
 folder_processing = fullfile(basefolder_processing, recording_name);
-% folder_output = fullfile(basefolder_output, recording_name);
 %%
 % look for input files in the preprocessed location
 
@@ -212,8 +210,8 @@ if(~strcmp(fullpathRdl, fullpathRor)), delete(fullpathRdl); end
 if(~strcmp(fullpathGdx, fullpathGdl)), delete(fullpathGdx); end
 if(~strcmp(fullpathRdx, fullpathRdl)), delete(fullpathRdx); end
 
-if(~strcmp(fullpathGbl, fullpathGdx)), delete(fullpathGor); end
-if(~strcmp(fullpathRbl, fullpathRdx)), delete(fullpathRor); end
+if(~strcmp(fullpathGbl, fullpathGdx)), delete(fullpathGbl); end
+if(~strcmp(fullpathRbl, fullpathRdx)), delete(fullpathRbl); end
 
 % if(~strcmp(fullpathGbl, fullpathGhp)), delete(fullpathGhp); end
 % if(~strcmp(fullpathRbl, fullpathRhp)), delete(fullpathRhp); end

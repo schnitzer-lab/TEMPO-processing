@@ -18,6 +18,10 @@ local_*
 # no matlab autosave files
 *.asv
 
+# no claude files
+CLAUDE*
+
+# no pre-generated filters
 analysis/convolution_filters/
 
 # no extra files from c project:

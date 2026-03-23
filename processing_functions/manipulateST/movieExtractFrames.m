@@ -1,4 +1,4 @@
-﻿function fullpath_out = movieExtractFrames(fullpath, frames_range, varargin)
+function fullpath_out = movieExtractFrames(fullpath, frames_range, varargin)
     
     [basepath, basefilename, ext, postfix] = filenameSplit(fullpath, '_');
 
@@ -37,6 +37,10 @@
     end
     if(frames_range(2) <= 0)
        frames_range(2) =  nframes + frames_range(2);
+    end
+    if(frames_range(1) == 1 && frames_range(2) == nframes)
+        fullpath_out = fullpath;
+        return;
     end
     %%
     

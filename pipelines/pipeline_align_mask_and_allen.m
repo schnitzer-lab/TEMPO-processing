@@ -1,5 +1,5 @@
         
-basepath = "N:\GEVI_Wave\Analysis\Visual\mv3104cy\20251120\meas00\";
+basepath = "N:\GEVI_Wave\Analysis\Visual\m48\20210824\meas00\";
 postfix = "cG_unmixed*_dFF"; 
 
 file = dir(fullfile(basepath, "/*" +  postfix + ".h5"));
@@ -37,12 +37,10 @@ movieAddAllen(fullpath, fullfile(filepath, "alignment_images", name + "_allenMan
     fullfile(filepath, "alignment_images", name + "_allen.txt"), fullfile(allen_path, "allenmap.mat"))
 %%
 
-movieAddCustomOutlines(fullpath, 'frametype', 'std')
+% movieAddCustomOutlines(fullpath, 'frametype', 'std')
 %%
+files = dir(fullfile(basepath, "cR*.h5"));
 
-files = dir(fullfile(basepath, "cR*.h5")); %"T:\GEVI_Wave\Analysis\Visual\m200M\20230501\meas0*"
-% files = dir(fullfile('N:\GEVI_Wave\Analysis\Visual\cmm001mjr\20240423\*\', "*.h5")); %"T:\GEVI_Wave\Analysis\Visual\m200M\20230501\meas0*"
-    
 for i_f = 1:length(files)
    fullpath_copy = fullfile(files(i_f).folder, files(i_f).name);
    displog(fullpath_copy)

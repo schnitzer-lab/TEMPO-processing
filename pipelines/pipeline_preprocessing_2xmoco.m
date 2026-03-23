@@ -104,7 +104,7 @@ if(~strcmp(fullpathRex, fullpathRconv)), delete(fullpathRin); end
 
 if(~strcmp(folder_output, folder_processing))
     displog("moving preprocessed data to: "+folder_output)
-    if(~isdir(folder_output)), mkdir(folder_output); end
+    if(~isfolder(folder_output)), mkdir(folder_output); end
     allfiles = dir(folder_processing);
     cellfun(@(n) movefile(fullfile(folder_processing, n),  fullfile(folder_output, n)), ...
         {allfiles(3:end).name})

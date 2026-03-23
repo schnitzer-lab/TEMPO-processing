@@ -1,7 +1,7 @@
 function  movieAddAllen(fullpath_movie, fullpath_allen, ...
     allen_points_path, allenmap_path, varargin)
     
-    [basepath, filename, ~] = fileparts(fullpath_movie, '_');
+    [basepath, filename, ~] = fileparts(fullpath_movie);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))

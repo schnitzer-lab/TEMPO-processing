@@ -29,9 +29,11 @@
             specs_mov.mouse_id() + "_c" + specs_mov.channel_id + "*.h5"));
 
         if (length(files) > 1)
-            error("more than one reference for the mouse")
+            error("more than one reference for the mouse " + ...
+                specs_mov.mouse_id() + " in " + options.folder_ref)
         elseif(length(files) < 1)
-            error("no reference for the mouse " + specs_mov.mouse_id())
+            error("no reference for the mouse " + ...
+                specs_mov.mouse_id() + " in " + options.folder_ref)
         end
         fullpath_movie_ref = fullfile(files(1).folder, files(1).name);
     end
@@ -272,7 +274,7 @@ function [options,p] = parseInputs(basepath, varargin)
 
     p.addParameter('skip', true, @(x) (x==true)|(x==false));
     
-    p.addParameter('folder_ref', "P:\GEVI_Wave\MiceAlignment\", @(s) isstring(s)|ischar(s));
+    p.addParameter('folder_ref', "N:\GEVI_Wave\MiceAlignment\", @(s) isstring(s)|ischar(s));
 
     p.parse(varargin{:});
     options = p.Results;

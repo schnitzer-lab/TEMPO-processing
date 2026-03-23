@@ -1,7 +1,7 @@
-﻿
+
 function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
 
-    [basepath, basefilename, ext, postfix] = filenameSplit(fullpath, '_');
+    [basepath, filename, ext] = fileparts(fullpath);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -10,7 +10,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
 
     if (~isfolder(options.processingdir)), mkdir(options.processingdir); end
     
-    basepath_out = basefilename + postfix+options.postfix_new + ...
+    basepath_out = filename + options.postfix_new + ...
         "_tw" + string(options.timewindow) + "fw" + string(options.fw);
 %     if(~isempty(options.bgmethod)) basepath_out = basepath_out+string(options.bgmethod); end
     filename_out = fullfile(options.processingdir, basepath_out + ".h5");
@@ -69,7 +69,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     ts_trace = ((0:(length(m)-1)) + (specs.timeorigin-1))'/specs.getFps();
     options_spectrogram = struct('q', [0.05, 0.999], ...
         'trace', m, 'trace_ts', ts_trace, ...
-        'title', [basepath, basefilename + postfix + ...
+        'title', [basepath, filename + ...
             " (dt=" +  num2str(options.timewindow) + ...
             "s, df=" + num2str(options.fw) + "Hz)"]);
     if(options.meanspectra)

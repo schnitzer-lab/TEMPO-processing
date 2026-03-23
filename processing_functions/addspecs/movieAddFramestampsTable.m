@@ -1,6 +1,6 @@
 function fullpath_movie = movieAddFramestampsTable(fullpath_movie, varargin)
     
-    [basepath, basefilename, ext, postfix] = filenameSplit(fullpath_movie, '_');
+    [basepath, ~, ~] = fileparts(fullpath_movie);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -35,7 +35,7 @@ function fullpath_movie = movieAddFramestampsTable(fullpath_movie, varargin)
 end
 %%
 
-function options = defaultOptions(basepath)
+function options = defaultOptions()
 %     options = [];
     options.skip = true;
 end

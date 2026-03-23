@@ -1,6 +1,6 @@
-﻿function fullpath_out = movieDFF(fullpath_movie, varargin)
+function fullpath_out = movieDFF(fullpath_movie, varargin)
     
-    [basepath, basefilename, ext, postfix] = filenameSplit(fullpath_movie, '_');
+    [~, filename, ext] = fileparts(fullpath_movie);
 
     options = defaultOptions(fullpath_movie);
     if(~isempty(varargin))
@@ -10,10 +10,10 @@
     postfix_new = "_dFF";
     %%
     
-    if (~isfolder(options.outdir)) mkdir(options.outdir); end
-    if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
+    if (~isfolder(options.outdir)), mkdir(options.outdir); end
+    if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
 
-    filename_out = basefilename + postfix + postfix_new;
+    filename_out = filename + postfix_new;
     fullpath_out = fullfile(options.outdir, filename_out + ext);
     
     if (isfile(fullpath_out))
@@ -117,7 +117,7 @@ end
 
 function options = defaultOptions(fullpath)
 
-    [basepath, ~, ~, ~] = filenameSplit(fullpath, '_');
+    [basepath, ~, ~] = fileparts(fullpath);
     options.fullpathM0 = fullpath;
 
     options.diagnosticdir = fullfile(basepath,'diagnostic', 'movieDFF');

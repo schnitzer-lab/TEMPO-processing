@@ -1,7 +1,6 @@
-﻿function fullpaths_out = movieSavePreviewVideos(fullpath_movie, varargin)
+function fullpaths_out = movieSavePreviewVideos(fullpath_movie, varargin)
     
-    [basepath, filename, ~, ~] = ...
-        filenameSplit(fullpath_movie);
+    [basepath, filename, ~] =  fileparts(fullpath_movie);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -9,9 +8,9 @@
     end
     %%
     
-    if (~isfolder(options.outdir)) mkdir(options.outdir); end
+    if (~isfolder(options.outdir)), mkdir(options.outdir); end
 
-    if(~iscell(options.ranges)) options.ranges = {options.ranges}; end
+    if(~iscell(options.ranges)), options.ranges = {options.ranges}; end
     if(isempty(options.postfixes)) 
         if(isempty(options.ranges))
             options.postfixes = ["_begin", "_end"]; 

@@ -1,6 +1,6 @@
-﻿function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
+function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     
-    [basepath, basefilename, ext, postfix] = filenameSplit(fullpath_movie, '_');
+    [basepath, filename, ext] = fileparts(fullpath_movie);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -13,7 +13,7 @@
     if (~isfolder(options.outdir)), mkdir(options.outdir); end
     if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
 
-    filename_out = basefilename + postfix + postfix_new;
+    filename_out = filename + postfix_new;
     fullpath_out = fullfile(options.outdir, filename_out + ext);
     
     if (isfile(fullpath_out))

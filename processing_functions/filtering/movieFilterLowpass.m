@@ -1,6 +1,6 @@
-﻿function fullpath_out = movieFilterBandpass(fullpath, f0, wp, varargin)
+function fullpath_out = movieFilterLowpass(fullpath, f0, wp, varargin)
 
-    [basepath, basefilename, ext, postfix] = filenameSplit(fullpath, '_');
+    [basepath, ~, ~] = fileparts(fullpath);
     
     options = defaultOptions(basepath, wp);
     if(~isempty(varargin))

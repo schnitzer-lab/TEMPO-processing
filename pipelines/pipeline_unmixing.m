@@ -28,7 +28,6 @@
 % % 0.165 for ASAP7y
 % % 0.095 for old ace recordings seems good - based on m14 visual v1
 % % 0.141 (?) for older ASAP2s with different filters
-% frame_range = [50, inf];
 % %%
 
 % postfixes for the final files in the output location
@@ -46,19 +45,17 @@ folder_processing = fullfile(basefolder_processing, recording_name);
 file1 = dir(fullfile(folder_preprocessed, "/*" + postfix_in1 + ".h5"));
 file2 = dir(fullfile(folder_preprocessed, "/*" + postfix_in2 + ".h5"));
 
-if(isempty(file1)) 
-    error("Unmixing:fileNotFound", "Green channel .h5 file not found")
-elseif isempty(file2)
-    error("Unmixing:fileNotFound", "Red channel .h5 file not found")
+if(isempty(file1) || isempty(file2)) 
+    error("Unmixing:fileNotFound", "input .h5 file not found")
+elseif (length(file1) > 1 || length(file2) > 1)
+    error("Unmixing:tooManyFiles", "too many input .h5 files found")
 end
 
 fullpathGpreproc = fullfile(file1.folder, file1.name);
 fullpathRpreproc = fullfile(file2.folder, file2.name);
 
-[~, ~, ext1, basefilename1, channel1, ~] = filenameParts(fullpathGpreproc);
-fullpathGin = fullfile(folder_processing, file1.name);%basefilename1+channel1+"_preprocessed"+ext1);
-[~, ~, ext2, basefilename2, channel2, ~] = filenameParts(fullpathRpreproc);
-fullpathRin = fullfile(folder_processing, file2.name);%basefilename2+channel2+"_preprocessed"+ext2);
+fullpathGin = fullfile(folder_processing, file1.name);
+fullpathRin = fullfile(folder_processing, file2.name);
 %%
 % form the final file name and check if it already exists
 
@@ -92,32 +89,30 @@ end
 
 % fullpaths_in_mean = movieMeanTraces([fullpathGin, fullpathRin], ...
 %     'processingdir', folder_processing);
-% fullpathGin = fullpaths_in_mean(1); fullpathRin = fullpaths_in_mean(2);
+% fullpathGin = fullpaths_in_mean(1); 
+% fullpathRin = fullpaths_in_mean(2);
 %%
-         
-fullpathGex = movieExtractFrames(fullpathGin, frame_range);
-fullpathRex = movieExtractFrames(fullpathRin, frame_range);
+
+fullpathGor = movieRemoveOutlierFrames(fullpathGin, 'n_sd', 20, 'dt', 20);
+fullpathRor = movieRemoveOutlierFrames(fullpathRin, 'n_sd', 20, 'dt', 20);
+% fullpathGor = fullpathGin;
+% fullpathRor = fullpathRin;
+
 %%
 
 % for movies where cameras weren't started synchroniously 
-fullpathRdl = movieCompensateDelay(fullpathRex, fullpathGex, ...
+fullpathGdl = fullpathGor;
+fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, ...
     'lag_estimator', 'phase', 'f0', 30,...
     'min_lag_frames', 0.75, 'max_lag_frames', 100); 
-fullpathGdl = fullpathGex;
 %%
     
 [fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, ...
     crosstalk_matrix, 'skip', true);
 %%
 
-% fullpathGor = movieRemoveOutlierFrames(fullpathGdx, 'n_sd', 20, 'dt', 20);
-% fullpathRor = movieRemoveOutlierFrames(fullpathRdx, 'n_sd', 20, 'dt', 20);
-fullpathGor = fullpathGdx;
-fullpathRor = fullpathRdx;
-%%
-
-fullpathGbl = movieExpBaselineCorrection(fullpathGor, 'divide', false); 
-fullpathRbl = movieExpBaselineCorrection(fullpathRor, 'divide', false);
+fullpathGbl = movieExpBaselineCorrection(fullpathGdx, 'divide', false); 
+fullpathRbl = movieExpBaselineCorrection(fullpathRdx, 'divide', false);
 % fullpathGbl = movieRemoveMean(fullpathGdx, 'skip', true); 
 % fullpathRbl = movieRemoveMean(fullpathRdx, 'skip', true);
 %%
@@ -162,6 +157,7 @@ else
     error("unknown mouse_state = " + mouse_state);
 end  
 
+% options_hfilt.fref = 7;
 options_hfilt = mergeStructs({options_hfilt,  ...
     struct('average_mm', 1, 'niter', 3, 'flim_max', 20, 'max_delay', 30*1e-3)});
 
@@ -207,20 +203,17 @@ fullpathGnhDFF_spec = movieMeanTraceSpectrogram(fullpathsDFF_mean(1), options_sp
 if(~strcmp(fullpathGin, fullpathGpreproc)), delete(fullpathGin); end
 if(~strcmp(fullpathRin, fullpathRpreproc)), delete(fullpathRin); end
 
-if(~strcmp(fullpathGex, fullpathGin)), delete(fullpathGex); end
-if(~strcmp(fullpathRex, fullpathRin)), delete(fullpathRex); end
+if(~strcmp(fullpathGor, fullpathGin)), delete(fullpathGor); end
+if(~strcmp(fullpathRor, fullpathRin)), delete(fullpathRor); end
 
-if(~strcmp(fullpathGdl, fullpathGex)), delete(fullpathGdl); end
-if(~strcmp(fullpathRdl, fullpathRex)), delete(fullpathRdl); end
+if(~strcmp(fullpathGdl, fullpathGor)), delete(fullpathGdl); end
+if(~strcmp(fullpathRdl, fullpathRor)), delete(fullpathRdl); end
 
 if(~strcmp(fullpathGdx, fullpathGdl)), delete(fullpathGdx); end
 if(~strcmp(fullpathRdx, fullpathRdl)), delete(fullpathRdx); end
 
-if(~strcmp(fullpathGor, fullpathGdx)), delete(fullpathGor); end
-if(~strcmp(fullpathRor, fullpathRdx)), delete(fullpathRor); end
-
-if(~strcmp(fullpathGbl, fullpathGor)), delete(fullpathGbl); end
-if(~strcmp(fullpathRbl, fullpathRor)), delete(fullpathRbl); end
+if(~strcmp(fullpathGbl, fullpathGdx)), delete(fullpathGor); end
+if(~strcmp(fullpathRbl, fullpathRdx)), delete(fullpathRor); end
 
 % if(~strcmp(fullpathGbl, fullpathGhp)), delete(fullpathGhp); end
 % if(~strcmp(fullpathRbl, fullpathRhp)), delete(fullpathRhp); end

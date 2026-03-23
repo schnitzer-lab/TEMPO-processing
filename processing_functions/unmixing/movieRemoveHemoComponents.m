@@ -1,6 +1,6 @@
-function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_components, varargin)
+function fullpath_out = movieRemoveHemoComponents(fullpath_in, fullpaths_components, varargin)
 
-    [basepath, basefilename, ext, postfix] = filenameSplit(fullpath_movie, '_');
+    [basepath, filename, ext] = fileparts(fullpath_in);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -15,7 +15,7 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_comp
     if (~isfolder(options.illustrdir)), mkdir(options.illustrdir); end 
     if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end  
 
-    filename_out = basefilename + postfix + options.postfix;
+    filename_out = filename + options.postfix;
     fullpath_out = fullfile(options.outdir, filename_out + ext);
     
     if (isfile(fullpath_out))
@@ -30,7 +30,7 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_comp
     %%
     
     displog("reading movie");
-    [M, specs] = rw.h5readMovie(fullpath_movie);
+    [M, specs] = rw.h5readMovie(fullpath_in);
     %%
     
     displog("removing components");
@@ -92,14 +92,6 @@ function fullpath_out = movieRemoveHemoComponents(fullpath_movie, fullpaths_comp
     displog("saving metrics")
     saveMetrics(M(:,:,keep_frames), Mout(:,:,keep_frames), specs, filename_out, options);
 end
-%%
-
-% fullpathout = fullfile(basepath, [basefilename + postfix + "_filthemo" + ".h5"]);
-% rw.h5saveMovie(fullpathout, M(:,:,keep_frames) - Mnew(:,:,keep_frames), specs_new);
-% 
-% % %%
-% fullpathout = fullfile(basepath, [basefilename + postfix + "_filtnohemorange" + ".h5"]);
-% rw.h5saveMovie(fullpathout, M(:,:,keep_frames), specs_new);
 %%
 
 function options = defaultOptions(basepath)

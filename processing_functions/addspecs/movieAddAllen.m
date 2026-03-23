@@ -1,7 +1,7 @@
 function  movieAddAllen(fullpath_movie, fullpath_allen, ...
     allen_points_path, allenmap_path, varargin)
     
-    [basepath, basefilename, ext, postfix] = filenameSplit(fullpath_movie, '_');
+    [basepath, filename, ~] = fileparts(fullpath_movie, '_');
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -10,7 +10,7 @@ function  movieAddAllen(fullpath_movie, fullpath_allen, ...
     
     %%
     
-    if (~isfolder(options.processingdir)) mkdir(options.processingdir); end
+    if (~isfolder(options.processingdir)), mkdir(options.processingdir); end
     %%
     
     fig_pts = plt.getFigureByName("movieAddAllen: points matching");
@@ -30,7 +30,7 @@ function  movieAddAllen(fullpath_movie, fullpath_allen, ...
 
         [row, column] = find(sqrt(sum(d.^2, 3)) < 0.2);
 
-        if(isempty(row)) continue; end
+        if(isempty(row)), continue; end
 
         points_aligned(i_p, :) = [median(column), median(row)]; 
         scatter(points_aligned(i_p, 1) , points_aligned(i_p, 2), 'g.');
@@ -80,12 +80,12 @@ function  movieAddAllen(fullpath_movie, fullpath_allen, ...
         hold off;
         
         %%
-        saveas(fig_algn, fullfile(options.processingdir, basefilename + postfix + "_aligned.png"))
-        saveas(fig_algn, fullfile(options.processingdir, basefilename + postfix + "_aligned.fig"))
+        saveas(fig_algn, fullfile(options.processingdir, filename + "_aligned.png"))
+        saveas(fig_algn, fullfile(options.processingdir, filename + "_aligned.fig"))
     end
     
-    saveas(fig_pts, fullfile(options.processingdir, basefilename + postfix + "_points.png"))
-    saveas(fig_pts, fullfile(options.processingdir, basefilename + postfix + "_points.fig"))
+    saveas(fig_pts, fullfile(options.processingdir, filename + "_points.png"))
+    saveas(fig_pts, fullfile(options.processingdir, filename + "_points.fig"))
 
 
 %     fig_trace = plt.getFigureByName("Traces comparison");

@@ -1,6 +1,6 @@
-﻿function maskfullpath_out = movieMakeMask(fullpath_g, varargin)
+function maskfullpath_out = movieMakeMask(fullpath_g, varargin)
     
-    [basepath, basefilename, ~, postfix] = filenameSplit(fullpath_g, '_');
+    [basepath, filename, ~] = fileparts(fullpath_g);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -10,10 +10,10 @@
     postfix_new = "_mask";
     %%
     
-    if (~isfolder(options.outdir)) mkdir(options.outdir); end
-    if (~isfolder(options.processingdir)) mkdir(options.processingdir); end
+    if (~isfolder(options.outdir)), mkdir(options.outdir); end
+    if (~isfolder(options.processingdir)), mkdir(options.processingdir); end
 
-    maskfilename_out = basefilename + postfix + postfix_new;
+    maskfilename_out = filename + postfix_new;
     maskfullpath_out = fullfile(options.outdir, maskfilename_out + options.ext);
     meanfullpath_out = fullfile(options.outdir, maskfilename_out + 'mean' + options.ext);
     

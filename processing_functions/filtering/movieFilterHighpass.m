@@ -1,7 +1,7 @@
-﻿function fullpath_out = ...
+function fullpath_out = ...
     movieFilterHighpass(fullpath, f0, wp, varargin)
 
-    [basepath, basefilename, ext, postfix] = filenameSplit(fullpath, '_');
+    [basepath, ~, ~] = fileparts(fullpath);
     
     options = defaultOptions(basepath);
     if(~isempty(varargin))

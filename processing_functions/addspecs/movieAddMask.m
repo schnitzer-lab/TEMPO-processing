@@ -1,21 +1,20 @@
-﻿function  movieAddMask(fullpath_movie, fullpath_mask, varargin)
+function  movieAddMask(fullpath_movie, fullpath_mask, varargin)
     
-    [basepath, basefilename, ext, postfix] = filenameSplit(fullpath_movie, '_');
+    [basepath, filename, ~] = fileparts(fullpath_movie);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
         options = getOptions(options, varargin);
-    end
-    
+    end    
     %%
     
-    if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
+    if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
     %%
     
     displog("reading movie and mask")
 
     mask_image = imread(fullpath_mask);
-    if(size(mask_image, 3) > 1) mask_image = rgb2gray(imread(fullpath_mask)); end
+    if(size(mask_image, 3) > 1), mask_image = rgb2gray(imread(fullpath_mask)); end
     mask = logical((mask_image));
     %%
 
@@ -46,10 +45,10 @@
         
         %%
         
-        saveas(fig_mask, fullfile(options.diagnosticdir, basefilename+postfix + "_masking.png"))
-        saveas(fig_mask, fullfile(options.diagnosticdir, basefilename+postfix + "_masking.fig"))
-        saveas(fig_trace, fullfile(options.diagnosticdir, basefilename+postfix + "_traces.png"))
-        saveas(fig_trace, fullfile(options.diagnosticdir, basefilename+postfix + "_traces.fig"))
+        saveas(fig_mask, fullfile(options.diagnosticdir, filename+ "_masking.png"))
+        saveas(fig_mask, fullfile(options.diagnosticdir, filename + "_masking.fig"))
+        saveas(fig_trace, fullfile(options.diagnosticdir, filename + "_traces.png"))
+        saveas(fig_trace, fullfile(options.diagnosticdir, filename + "_traces.fig"))
     end
     
  end

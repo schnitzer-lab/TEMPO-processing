@@ -17,6 +17,7 @@
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 % basefolder_output = "F:\GEVI_Wave\Preprocessed\";
 % 
+% frame_range = [50,Inf];
 % shifts0 = [0,0]; %[0,0.5]; % mm, between R and G channel due to cameras misalignment
 % 
 % maxRAM = 0.1;
@@ -31,23 +32,20 @@ folder_output = fullfile(basefolder_output, recording_name);
 file1 = dir(fullfile(folder_converted, "/*" + postfix_in1 + ".h5"));
 file2 = dir(fullfile(folder_converted, "/*" + postfix_in2 + ".h5"));
 
-if(isempty(file1)) 
-    error("Preprocessing:fileNotFound", "Green channel .h5 file not found")
-elseif isempty(file2)
-    error("Preprocessing:fileNotFound", "Red channel .h5 file not found")
-end
-%%               
+if(isempty(file1) || isempty(file2)) 
+    error("Preprocessing:fileNotFound", "input .h5 file not found")
+elseif (length(file1) > 1 || length(file2) > 1)
+    error("Preprocessing:tooManyFiles", "too many input .h5 files found")
+end             
 
 fullpathGconv = fullfile(file1.folder, file1.name);
 fullpathRconv = fullfile(file2.folder, file2.name);
 
-[~, ~, ext1, basefilename1, channel1, ~] = filenameParts(fullpathGconv);
 fullpathGin = fullfile(folder_processing, file1.name);
-[~, ~, ext2, basefilename2, channel2, ~] = filenameParts(fullpathRconv);
 fullpathRin = fullfile(folder_processing, file2.name);
 %%
 
-[filedir, filename, fileext, basefilename, channel, ~] = filenameParts(fullpathRconv);
+[~, filename, ~] = fileparts(fullpathRconv);
 final_file = fullfile(folder_output, filename + "*_mc_reg.h5");
 result = dir(final_file);
 if(~isempty(result)) 
@@ -77,12 +75,12 @@ movieMeanTraceSpectrogram(fullpaths_mean(1), 'frange', [2, Inf], 'timewindow', 5
     'processingdir', fullfile(folder_converted, "\processing\meanTraceSpectrogram\"));
 %%
 
-fullpathGin = movieExtractFrames(fullpathGin, [1, 63000], 'outdir', folder_processing);
-fullpathRin = movieExtractFrames(fullpathRin, [1, 63000], 'outdir', folder_processing);
+fullpathGex = movieExtractFrames(fullpathGin, frame_range);
+fullpathRex = movieExtractFrames(fullpathRin, frame_range);
 %%
 
-[h5path1_mc, shiftsfile1] = movieSimpleMoco(fullpathGin);
-[h5path2_mc, shiftsfile2] = movieSimpleMoco(fullpathRin);
+[h5path1_mc, shiftsfile1] = movieSimpleMoco(fullpathGex);
+[h5path2_mc, shiftsfile2] = movieSimpleMoco(fullpathRex);
 %%
 
 h5path2_reg = movieRegister(h5path2_mc, h5path1_mc, 'shifts0', shifts0,...
@@ -98,13 +96,15 @@ movieMakeMask(h5path1_mc); movieMakeMask(h5path2_reg);
 %%
 
 if(~strcmp(h5path2_mc, h5path2_reg)), delete(h5path2_mc); end
-if(~strcmp(fullpathGin, fullpathGconv)), delete(fullpathGin); end
-if(~strcmp(fullpathRin, fullpathRconv)), delete(fullpathRin); end
+if(~strcmp(fullpathGex, fullpathGin)), delete(fullpathGex); end
+if(~strcmp(fullpathRex, fullpathRin)), delete(fullpathRex); end
+if(~strcmp(fullpathGex, fullpathGconv)), delete(fullpathGin); end
+if(~strcmp(fullpathRex, fullpathRconv)), delete(fullpathRin); end
 %%
 
 if(~strcmp(folder_output, folder_processing))
     displog("moving preprocessed data to: "+folder_output)
-    if(~isdir(folder_output)), mkdir(folder_output); end
+    if(~isfolder(folder_output)), mkdir(folder_output); end
     allfiles = dir(folder_processing);
     cellfun(@(n) movefile(fullfile(folder_processing, n),  fullfile(folder_output, n)), ...
         {allfiles(3:end).name})

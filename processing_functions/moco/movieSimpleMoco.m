@@ -1,8 +1,8 @@
-﻿
+
 % 2x movie size ram
 function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, varargin)
     
-     [basepath, filename, ext, ~, ~, ~]  = filenameParts(fullpath_movie);
+     [basepath, filename, ext]  = fileparts(fullpath_movie);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))

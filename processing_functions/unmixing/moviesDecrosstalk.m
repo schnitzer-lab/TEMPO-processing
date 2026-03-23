@@ -1,22 +1,20 @@
-﻿function [fullpath_out_g, fullpath_out_r] =...
+function [fullpath_out_g, fullpath_out_r] =...
     moviesDecrosstalk(fullpath_movie_g, fullpath_movie_r, crosstalk, varargin)
     
-    [basepath, basefilename_g, ext, postfix_g] = filenameSplit(fullpath_movie_g, '_');
-    [~, basefilename_r, ~, postfix_r] = filenameSplit(fullpath_movie_r, '_');
+    [basepath, filename_g, ext] = fileparts(fullpath_movie_g);
+    [~, filename_r, ~] = fileparts(fullpath_movie_r);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
         options = getOptions(options, varargin);
     end
-
-    postfix_new = "_decross";
     %%
     
-    if (~isfolder(options.outdir)) mkdir(options.outdir); end
-    if (~isfolder(options.processingdir)) mkdir(options.processingdir); end
+    if (~isfolder(options.outdir)), mkdir(options.outdir); end
+    if (~isfolder(options.processingdir)), mkdir(options.processingdir); end
 
-    filename_out_g = basefilename_g + postfix_g + postfix_new;
-    filename_out_r = basefilename_r + postfix_r + postfix_new;
+    filename_out_g = filename_g + options.postfix_new;
+    filename_out_r = filename_r + options.postfix_new;
     
     fullpath_out_g = fullfile(options.outdir, filename_out_g + ext);
     fullpath_out_r = fullfile(options.outdir, filename_out_r + ext);
@@ -56,7 +54,7 @@
     fig_trace_g = plt.getFigureByName("moviesDecrosstalk: Traces comparison G");
     plt.tracesComparison([squeeze(mean(Mg, [1,2],'omitnan' )), squeeze(mean(Mout, [1,2],'omitnan'))], ...
         'fps', specs_g.getFps(), 'fw', 0.2, 'labels', ["spatially-averaged trace", "spatially-averaged trace after decrosstalking"]) 
-    sgtitle({basepath, basefilename_g + postfix_g}, 'interpreter', 'none', 'FontSize', 10); 
+    sgtitle({basepath, filename_g}, 'interpreter', 'none', 'FontSize', 10); 
     drawnow();
     %%
     
@@ -70,7 +68,7 @@
     plt.tracesComparison([squeeze(mean(Mr, [1,2],'omitnan' )), squeeze(mean(Mout, [1,2],'omitnan'))], ...
         'fps', specs_g.getFps(), 'fw', 0.2,...
         'labels', ["spatially-averaged trace", "spatially-averaged trace after decrosstalking"]) 
-    sgtitle({basepath, basefilename_r + postfix_r}, 'interpreter', 'none', 'FontSize', 10); 
+    sgtitle({basepath, filename_r}, 'interpreter', 'none', 'FontSize', 10); 
     drawnow();
     %%
     
@@ -87,6 +85,7 @@ end
 function options = defaultOptions(basepath)
  
     options.processingdir = fullfile(basepath, 'diagnostic', 'decrosstalk');
+    options.postfix_new = "_decross";
     options.outdir = basepath;
     options.skip = true;
 end

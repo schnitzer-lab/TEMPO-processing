@@ -12,7 +12,7 @@ diary(fullfile("N:\GEVI_Wave\Logs", ...
 %     rw.readlines("N:\GEVI_Wave\filelists\filelis_anesthesia_transition_asap3.txt");
 
 recording_names = ...
-    pathspattern("F:\GEVI_Wave\Preprocessed\", "\Iso*\*\**\meas*", true)';
+    pathspattern("F:\GEVI_Wave\Preprocessed\", "Anesthesia\m47\20220708\meas02*", true)';
 %%
 
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
@@ -20,11 +20,12 @@ basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 basefolder_output = "F:\GEVI_Wave\Preprocessed\";
 %%
 
-skip_if_final_exists  = false;
+skip_if_final_exists  = true;
 
 postfix_in1 = "cG_bin8";
 postfix_in2 = "cR_bin8";
-    
+
+frame_range = [50,Inf];
 shifts0 = [0, 0]; % [0, 0.5] mm, between R and G channel due to cameras misalignment
 
 maxRAM = 0.1;

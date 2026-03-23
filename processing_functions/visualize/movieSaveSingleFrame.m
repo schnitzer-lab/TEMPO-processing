@@ -1,6 +1,6 @@
-﻿function fullpath_out = movieSaveSingleFrame(fullpath_movie, varargin)
+function fullpath_out = movieSaveSingleFrame(fullpath_movie, varargin)
     
-    [basepath, basefilename, ~, postfix] = filenameSplit(fullpath_movie, '_');
+    [basepath, filename, ~] = fileparts(fullpath_movie);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -12,7 +12,7 @@
     
     options.format = string(options.format);
     if(isempty( options.fileroot_out))
-         options.fileroot_out = basefilename + postfix;
+         options.fileroot_out = filename;
     end
     
     filename_out = options.fileroot_out + postfix_new + options.format;

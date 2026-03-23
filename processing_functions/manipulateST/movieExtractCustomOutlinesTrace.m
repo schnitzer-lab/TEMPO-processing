@@ -1,7 +1,6 @@
-﻿function fullpath_out_all = movieExtractCustomOutlinesTrace(fullpath_movie, contour_ids, varargin)
+function fullpath_out_all = movieExtractCustomOutlinesTrace(fullpath_movie, contour_ids, varargin)
     
-    [basepath, filename, ext, basefilename, channel, postfix] = ...
-        filenameParts(fullpath_movie);
+    [basepath, filename, ext] = fileparts(fullpath_movie);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -13,7 +12,7 @@
     %%
     
     postfix_new_all = "_outline"+cellfun(@(s) strjoin(compose("%02d", s),'+'), contour_ids)+"trace";
-    filename_out_all = basefilename+channel+postfix+postfix_new_all;
+    filename_out_all = filename+postfix_new_all;
     fullpath_out_all = fullfile(options.outdir, filename_out_all + ext);
 
     if (all(isfile(fullpath_out_all)))

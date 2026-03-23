@@ -3,8 +3,7 @@ function [fullpath_out, existed]=movieConvolutionPerPixelExt(fullpath_movie,...
     fullpath_filter, exepath, varargin)
 %% 
 
-    [basepath, filename, ext, basefilename, channel, postfix] = ...
-        filenameParts(fullpath_movie);
+    [basepath, filename, ext] =  fileparts(fullpath_movie);
 
 %%
 
@@ -14,15 +13,15 @@ function [fullpath_out, existed]=movieConvolutionPerPixelExt(fullpath_movie,...
     end
 %%
     
-    if (~isfolder(options.outdir)) mkdir(options.outdir); end
-    if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
+    if (~isfolder(options.outdir)), mkdir(options.outdir); end
+    if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
 
-    filename_out = basefilename+channel+postfix+options.postfix_new;
+    filename_out = filename+options.postfix_new;
     fullpath_out = fullfile(options.outdir, filename_out + ext);
     
     if (isfile(fullpath_out))
         if(options.skip)
-            disp("MovieConvolutionPerPixel: Output file exists. Skipping: " + fullpath_out)
+            displog("Output file exists. Skipping: " + fullpath_out)
             existed = true;
             return;
         else
@@ -50,10 +49,6 @@ function [fullpath_out, existed]=movieConvolutionPerPixelExt(fullpath_movie,...
     %%
 
     conv_trans = readmatrix(fullpath_filter);
-    m_raw = rw.h5getMeanTrace(fullpath_movie);
-    m_filtered = rw.h5getMeanTrace(fullpath_out);
-    %%
-
     offset = ceil(length(conv_trans)*0.5);
     valid_range = [offset, rw.h5getDatasetSize(fullpath_out, '/mov', 3) - offset];
     %%
@@ -66,6 +61,9 @@ function [fullpath_out, existed]=movieConvolutionPerPixelExt(fullpath_movie,...
     %%
 
     fig_traces = plt.getFigureByName('movieConvolutionPerPixel: mean traces');
+
+    m_raw = rw.h5getMeanTrace(fullpath_movie);
+    m_filtered = rw.h5getMeanTrace(fullpath_out);
     
     plt.tracesComparison([m_raw, m_raw - m_filtered, m_filtered], ...
         'spacebysd', [0,0,3], 'fps', specs.getFps(), 'fw', 0.2, ...
@@ -77,7 +75,7 @@ function [fullpath_out, existed]=movieConvolutionPerPixelExt(fullpath_movie,...
     hold off
     drawnow();
     %%
-    
+
     saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + '_traces.fig'))
     saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + '_traces.png'))
     %%

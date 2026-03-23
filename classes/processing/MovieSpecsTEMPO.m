@@ -62,7 +62,11 @@ classdef MovieSpecsTEMPO < MovieSpecs
         function mask = getMask(obj,movie_size)
             if(nargin < 2), movie_size = []; end
 
-            if(obj.extra_specs.isKey("mask"))
+            if(~obj.extra_specs.isKey("mask")) 
+                % warning("No mask found");
+                mask = [];
+            elseif(isinf(obj.binning)), mask = [];
+            else
                 raw_mask = obj.extra_specs("mask");
                 mask = imresize(raw_mask, 1/obj.binning, 'bilinear');
                 size_out = floor(size(raw_mask)/obj.binning);
@@ -73,9 +77,6 @@ classdef MovieSpecsTEMPO < MovieSpecs
                     mask = mask(1:(movie_size(1)), ...
                                 1:(movie_size(2)));
                 end
-            else
-                % warning("No mask found");
-                mask = [];
             end
             mask = logical(mask);
         end
@@ -132,4 +133,3 @@ classdef MovieSpecsTEMPO < MovieSpecs
         %%   
     end
 end
-

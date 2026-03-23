@@ -8,7 +8,7 @@
 %         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 % %
 % 
-% recording_name = "Spontaneous\mly2001wt\20250822\meas00";
+% recording_name = "Visual\m48\20210824\meas00";
 % 
 % channels = ["G","R"];
 % 

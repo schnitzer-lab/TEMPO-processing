@@ -8,7 +8,7 @@ basefolder_analysis = "N:\GEVI_Wave\Analysis\";
 basefolder_temp = "T:\GEVI_Wave\Analysis\"; 
 %%
 
-recording_name = "Visual\cfm001mjr\20231208\meas00";
+recording_name = "Visual\m48\20210824\meas00";
 filename_in1 = "cG_unmixed_dFF.h5";
 filename_in2 = "cR_dFF.h5";
 
@@ -21,7 +21,7 @@ fullpath_in2 = fullfile(basefolder_temp, recording_name, filename_in2);
 %%
 % unrelated - in case you need a set or recordings to loop through
 
-files = [dir(basefolder_analysis + "\Visual\*mjr\202*\meas*")]; 
+files = [dir(basefolder_analysis + "Visual\m48\20210824\meas*")]; 
 recording_names = arrayfun(@(f) string(fullfile(f.folder, f.name)), files);
 recording_names = erase(recording_names, basefolder_analysis);
 %%

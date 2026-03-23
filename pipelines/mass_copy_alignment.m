@@ -4,7 +4,7 @@ close all;
 %%
 
 basefolder_analysis = "N:\GEVI_Wave\Analysis\";
-files = [dir(basefolder_analysis + "\Spontaneous\mly2002bi\20250821\meas*")]; %dir(basefolder_raw + "Visual\m40\20210824\meas00\");
+files = [dir(basefolder_analysis + "Visual\m48\20210824\meas0*")]; 
 recording_names = arrayfun(@(f) string(fullfile(f.folder, f.name)), files);
 recording_names = erase(recording_names, basefolder_analysis);
 % recording_names = flip(recording_names)

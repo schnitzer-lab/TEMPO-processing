@@ -10,7 +10,7 @@
 %           strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 % %%
 % 
-% recording_name = "Anesthesia\mv0105\20230831\meas00"; % "Anesthesia\m46\20221221\meas04"; 
+% recording_name = "Visual\m48\20210824\meas00"; 
 % postfix_in1 = "cG_bin8*_mc";
 % postfix_in2 = "cR_bin8*_mc_reg";
 % 

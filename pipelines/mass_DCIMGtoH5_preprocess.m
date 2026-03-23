@@ -10,12 +10,12 @@ diary(fullfile("N:\GEVI_Wave\Logs", ...
 
 % recording_names = ...
 %     pathspattern("F:\GEVI_Wave\Preprocessed\", ...
-%                  "Type\m0000\2003030*\meas*", true)';
-% readlines("N:\GEVI_Wave\filelists\filelist_type.txt")
-recording_names = ["Type\m0000\20030303\meas" + compose("%02d", 0:10)';];
+%                  "Visual\m48\20210824\meas*", true)';
+% readlines("N:\GEVI_Wave\filelists\filelist_visual_asap3.txt")
+recording_names = ["Visual\m48\20210824\meas00"; "Visual\m48\20210824\meas00"];
 %%
 
-basefolder_raw =  "R:\GEVI_Wave\Raw\";% 
+basefolder_raw =  "F:\GEVI_Wave\Raw\";% 
 basefolder_converted = "S:\GEVI_Wave\Preprocessed\";
 basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\";
 basefolder_processing = "T:\GEVI_Wave\Preprocessed\";

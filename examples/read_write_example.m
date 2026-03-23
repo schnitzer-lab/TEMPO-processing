@@ -1,5 +1,5 @@
 basefolder_analysis = "N:\GEVI_Wave\Analysis\";  
-recording_name = "Visual\cfm001mjr\20231208\meas00";
+recording_name = "Visual\m48\20210824\meas00";
 filename_in = "cG_unmixed_dFF.h5";
 
 fullpath_in = fullfile(basefolder_analysis, recording_name, filename_in);

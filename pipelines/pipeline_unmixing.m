@@ -28,7 +28,6 @@
 % % 0.165 for ASAP7y
 % % 0.095 for old ace recordings seems good - based on m14 visual v1
 % % 0.141 (?) for older ASAP2s with different filters
-% frame_range = [50, inf];
 % %%
 
 % postfixes for the final files in the output location
@@ -94,16 +93,12 @@ end
 %     'processingdir', folder_processing);
 % fullpathGin = fullpaths_in_mean(1); fullpathRin = fullpaths_in_mean(2);
 %%
-         
-fullpathGex = movieExtractFrames(fullpathGin, frame_range);
-fullpathRex = movieExtractFrames(fullpathRin, frame_range);
-%%
-
+  
 % for movies where cameras weren't started synchroniously 
-fullpathRdl = movieCompensateDelay(fullpathRex, fullpathGex, ...
+fullpathRdl = movieCompensateDelay(fullpathGin, fullpathRin, ...
     'lag_estimator', 'phase', 'f0', 30,...
     'min_lag_frames', 0.75, 'max_lag_frames', 100); 
-fullpathGdl = fullpathGex;
+fullpathGdl = fullpathGin;
 %%
     
 [fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, ...
@@ -162,6 +157,7 @@ else
     error("unknown mouse_state = " + mouse_state);
 end  
 
+% options_hfilt.fref = 7;
 options_hfilt = mergeStructs({options_hfilt,  ...
     struct('average_mm', 1, 'niter', 3, 'flim_max', 20, 'max_delay', 30*1e-3)});
 
@@ -207,11 +203,8 @@ fullpathGnhDFF_spec = movieMeanTraceSpectrogram(fullpathsDFF_mean(1), options_sp
 if(~strcmp(fullpathGin, fullpathGpreproc)), delete(fullpathGin); end
 if(~strcmp(fullpathRin, fullpathRpreproc)), delete(fullpathRin); end
 
-if(~strcmp(fullpathGex, fullpathGin)), delete(fullpathGex); end
-if(~strcmp(fullpathRex, fullpathRin)), delete(fullpathRex); end
-
-if(~strcmp(fullpathGdl, fullpathGex)), delete(fullpathGdl); end
-if(~strcmp(fullpathRdl, fullpathRex)), delete(fullpathRdl); end
+if(~strcmp(fullpathGdl, fullpathGin)), delete(fullpathGdl); end
+if(~strcmp(fullpathRdl, fullpathRin)), delete(fullpathRdl); end
 
 if(~strcmp(fullpathGdx, fullpathGdl)), delete(fullpathGdx); end
 if(~strcmp(fullpathRdx, fullpathRdl)), delete(fullpathRdx); end

@@ -26,6 +26,7 @@ binning = 8;
 maxRAM = 0.1;
 unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not accounted for.
 
+frame_range = [50,Inf];
 shifts0 = [0,0]; % [0,0.5] mm
 %%
 

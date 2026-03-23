@@ -36,8 +36,6 @@ crosstalk_matrix =  [[1, 0]; [0.080, 1]];
 % % 0.095 for old ace recordings seems good - based on m14 visual v1
 % % 0.141 (?) for older ASAP2s with different filters
 
-frame_range = [50, inf];
-
 postfix_in1 = "cG_bin8_mc";
 postfix_in2 = "cR_bin8_mc_reg";
 %%

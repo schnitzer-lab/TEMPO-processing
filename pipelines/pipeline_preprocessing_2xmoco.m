@@ -17,6 +17,7 @@
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 % basefolder_output = "F:\GEVI_Wave\Preprocessed\";
 % 
+% frame_range = [1,Inf];
 % shifts0 = [0,0]; %[0,0.5]; % mm, between R and G channel due to cameras misalignment
 % 
 % maxRAM = 0.1;
@@ -77,12 +78,12 @@ movieMeanTraceSpectrogram(fullpaths_mean(1), 'frange', [2, Inf], 'timewindow', 5
     'processingdir', fullfile(folder_converted, "\processing\meanTraceSpectrogram\"));
 %%
 
-fullpathGin = movieExtractFrames(fullpathGin, [1, 63000], 'outdir', folder_processing);
-fullpathRin = movieExtractFrames(fullpathRin, [1, 63000], 'outdir', folder_processing);
+fullpathGex = movieExtractFrames(fullpathGin, frame_range);
+fullpathRex = movieExtractFrames(fullpathRin, frame_range);
 %%
 
-[h5path1_mc, shiftsfile1] = movieSimpleMoco(fullpathGin);
-[h5path2_mc, shiftsfile2] = movieSimpleMoco(fullpathRin);
+[h5path1_mc, shiftsfile1] = movieSimpleMoco(fullpathGex);
+[h5path2_mc, shiftsfile2] = movieSimpleMoco(fullpathRex);
 %%
 
 h5path2_reg = movieRegister(h5path2_mc, h5path1_mc, 'shifts0', shifts0,...
@@ -98,8 +99,10 @@ movieMakeMask(h5path1_mc); movieMakeMask(h5path2_reg);
 %%
 
 if(~strcmp(h5path2_mc, h5path2_reg)), delete(h5path2_mc); end
-if(~strcmp(fullpathGin, fullpathGconv)), delete(fullpathGin); end
-if(~strcmp(fullpathRin, fullpathRconv)), delete(fullpathRin); end
+if(~strcmp(fullpathGex, fullpathGin)), delete(fullpathGex); end
+if(~strcmp(fullpathRex, fullpathRin)), delete(fullpathRex); end
+if(~strcmp(fullpathGex, fullpathGconv)), delete(fullpathGin); end
+if(~strcmp(fullpathRex, fullpathRconv)), delete(fullpathRin); end
 %%
 
 if(~strcmp(folder_output, folder_processing))

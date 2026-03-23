@@ -1,5 +1,5 @@
 
-function fullpath_out = copyFilesForAnalysis(recording_name, pattern, name_new, varargin)
+function [fullpath_out,fullpaths_out] = copyFilesForAnalysis(recording_name, pattern, name_new, varargin)
 %%
     % patterns_tomove = ["*-cG*_nohemoS_dFF.h5"; "*-cR*_dFF.h5"];
     % names_new = ["cG_unmixed_dFF", "cR_dFF"];

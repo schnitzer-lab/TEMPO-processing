@@ -60,9 +60,10 @@
     for i_f = 1:length(fullpaths)
         [~, name, ~] = fileparts(fullpaths(i_f));
         fullpath_out = fullfile(options.processingdir, name + "_mean.h5");
-        if(isfile(fullpath_out)) delete(fullpath_out); end
+        if(isfile(fullpath_out)), delete(fullpath_out); end
         
         specs_out = rw.h5readMovieSpecs(fullpaths(i_f));
+        specs_out.AddBinning(Inf);
         specs_out.AddToHistory(functionCallStruct({'fullpaths', 'options'}));
         rw.h5saveMovie(fullpath_out, ...
             reshape(xs(:,i_f), [1,1,length(xs(:,i_f))]), specs_out);

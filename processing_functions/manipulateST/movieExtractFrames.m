@@ -67,8 +67,6 @@ end
 %%
 
 function options = defaultOptions(basepath)
-    
-    options.outdir = basepath;
 
     options.outdir = basepath;
     options.skip = true;

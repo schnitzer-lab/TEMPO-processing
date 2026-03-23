@@ -1,7 +1,7 @@
 
-basepath = "T:\GEVI_Wave\Analysis\Anesthesia\";
+basepath = "N:\GEVI_Wave\Analysis\";
 
-files = dir(fullfile(basepath, "\mv3101\20251210\meas1*"));
+files = dir(fullfile(basepath, "Visual\m48\20210824\meas00*"));
 recording_names = arrayfun(@(f) string(fullfile(f.folder, f.name)), files);
 recording_names = erase(recording_names, basepath);
 %%
@@ -24,8 +24,13 @@ for i_f = 1:length(recording_names)
     movieSavePreviewVideos(fullpathGdFF, 'skip', false, 'mask', true)
     %%
         
-    regions = {"RSP", "V1", [4,8,10,12,14,16,20]};
+    regions = {"RSP-r", "V1-r", 4:2:22};
     fullpats_regions = movieExtractRegionTrace(fullpathGdFF, regions);
+    %%
+
+    % regions = {"RSP-r", "RSP-l", "V1-r", "V1-l", "DEC"};
+    % fullpats_regions = movieExtractRegionTrace(fullpathGdFF, regions);
+    % fullpats_custom = movieExtractCustomOutlinesTrace(fullpathGdFF, [2,3]);
     %%
 
     movieMeanTraces(fullpats_regions, 'space', true);
@@ -44,6 +49,6 @@ for i_f = 1:length(recording_names)
     nseconds = floor(nframes/specs.getFps()*10)/10;
     
     moviesSavePreviewVideos([fullpathG_trialav, fullpathR_trialav], 'titles', ...
-        ["G umx dFF", "R dFF"], 'nseconds', nseconds)
+        ["G umx dFF", "R dFF"], 'nseconds', nseconds, 'mask', true)
     %%
 end

@@ -1,4 +1,4 @@
-﻿function moviesCompareTimestamps(basepath, varargin)
+function moviesCompareTimestamps(basepath, varargin)
     
 
     options = defaultOptions(basepath);
@@ -40,7 +40,7 @@
         warning("moviesCompareTimestamps: different number of timestamps in two channels");
         nstamps = min(length(timestamps1),length(timestamps2));
         timestamps1 = timestamps1(1:nstamps);
-        timestamps2 = timestamps1(1:nstamps);
+        timestamps2 = timestamps2(1:nstamps);
     end
     
     %%

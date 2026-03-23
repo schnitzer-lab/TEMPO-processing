@@ -1,8 +1,7 @@
-﻿function [fullpath_out,lag] = ...
-    movieCompensateDelay(fullpath_movie, fullpath_movie_ref, varargin)
+function [fullpath_out,lag] = ...
+    movieCompensateDelay(fullpath_in, fullpath_movie_ref, varargin)
     
-    [basepath, filename, ext, basefilename, channel, postfix] = ...
-        filenameParts(fullpath_movie);
+    [basepath, filename, ext] = fileparts(fullpath_in);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -10,14 +9,14 @@
     end
     %%
     
-    if (~isfolder(options.outdir)) mkdir(options.outdir); end
-    if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
+    if (~isfolder(options.outdir)), mkdir(options.outdir); end
+    if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
     %%
 
-    fullpaths_in_mean = movieMeanTraces([fullpath_movie_ref, fullpath_movie]);
+    fullpaths_in_mean = movieMeanTraces([fullpath_movie_ref, fullpath_in]);
     m_ref = rw.h5getMeanTrace(fullpaths_in_mean(1));
     m_in  = rw.h5getMeanTrace(fullpaths_in_mean(2));
-    specs = rw.h5readMovieSpecs(fullpath_movie);
+    specs = rw.h5readMovieSpecs(fullpath_in);
     %%
     
     if(options.lag_estimator == "phase")
@@ -78,24 +77,31 @@
         saveas(fig_corr, fullfile(options.diagnosticdir, filename + "_corr.fig"))
     end
     %%
-
-    fullpath_out = fullpath_movie;
-    if(abs(lag) > options.min_lag_frames)
-
-        displog("correcting timeshift");
-        fullpath_out = movieDelay(fullpath_movie, -lag/specs.getFps(), 'frame0', 20,...
-            'outdir', options.outdir);
-
-        m_out = rw.h5getMeanTrace(fullpath_out); 
-        m_in  = rw.h5getMeanTrace(fullpaths_in_mean(1));
-        m_ref = rw.h5getMeanTrace(fullpaths_in_mean(2));
-        
-        fig_mean = plt.getFigureByName("moviesCompensateDelay: mean traces final");
-        plt.tracesComparison([m_in, m_ref, m_out], 'fps', specs.getFps(), 'fw', 0.25, ...
-            'labels', ["in", "ref", "shifted"]);
-        saveas(fig_mean, fullfile(options.diagnosticdir, filename + "_mean_out.png"));
-        saveas(fig_mean, fullfile(options.diagnosticdir, filename + "_mean_out.fig"));
+    
+    if(abs(lag) <= options.min_lag_frames)
+        fullpath_out = fullfile(options.outdir, filename+ext);
+        if(~strcmp(fullpath_in, fullpath_out))
+            copyfile(fullpath_in, fullpath_out);
+        end
+        return;
     end
+    %%
+    
+    displog("correcting timeshift");
+    fullpath_out = movieDelay(fullpath_in, -lag/specs.getFps(), 'frame0', 20,...
+            'outdir', options.outdir);
+    %%
+    
+    m_out = rw.h5getMeanTrace(fullpath_out); 
+    m_in  = rw.h5getMeanTrace(fullpaths_in_mean(1));
+    m_ref = rw.h5getMeanTrace(fullpaths_in_mean(2));
+    
+    fig_mean = plt.getFigureByName("moviesCompensateDelay: mean traces final");
+    plt.tracesComparison([m_in, m_ref, m_out], 'fps', specs.getFps(), 'fw', 0.25, ...
+        'labels', ["in", "ref", "shifted"]);
+    saveas(fig_mean, fullfile(options.diagnosticdir, filename + "_mean_out.png"));
+    saveas(fig_mean, fullfile(options.diagnosticdir, filename + "_mean_out.fig"));
+
 end
 %%
 

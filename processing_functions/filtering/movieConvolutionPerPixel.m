@@ -1,11 +1,9 @@
-﻿
+
 function [fullpath_out, existed]=movieConvolutionPerPixel(fullpath_movie,...
     fullpath_filter, varargin)
 %% 
 
-    [basepath, filename, ext, basefilename, channel, postfix] = ...
-        filenameParts(fullpath_movie);
-
+    [basepath, filename, ext] =  fileparts(fullpath_movie);
 %%
 
     options = defaultOptions(basepath);
@@ -14,10 +12,10 @@ function [fullpath_out, existed]=movieConvolutionPerPixel(fullpath_movie,...
     end
 %%
     
-    if (~isfolder(options.outdir)) mkdir(options.outdir); end
-    if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
+    if (~isfolder(options.outdir)), mkdir(options.outdir); end
+    if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
 
-    filename_out = basefilename+channel+postfix+options.postfix_new;
+    filename_out = filename+options.postfix_new;
     fullpath_out = fullfile(options.outdir, filename_out + ext);
     
     if (isfile(fullpath_out))

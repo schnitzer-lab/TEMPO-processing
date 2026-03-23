@@ -54,10 +54,8 @@ end
 fullpathGpreproc = fullfile(file1.folder, file1.name);
 fullpathRpreproc = fullfile(file2.folder, file2.name);
 
-[~, ~, ext1, basefilename1, channel1, ~] = filenameParts(fullpathGpreproc);
-fullpathGin = fullfile(folder_processing, file1.name);%basefilename1+channel1+"_preprocessed"+ext1);
-[~, ~, ext2, basefilename2, channel2, ~] = filenameParts(fullpathRpreproc);
-fullpathRin = fullfile(folder_processing, file2.name);%basefilename2+channel2+"_preprocessed"+ext2);
+fullpathGin = fullfile(folder_processing, file1.name);
+fullpathRin = fullfile(folder_processing, file2.name);
 %%
 % form the final file name and check if it already exists
 

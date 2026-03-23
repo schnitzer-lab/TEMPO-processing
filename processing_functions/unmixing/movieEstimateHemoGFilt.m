@@ -177,10 +177,10 @@ end
 function [fullpath_out, fullpathWxy_out, fullpathW0_out, do_skip] = ...
     setupOutput(fullpath_sig, fullpath_ref, options)
 
-    [~, filename_ref, ext, ~, ~, ~] = filenameParts(fullpath_ref);
-    [~, ~, ~, ~, ch_sig, ~] = filenameParts(fullpath_sig);
+    [~, filename_ref, ext] = fileparts(fullpath_ref);
+    specs_sig = rw.h5readMovieSpecs(fullpath_sig);
    
-    postfix_new = options.postfix_new + "to"+ch_sig+...
+    postfix_new = options.postfix_new + "to" + specs_sig.channel_id +...
         "dt"+string(round(options.dt,1)) + "nav"+num2str(options.naverage) + ...
         "ma"+string(options.max_amp_rel) + "md"+string(round(options.max_delay*1e3));
     

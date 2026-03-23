@@ -42,13 +42,11 @@ end
 fullpathGconv = fullfile(file1.folder, file1.name);
 fullpathRconv = fullfile(file2.folder, file2.name);
 
-[~, ~, ext1, basefilename1, channel1, ~] = filenameParts(fullpathGconv);
 fullpathGin = fullfile(folder_processing, file1.name);
-[~, ~, ext2, basefilename2, channel2, ~] = filenameParts(fullpathRconv);
 fullpathRin = fullfile(folder_processing, file2.name);
 %%
 
-[filedir, filename, fileext, basefilename, channel, ~] = filenameParts(fullpathRconv);
+[~, filename, ~] = fileparts(fullpathRconv);
 final_file = fullfile(folder_output, filename + "*_mc_reg.h5");
 result = dir(final_file);
 if(~isempty(result)) 

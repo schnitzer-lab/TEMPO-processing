@@ -1,6 +1,6 @@
-﻿function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
+function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
     
-    [basepath, filename, ext, ~] = filenameParts(fullpath_movie);
+    [basepath, filename, ext] = fileparts(fullpath_movie);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))

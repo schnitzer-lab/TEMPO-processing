@@ -1,7 +1,6 @@
-﻿function fullpath_out = movieTrialAverage(fullpath_movie, varargin)
+function fullpath_out = movieTrialAverage(fullpath_movie, varargin)
     
-    [basepath, filename, ext, basefilename, channel, postfix] = ...
-        filenameParts(fullpath_movie);
+    [basepath, filename, ext] = fileparts(fullpath_movie);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -9,11 +8,11 @@
     end
     %%
     
-    if (~isfolder(options.outdir)) mkdir(options.outdir); end
-    if (~isfolder(options.illustrdir)) mkdir(options.illustrdir); end
-    if (~isfolder(options.diagnosticdir)) mkdir(options.diagnosticdir); end
+    if (~isfolder(options.outdir)), mkdir(options.outdir); end
+    if (~isfolder(options.illustrdir)), mkdir(options.illustrdir); end
+    if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
 
-    filename_out = basefilename+channel+postfix+options.postfix_new;
+    filename_out = filename+options.postfix_new;
     fullpath_out = fullfile(options.outdir, filename_out + ext);
     
     if (isfile(fullpath_out))
@@ -32,8 +31,8 @@
     [M,specs] = rw.h5readMovie(fullfile(basepath, filename + ".h5"));
     
     
-    if(~isempty(options.ttl_signal)) ttl_signal = options.ttl_signal;
-    else ttl_signal = specs.getTTLTrace(size(M,3)); end
+    if(~isempty(options.ttl_signal)), ttl_signal = options.ttl_signal;
+    else, ttl_signal = specs.getTTLTrace(size(M,3)); end
 
     %%
     

@@ -1,4 +1,4 @@
-﻿function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
+function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     movieEstimateHemoGFiltTR(fullpath_sig, fullpath_ref, varargin)
     
     [basepath_ref, ~, ~] = fileparts(fullpath_ref);
@@ -196,7 +196,7 @@ end
 function [fullpath_out, fullpathWxy_out, fullpathW0_out, do_skip] = ...
     setupOutput(fullpath_sig, fullpath_ref, options)
 
-    [~, filename_ref, ext, ~, ~, ~] = filenameParts(fullpath_ref);
+    [~, filename_ref, ext] = fileparts(fullpath_ref);
     [~, ~, ~, ~, ch_sig, ~] = filenameParts(fullpath_sig);
    
     postfix_new = options.postfix_new + "to"+ch_sig+...

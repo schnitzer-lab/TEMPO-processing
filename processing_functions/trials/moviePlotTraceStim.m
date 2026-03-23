@@ -1,7 +1,6 @@
-﻿function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
+function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
     
-    [basepath, filename, ~, ~, ~, ~] = ...
-        filenameParts(fullpath_movie);
+    [basepath, filename, ~] =  fileparts(fullpath_movie);
 
     options = defaultOptions(basepath);
     if(~isempty(varargin))
@@ -9,8 +8,7 @@
     end
     %%
     
-    if (~isfolder(options.processingdir)) mkdir(options.processingdir); end
-  
+    if (~isfolder(options.processingdir)), mkdir(options.processingdir); end
     %%
     
     displog("reading movie")
@@ -25,11 +23,11 @@
     
     displog("getting region trace")
     
-    if(~iscell(regions)) regions = num2cell(regions); end
+    if(~iscell(regions)), regions = num2cell(regions); end
 %     region_name = region_names(1);
     for i_r = 1:length(regions)
         region_name = regions{i_r};
-        if(ischar(region_name)) region_name = string(region_name); end
+        if(ischar(region_name)), region_name = string(region_name); end
 
         %%
         fig_roi = plt.getFigureByName('roi');

@@ -16,7 +16,7 @@ recording_names = ["Type\m0000\20030303\meas" + compose("%02d", 0:10)';];
 %%
 
 basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\";
-basefolder_processing = "T:\GEVI_Wave\Preprocessed\";  
+basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 %%
 
 skip_if_final_exists = true;

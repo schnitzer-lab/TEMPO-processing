@@ -65,8 +65,21 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_in, varargin)
     n_outliers = sum(is_outlier);
     %%
     
+    %%
     if(n_outliers > 0)     
         %%
+        
+        displog(string(n_outliers) + " outlier frames found")
+        
+        plt.getFigureByName("movieRemoveOutlierFrames: mean traces"); clf;
+        plot((0:(length(m)-1))/specs.getFps(), m); xlabel("t,s");
+        hold on;
+        plot((0:(length(m_movmean)-1))/specs.getFps(), m_movmean+options.n_sd*m_std, '--', 'color', 'black')
+        plot((0:(length(m_movmean)-1))/specs.getFps(), m_movmean-options.n_sd*m_std, '--', 'color', 'black')
+        scatter(find(is_outlier)/specs.getFps(), repelem(max(m), n_outliers), 10, [1,0,0], '*')
+        hold off;
+        drawnow;
+        
         displog("reading movie")
         [M, specs] = rw.h5readMovie(fullpath_in);
 
@@ -91,7 +104,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_in, varargin)
 
     displog("plotting")
     
-    fig_traces = plt.getFigureByName("movieRemoveOutlierFrames: mean traces");
+    fig_traces = plt.getFigureByName("movieRemoveOutlierFrames: mean traces"); clf;
     plt.tracesComparison([m,m_out],...
         'fps', specs.getFps(), 'nomean', false, 'fw', 0.2, 'f0', specs.getFrequencyRange(1));
     
@@ -117,7 +130,7 @@ function fullpath_out = movieRemoveOutlierFrames(fullpath_in, varargin)
 
     if(n_outliers > 0)         
         specs_out = copy(specs);
-        specs_out.AddToHistory(functionCallStruct({'fullpath_movie', 'options'}));
+        specs_out.AddToHistory(functionCallStruct({'fullpath_in', 'options'}));
         rw.h5saveMovie(fullpath_out, M, specs_out);
     end
     %%

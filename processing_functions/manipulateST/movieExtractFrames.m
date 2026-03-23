@@ -53,7 +53,7 @@ function fullpath_out = movieExtractFrames(fullpath_in, frames_range, varargin)
             'frame_start', frames_range(1));
     %%
     
-    specs.AddToHistory(functionCallStruct({'fullpath', 'frames_range', 'options'}));
+    specs.AddToHistory(functionCallStruct({'fullpath_in', 'frames_range', 'options'}));
     %%
 
     displog("saving")

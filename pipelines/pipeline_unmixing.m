@@ -101,7 +101,7 @@ fullpathRor = movieRemoveOutlierFrames(fullpathRin, 'n_sd', 20, 'dt', 20);
 %%
 
 % for movies where cameras weren't started synchroniously 
-fullpathGdl = fullpathGin;
+fullpathGdl = fullpathGor;
 fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, ...
     'lag_estimator', 'phase', 'f0', 30,...
     'min_lag_frames', 0.75, 'max_lag_frames', 100); 

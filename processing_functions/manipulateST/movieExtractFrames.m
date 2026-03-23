@@ -39,11 +39,9 @@ function fullpath_out = movieExtractFrames(fullpath_in, frames_range, varargin)
     end
 
     if(frames_range(1) == 1 && frames_range(2) == nframes)
-        if(options.outdir ~= fileparts(fullpath_in))
-            fullpath_out = fullfile(options.outdir, filename + ext);
+        fullpath_out = fullfile(options.outdir, filename+ext);
+        if(~strcmp(fullpath_in, fullpath_out))
             copyfile(fullpath_in, fullpath_out);
-        else 
-            fullpath_out = fullpath_in;            
         end
         return;
     end

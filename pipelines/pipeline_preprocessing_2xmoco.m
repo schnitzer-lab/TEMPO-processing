@@ -9,7 +9,7 @@
 %         strcat(string(datetime('now','Format','yyyyMMddHHmmss')),'_',mfilename(),'.log')));
 %%
 % 
-% recording_name = "Visual\rfm002mjr\20231209\meas00";%"Spontaneous\mv0104\20230815\meas04" %(short 22s recording for tests);
+% recording_name = "Visual\m48\20210824\meas00";
 % postfix_in1 = "cG_bin8";
 % postfix_in2 = "cR_bin8";
 % 

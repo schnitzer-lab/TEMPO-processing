@@ -138,7 +138,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     fig_meanout = plt.getFigureByName("movieExpBaselineCorrection - traces");
     plt.tracesComparison([m, mout, bl], ...
         'fps', specs.getFps(), 'fw', 0.1, 'labels', ["raw", "baseline-corrected", "baseline"], ...
-        'nomean', false, 'spectra', false)
+        'nomean', false, 'spectrum', false)
     title(sprintf("baseline correction (rs=%.2f, a=%.1f)", r2, a))
     %%
     

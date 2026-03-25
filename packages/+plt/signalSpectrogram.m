@@ -16,8 +16,8 @@ function axes_all = signalSpectrogram(st, ts, fs, varargin)
               
     %%
 
-    if(isnan(options.flims_plot(1))) options.flims_plot(1) = min(fs); end
-    if(isnan(options.flims_plot(2))) options.flims_plot(2) = max(fs); end
+    if(isnan(options.flims_plot(1))), options.flims_plot(1) = min(fs); end
+    if(isnan(options.flims_plot(2))), options.flims_plot(2) = max(fs); end
     
     frange_plot = find(fs >= options.flims_plot(1), 1): ...
                   find(fs <= options.flims_plot(2), 1, 'last');
@@ -36,64 +36,62 @@ function axes_all = signalSpectrogram(st, ts, fs, varargin)
     sp_num = reshape((1:nv*nh), nh, nv)';
     if(isempty(options.trace) && isempty(options.spectra) && isempty(ax_spectrogram))
         ax_spectrogram = subplot(1,1,1);
+        plt.prepAxis(true);
     elseif(~isempty(options.trace) && isempty(options.spectra) && isempty(ax_trace))
         ax_spectrogram = subplot(nv, nh, reshape(sp_num(1:(end-1), 1:end), 1, []) ); 
+        plt.prepAxis(false);
         ax_trace = subplot(nv, nh, reshape(sp_num(end, 1:end), 1, []) );   
+        plt.prepAxis(false);
     elseif(isempty(options.trace) && ~isempty(options.spectra) && isempty(ax_spectra))
         ax_spectrogram = subplot(nv, nh, reshape(sp_num(:, 2:end), 1, []) ); 
-        ax_spectra = subplot(nv, nh, reshape(sp_num(:, 1), 1, []) );          
+        plt.prepAxis(true);
+        ax_spectra = subplot(nv, nh, reshape(sp_num(:, 1), 1, []) );    
+        plt.prepAxis(false);      
     elseif(~isempty(options.trace) && ~isempty(options.spectra) && isempty(ax_trace) && isempty(ax_spectra))
         ax_spectrogram = subplot(nv, nh, reshape(sp_num(1:(end-1), 2:end), 1, []) );
-        ax_trace = subplot(nv, nh, reshape(sp_num(end, 2:end), 1, []));
-        ax_spectra = subplot(nv, nh, reshape(sp_num(1:(end-1), 1), 1, []));
+        ax_trace = subplot(nv, nh, reshape(sp_num(end, 2:end), 1, []));  
+        ax_spectra = subplot(nv, nh, reshape(sp_num(1:(end-1), 1), 1, []));  
     end
 
     axes_all = [ax_spectrogram, ax_trace, ax_spectra];
     %%
-
-    axes(ax_spectrogram)
     
-    im = imagesc(ts, fs, st); 
+    im = imagesc(ax_spectrogram, ts, fs, st); 
     set(im, 'AlphaData', ~isnan(st));
     
     grid on;
-    set(gca,'GridColor',[1 1 1]) 
-    set(gca,'YDir','normal')
-%     set(gca,'xticklabel',[], 'yticklabel', [])
+    set(ax_spectrogram,'GridColor',[1 1 1]) 
+    set(ax_spectrogram,'YDir','normal')
     
     xlim([min(ts), max(ts)]);
     ylim(options.flims_plot);
 
-    caxis([quantile(st(fs >= options.flims_plot(1) & fs <= options.flims_plot(2),:), options.q(1), 'all'), ...
-           quantile(st(fs >= options.flims_plot(1) & fs <= options.flims_plot(2),:), options.q(2), 'all')])
+    clim(ax_spectrogram, ...
+        [quantile(st(fs >= options.flims_plot(1) & fs <= options.flims_plot(2),:), options.q(1), 'all'), ...
+         quantile(st(fs >= options.flims_plot(1) & fs <= options.flims_plot(2),:), options.q(2), 'all')])
     
-    set(gca,'ColorScale', options.colorscale)
-    colormap('jet');
+    set(ax_spectrogram,'ColorScale', options.colorscale)
+    colormap('turbo');
     
     originalSize = get(ax_spectrogram, 'Position');
     cb = colorbar;
-    set(ax_spectrogram, 'Position', originalSize);
     
+    xlabel("Time (s)"); ylabel("Frequency (Hz)");
     title(options.title, 'Interpreter', 'none', 'FontSize', 8);
-        
-    xlabel("s"); ylabel("Hz");
-
     %%
         
     if(~isempty(options.trace))
-%         drawnow;
-%         cb.Position(1) = ax_spectrogram.Position(1) + ax_spectrogram.Position(3) + 0.01;
-%         cb.Position(1) = ax_spectrogram.Position(1) + ax_spectrogram.Position(3) + 0.01;        
+        set(ax_spectrogram, 'Position', originalSize);
     
         set(ax_spectrogram,'xticklabel',[])
         set(ax_spectrogram,'xlabel',[])
         axes(ax_trace)
         
-        plot(options.trace_ts, options.trace); 
-        xlabel("s"); ylabel('signal');
-        grid on;
+        plot(ax_trace, options.trace_ts, options.trace); 
+        xlabel(ax_trace, "Time (s)"); ylabel(ax_trace, 'Signal');
+        % grid on;
         
-        xlim([min(ts), max(ts)]);
+        xlim(ax_trace, [min(ts), max(ts)]);
         
         linkaxes([ax_spectrogram ax_trace],'x')
     end
@@ -103,22 +101,22 @@ function axes_all = signalSpectrogram(st, ts, fs, varargin)
         
 %         set(ax_spectrogram,'yticklabel',[])
         set(ax_spectrogram,'ylabel',[])
-        axes(ax_spectra)
+        % axes(ax_spectra)
         
-        plot(options.spectra_fs, options.spectra); 
+        plot(ax_spectra, options.spectra_fs, options.spectra); 
         
         
-        xlim(options.flims_plot);
+        xlim(ax_spectra, options.flims_plot);
         
-        xlabel("Hz"); ylabel('spectra');
-        grid on;
+        xlabel(ax_spectra, "Frequency (Hz)"); ylabel(ax_spectra, 'Spectral power');
+        grid off;
         
 %         linkaxes([ax_spectrogram ax_spectra],'y') % How to link y1 to x2?
         
-        set(gca,'xaxisLocation','top');
-        set(gca,'yaxisLocation','right');
-        camroll(90);
-        set(gca, 'YScale', options.colorscale)
+        set(ax_spectra,'xaxisLocation','top');
+        set(ax_spectra,'yaxisLocation','right');
+        camroll(ax_spectra, 90);
+        set(ax_spectra, 'YScale', options.colorscale)
         
     end
     %%

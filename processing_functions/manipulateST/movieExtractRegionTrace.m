@@ -37,6 +37,18 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, 
         warning("movieExtractRegionTrace: no mask found: " + fullpath_movie)
     end
     %%
+
+    for i_r = 1:length(region_ids)
+        region_id = region_ids{i_r};
+        if(isstring(region_id) || ischar(region_id))
+            region_id = string(region_id);
+            if(any(~arrayfun(@(r) options.regions_map.isKey(r), region_id)))
+                error("Region name not found: "+strjoin(region_id, ','))
+            end
+            region_ids{i_r} = cell2mat(arrayfun(@(r) options.regions_map(r), region_id, 'UniformOutput', false));
+        end  
+    end
+    %%
     
     displog("reading movie")
     [M, specs] = rw.h5readMovie(fullpath_movie);
@@ -62,15 +74,10 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, 
         filename_out = filename_out_all(i_r);
         fullpath_out = fullpath_out_all(i_r);
         if(isfile(fullpath_out) && options.skip), continue; end       
-    %%
+        %%
 
         displog("extracting trace " + postfix_new);
 
-        if(isstring(region_id) || ischar(region_id))
-            region_id = options.regions_map(region_id);
-        end    
-        %%
-    
         fig_roi = plt.getFigureByName("movieExtractRegionTrace: selected roi");
         
         contours= cell(length(region_id),1);
@@ -91,7 +98,7 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, 
             
             fig_traces = plt.getFigureByName("movieExtractRegionTrace: mean traces");
             plt.tracesComparison([m,m_reg], 'fps', specs.getFps(), 'fw', 0.25,...
-                'labels', ["initial", "region"], 'spacebysd', 3);
+                'labels', ["initial", "region"], 'spacebysd', 3, 'f0', specs.getFrequencyRange(1));
             drawnow;
         end
         %%
@@ -153,7 +160,8 @@ function options = defaultOptions(basepath)
          "VISal-r", "VISam-r", "VISI-r", "VISp-r", "VISpl-r", "VISpm-r", "VISli-r", "Vispor-r", ...
          "RSP-alg-r", "RSPd-r", "RSPv-r", ...
          "V1-r", ...
-         "V1-l", "RSP-l",  "RSP-b", ...
+         "V1-l", "RSP-l", ...
+         "RSP-b", "RSPd-b", ...
          "DEC"... % cerebellum CB-CBX-VERM-DEC
          ],...
         {[4,6], 8:2:22, 24:2:30, 32:2:46, 60, [50,64,66], [54,56],...
@@ -164,7 +172,8 @@ function options = defaultOptions(basepath)
          32, 34, 36, 38, 40, 42, 44, 46, ...
          50, 64, 66, ...
          38, ...
-         37, [49,65,67], [49,50,64:67], ...
+         37, [49,65,67], ...
+         49:52, 51, ...
          72});
 end
 %%

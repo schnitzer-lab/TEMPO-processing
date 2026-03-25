@@ -3,10 +3,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
 
     [basepath, filename, ext] = fileparts(fullpath);
 
-    options = defaultOptions(basepath);
-    if(~isempty(varargin))
-        options = getOptions(options, varargin);
-    end
+    options = parseInputs(basepath, varargin{:});
 
     if (~isfolder(options.processingdir)), mkdir(options.processingdir); end
     
@@ -68,11 +65,14 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     
     ts_trace = ((0:(length(m)-1)) + (specs.timeorigin-1))'/specs.getFps();
     options_spectrogram = struct('q', [0.05, 0.999], ...
-        'trace', m, 'trace_ts', ts_trace, ...
         'title', [basepath, filename + ...
             " (dt=" +  num2str(options.timewindow) + ...
             "s, df=" + num2str(options.fw) + "Hz)"]);
-    if(options.meanspectra)
+    if(options.meantrace)
+        options_spectrogram.trace = m;
+        options_spectrogram.trace_ts = ts_trace;
+    end
+    if(options.meanspectrum)
         options_spectrogram.spectra = mean(st, 2, 'omitnan'); 
         options_spectrogram.spectra_fs = fs;
     end
@@ -80,11 +80,21 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     ts_plot = ts + (specs.timeorigin-1)/specs.getFps(); 
     axes_all = plt.signalSpectrogram(st, ts_plot, fs, options_spectrogram);   
     %%
-    if(~isempty(specs.getTTLTrace()))
+    if(options.meantrace && ~isempty(specs.getTTLTrace()))
         axes(axes_all(2))
         hold on
-        h_ttl = plot(ts_trace, specs.getTTLTrace(length(m))*2*std(m) + mean(m));
+        h_ttl = plot(ts_trace, specs.getTTLTrace(length(m))*2*std(m) + mean(m), ...
+            'Color', [0.8500, 0.3250, 0.0980]);
         uistack(h_ttl,'bottom')
+        hold off
+    end
+    if(options.meantrace && ~isempty(options.extra_signal))
+        axes(axes_all(2))
+        hold on
+        sig = options.extra_signal(:);
+        sig = sig(1:min([length(ts_trace), length(sig)]));
+        plot(ts_trace(1:length(sig)), zscore(sig)*std(m) + mean(m) + 3*std(m), ...
+            'Color', [0.3, 0.5, 0.1]);
         hold off
     end
     %%
@@ -105,21 +115,30 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
 end
 
 
-function options = defaultOptions(basepath)
-    
-    options.timewindow = 5;
-    options.overlap = 0.75;
-    options.fw = 0.5;
-    options.nframes_read = Inf;
-    options.frange = [];
-    % options.flims = [];
-    
-%     options.bgmethod = []; % [], 'cvx' or '1overf'
-%     options.timewindow_bg = []; % options.timewindow_bg = 3*options.timewindow;
-    
-    options.meanspectra = true;
-    
-    options.processingdir = fullfile(basepath, 'processing', 'meanTraceSpectrogram');
-    options.postfix_new = "_sp";
-    options.skip = true;
+function options = parseInputs(basepath, varargin)
+
+    p = inputParser();
+    isnumpos  = @(x) isnumeric(x) && isscalar(x) && x > 0;
+    islogscal = @(x) islogical(x) && isscalar(x);
+
+    p.addParameter('timewindow',   5,    isnumpos);
+    p.addParameter('overlap',      0.75, @(x) isnumeric(x) && isscalar(x) && x >= 0 && x < 1);
+    p.addParameter('fw',           0.5,  isnumpos);
+    p.addParameter('nframes_read', Inf,  isnumpos);
+    p.addParameter('frange',       [],   @(x) isempty(x) || (isnumeric(x) && numel(x) == 2));
+
+%     p.addParameter('bgmethod',      [], @(x) isempty(x) || ischar(x) || isstring(x));
+%     p.addParameter('timewindow_bg', [], @(x) isempty(x) || isnumpos(x));
+
+    p.addParameter('meantrace',     true, islogscal);
+    p.addParameter('meanspectrum',  true, islogscal);
+    p.addParameter('extra_signal',  [],   @(x) isempty(x) || isnumeric(x));
+
+    p.addParameter('processingdir', fullfile(basepath, 'processing', 'meanTraceSpectrogram'), ...
+        @(s) ischar(s) || isstring(s));
+    p.addParameter('postfix_new',  "_sp", @(s) ischar(s) || isstring(s));
+    p.addParameter('skip',         true,  islogscal);
+
+    p.parse(varargin{:});
+    options = p.Results;
 end

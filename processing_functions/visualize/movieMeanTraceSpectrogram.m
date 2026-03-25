@@ -79,7 +79,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
          
     ts_plot = ts + (specs.timeorigin-1)/specs.getFps(); 
     axes_all = plt.signalSpectrogram(st./bg, ts_plot, fs, options_spectrogram);   
-    
+    drawnow();
     
     % xlabel(axes_all(1), 'Time (s)'); ylabel('Frequency (Hz)')
     cb = colorbar(axes_all(1)); cb.Label.String = "Spectral power";
@@ -120,8 +120,8 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     end
     %%
 
+    if(options.savepdf), exportgraphics(fig, fullfile(options.processingdir, basepath_out + ".pdf")); end
     saveas(fig, fullfile(options.processingdir, basepath_out + ".png"));
-    exportgraphics(fig, fullfile(options.processingdir, basepath_out + ".pdf"));
     saveas(fig, fullfile(options.processingdir, basepath_out + ".fig"));
     %%
     
@@ -176,6 +176,8 @@ function options = parseInputs(basepath, varargin)
 
     p.addParameter('processingdir', fullfile(basepath, 'processing', 'meanTraceSpectrogram'), ...
         @(s) ischar(s) || isstring(s));
+    p.addParameter('savepdf',       false,  islogscal);
+
     p.addParameter('postfix_new',  "_sp", @(s) ischar(s) || isstring(s));
     p.addParameter('skip',         true,  islogscal);
 

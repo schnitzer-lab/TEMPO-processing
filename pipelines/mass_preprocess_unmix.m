@@ -32,7 +32,6 @@ channels = ["G","R"];
 
 binning = 8;
 maxRAM = 0.1;
-unaccounted_hardware_binning = 1; %For old recordings, hardware binning is not accounted for.
 
 shifts0 = [0,0]; %[0,0.5]; % mm, between R and G channel due to cameras misalignment
 

@@ -26,7 +26,7 @@ function moviesSavePreviewVideos(fullpaths_movies, varargin)
         options.titles = string(1:length(fullpaths_movies));
     end
 
-    if(length(fullpaths_movies) > 1) options.postfixes = "_combined" + options.postfixes ; end
+    if(length(fullpaths_movies) > 1), options.postfixes = "_combined" + options.postfixes ; end
     fullpaths_out = fullfile(options.outdir, filename) + options.postfixes +".avi";
 
     if (options.skip && all(isfile(fullpaths_out)) )
@@ -38,9 +38,9 @@ function moviesSavePreviewVideos(fullpaths_movies, varargin)
     displog("reading movie")
    
     Ms = cell(length(fullpaths_movies), 1);
-    Ss = cell(length(fullpaths_movies), 1);;
+    Ss = cell(length(fullpaths_movies), 1);
 
-    for i_f = 1:length(fullpaths_movies);
+    for i_f = 1:length(fullpaths_movies)
         [M, specs] = rw.h5readMovie(fullpaths_movies(i_f));
         Ms{i_f} = M;
         Ss{i_f} = specs;
@@ -60,7 +60,7 @@ function moviesSavePreviewVideos(fullpaths_movies, varargin)
     end
 
     ttl_signal = Ss{1}.getTTLTrace(nframes); 
-    if(isempty(ttl_signal)) ttl_signal = zeros(nframes,1); end
+    if(isempty(ttl_signal)), ttl_signal = zeros(nframes,1); end
     %%
     
     displog("saving video")

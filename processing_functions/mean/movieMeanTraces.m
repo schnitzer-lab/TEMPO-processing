@@ -1,4 +1,5 @@
-﻿function fullpaths_out = movieMeanTraces(fullpaths, varargin)
+
+function fullpaths_out = movieMeanTraces(fullpaths, varargin)
 
     [basepath, filename, ext] = fileparts(fullpaths(1));
 
@@ -7,7 +8,7 @@
         options = getOptions(options, varargin);
     end
 
-    if (~isfolder(options.processingdir)) mkdir(options.processingdir); end
+    if (~isfolder(options.processingdir)), mkdir(options.processingdir); end
     
     fullpaths_out = strings(size(fullpaths));
     for i_f = 1:length(fullpaths)
@@ -50,11 +51,11 @@
     specs = rw.h5readMovieSpecs(fullpaths(1));
     %%
 
-    fig = plt.getFigureByName("Mean traces");
+    fig = plt.getFigureByName("movieMeanTraces: Mean traces");
     plt.tracesComparison(xs, 'spacebysd', 3*options.space, 'labels', labels, ...
         'fps', specs.getFps(), 'fw', options.fw, 'f0', specs.getFrequencyRange(1),...
         't0', (specs.timeorigin-1)/specs.getFps());
-    sgtitle({basepath, "Spatially-averaged traces"}, 'Interpreter', 'none');
+    sgtitle({specs.recording_id, "Spatially-averaged traces"}, 'Interpreter', 'none');
     %%
     
     for i_f = 1:length(fullpaths)

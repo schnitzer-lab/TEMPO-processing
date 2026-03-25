@@ -65,35 +65,40 @@ function axes_all = signalSpectrogram(st, ts, fs, varargin)
     
     xlim([min(ts), max(ts)]);
     ylim(options.flims_plot);
-
-    clim(ax_spectrogram, ...
+        
+    set(ax_spectrogram, 'CLim', ...
         [quantile(st(fs >= options.flims_plot(1) & fs <= options.flims_plot(2),:), options.q(1), 'all'), ...
          quantile(st(fs >= options.flims_plot(1) & fs <= options.flims_plot(2),:), options.q(2), 'all')])
-    
     set(ax_spectrogram,'ColorScale', options.colorscale)
     colormap('turbo');
     
     originalSize = get(ax_spectrogram, 'Position');
-    cb = colorbar;
+    cb = colorbar(ax_spectrogram);
     
     xlabel("Time (s)"); ylabel("Frequency (Hz)");
     title(options.title, 'Interpreter', 'none', 'FontSize', 8);
     %%
         
     if(~isempty(options.trace))
-        set(ax_spectrogram, 'Position', originalSize);
     
         set(ax_spectrogram,'xticklabel',[])
         set(ax_spectrogram,'xlabel',[])
-        axes(ax_trace)
         
         plot(ax_trace, options.trace_ts, options.trace); 
         xlabel(ax_trace, "Time (s)"); ylabel(ax_trace, 'Signal');
         % grid on;
         
         xlim(ax_trace, [min(ts), max(ts)]);
-        
+
+        drawnow()
+        p_ax_trace = get(ax_trace, 'Position');
+        p_ax_ax_spectrogram = get(ax_spectrogram, 'Position');
+
+        set(ax_trace, 'Position', ...
+            [p_ax_ax_spectrogram(1), p_ax_trace(2), ...
+             p_ax_ax_spectrogram(3), p_ax_trace(4)]);
         linkaxes([ax_spectrogram ax_trace],'x')
+
     end
     %%
     
@@ -101,7 +106,6 @@ function axes_all = signalSpectrogram(st, ts, fs, varargin)
         
 %         set(ax_spectrogram,'yticklabel',[])
         set(ax_spectrogram,'ylabel',[])
-        % axes(ax_spectra)
         
         plot(ax_spectra, options.spectra_fs, options.spectra); 
         

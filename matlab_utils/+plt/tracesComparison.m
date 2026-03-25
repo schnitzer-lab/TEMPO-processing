@@ -9,20 +9,25 @@ function tracesComparison(traces, varargin)
     
     spacings = [0, std(traces(:, 2:end)) + std(traces(:, 1:(end-1)))];
     
-    if(options.spectra)
-        if(options.horizontal) subplot(1,2,1)
-        else subplot(2,1,1) 
+    if(options.spectrum)
+        if(options.horizontal), subplot(1,2,1)
+        else, subplot(2,1,1) 
         end
     end
     ts = (0:(size(traces,1)-1))/options.fps + options.t0;
     xs = traces- mean(traces)*options.nomean + cumsum(spacings.*options.spacebysd); 
-    plot(ts, xs*options.x_plot_scale, 'LineWidth', options.linewidth); xlim([min(ts), max(ts)]);
-%     if(~isempty(options.labels)) legend(options.labels, 'Interpreter', 'none','FontSize', 6); end
-    title("Time trace"); xlabel("t, s"); ylabel('x'); grid(); 
+    plot(ts, xs*options.x_plot_scale, 'LineWidth', options.linewidth); 
+    xlim([min(ts), max(ts)]);
+    % title("Time trace"); 
+    xlabel("t (s)"); ylabel('x'); grid(); 
     
-    if(options.spectra)
-        if(options.horizontal) subplot(1,2,2)
-        else subplot(2,1,2) 
+    if(~isempty(options.labels) && ~options.spectrum) 
+        legend(options.labels, 'Interpreter', 'none'); 
+    end
+    
+    if(options.spectrum)
+        if(options.horizontal), subplot(1,2,2)
+        else, subplot(2,1,2) 
         end
 
         z0 = pmtm(traces - mean(traces)*options.nomean_psd, options.nw);
@@ -34,8 +39,9 @@ function tracesComparison(traces, varargin)
         z0(end,:) = NaN;
 
         semilogy(fs, z0/norm0, 'LineWidth', options.linewidth);  grid(); 
-        if(~isempty(options.labels)) legend(options.labels, 'Interpreter', 'none','FontSize', 6); end
-        title("PSD"); xlabel("f, Hz"); ylabel("[x^2]/Hz")
+        if(~isempty(options.labels)), legend(options.labels, 'Interpreter', 'none'); end
+        % title("PSD"); 
+        xlabel("f (Hz)"); ylabel("Power ([x^2]/Hz)")
         xlim([min(fs), max(fs)]); 
         ylim([0.9,2].*[...
             min(z0(fs >= options.f0,:)/norm0, [], 'all'), ...
@@ -47,7 +53,7 @@ function [options,p] = parseInputs(varargin)
     
 
     p = inputParser();
-    p.addParameter('spectra', true);
+    p.addParameter('spectrum', true);
 
     p.addParameter('fw', 0);
     p.addParameter('nw', 1.25);

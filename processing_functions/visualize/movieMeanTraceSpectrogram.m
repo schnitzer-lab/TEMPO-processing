@@ -89,6 +89,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     if(~isempty(options.bgmethod)), cl = clim(axes_all(1)); clim(axes_all(1), [1, cl(2)]); end
     
     %%
+
     if(options.plot_ttl && ~isempty(specs.getTTLTrace()))
         ttl = specs.getTTLTrace(length(m));
         if(options.meantrace)
@@ -116,15 +117,6 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
             axes(axes_all(1))
             plotSignalOnSpectrogram(ts_trace(1:length(sig)), sig, [0.85, 0.93]*max(fs), 'white');
         end
-    end
-    if(options.meantrace && ~isempty(options.extra_signal))
-        axes(axes_all(2))
-        hold on
-        sig = options.extra_signal(:);
-        sig = sig(1:min([length(ts_trace), length(sig)]));
-        plot(ts_trace(1:length(sig)), zscore(sig)*std(m) + mean(m) + 3*std(m), ...
-            'Color', [0.3, 0.5, 0.1]);
-        hold off
     end
     %%
 

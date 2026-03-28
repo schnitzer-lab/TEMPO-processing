@@ -55,6 +55,7 @@ function fullpaths_out = movieMeanTraces(fullpaths, varargin)
     plt.tracesComparison(xs, 'spacebysd', 3*options.space, 'labels', labels, ...
         'fps', specs.getFps(), 'fw', options.fw, 'f0', specs.getFrequencyRange(1),...
         't0', (specs.timeorigin-1)/specs.getFps());
+    legend(labels, 'FontSize', 9)
     sgtitle({specs.recording_id, "Spatially-averaged traces"}, 'Interpreter', 'none');
     %%
     

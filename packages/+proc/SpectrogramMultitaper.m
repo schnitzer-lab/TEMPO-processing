@@ -25,7 +25,7 @@
 % st = proc.SpectrogramMultitaper(x, w, 'overlap', dw);
 % imagesc(st);  set(gca,'ColorScale','log')
 %
-function [st,f,t] = SpectrogramMultitaper(x, w, varargin)
+function [st,fs,ts] = SpectrogramMultitaper(x, w, varargin)
     
     if(length(w) > 1), window = w; w = length(w);
     else, window = ones(w,1); end
@@ -35,40 +35,49 @@ function [st,f,t] = SpectrogramMultitaper(x, w, varargin)
         options=getOptions(options,varargin);
     end
     
-    if(options.overlap ~= round(options.overlap))
-        error('overlap must be integer');
-    end
+    assert(options.overlap == round(options.overlap), 'SpectrogramMultitaper: overlap must be integer')
+    assert(length(x) >= w, 'SpectrogramMultitaper: signal must be longer than the window')
+    %%
     
-    n_widows = floor((length(x) - w)/(w - options.overlap )) + 1; %floor(length(x)/options.overlap ) -1;
+    n_widows = floor((length(x) - w)/(w - options.overlap)) + 1; %floor(length(x)/options.overlap ) -1;
+    
     nf = floor(w/2)+1+(ceil(w/2)-1)*(~isreal(x));
     st = nan(nf, n_widows);
+    
+    norm0 = 1/(mean(window.^2)*w/options.fps);
+    % sum(y.^2)*(1/options.fps()) == sum(z)*(mean(diff(fs)))*1/norm0
 
     for i_t = 1:n_widows
+        %%
 %         disp(i_t)
         xrange = (1+(i_t-1)*(w - options.overlap ) ):(w + (i_t-1)*(w - options.overlap ) );
         
         if(~any(isnan(x(xrange))))
-            [z,f] = pmtm(x(xrange).*window, options.nw, w, ...
+            [z,fs] = pmtm(x(xrange).*window, options.nw, w, ...
                     'DropLastTaper', options.DropLastTaper, options.fps);
 %             [z,f] = pmtm(x(xrange), 10, 'Tapers','sine',  w, options.fps); % in matlab 2020b one can do: 'Tapers','sine'
 
-            st(:,i_t) = z; 
+            st(:,i_t) = z/norm0; 
         else
             st(:,i_t) = NaN(length(st(:,i_t)),1);
         end
     end
+    %%
     
-%     f = (0:(size(st, 1)-1))/(size(st, 1)-1)*specs.getFps()/2;
-    t = ((0:(size(st,2)-1))*(w-options.overlap) + (w)/2)'; % timestamps for spectrogram intervals
-    if(~isempty(options.fps)) t = t/options.fps; end
+    %     fs = (0:(size(st, 1)-1))/(size(st, 1)-1)*optionms.fps;
+    ts = ((0:(size(st,2)-1))*(w-options.overlap) + (w)/2)'; % timestamps for spectrogram intervals
+    ts = ts/options.fps;
+    
+    dt = ((w-options.overlap)/options.fps);
+    st = st/dt/(w/(w-options.overlap)); % sum(st(:))*(mean(diff(fs)))*mean(diff(ts)) == sum(x.^2)*(1/options.fps())
 end
 
 
 function options =  DefaultOptions(w)
-    options.overlap = floor(w/2);
+    options.overlap = round(w*0.75);
     options.nw = 1;
     options.correct1f = false; %correct for 1/f^a specral decay
     options.DropLastTaper = false;
     
-    options.fps = [];
+    options.fps = 1;
 end

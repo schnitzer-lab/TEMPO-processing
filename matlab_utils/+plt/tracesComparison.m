@@ -19,7 +19,7 @@ function tracesComparison(traces, varargin)
     plot(ts, xs*options.x_plot_scale, 'LineWidth', options.linewidth); 
     xlim([min(ts), max(ts)]);
     % title("Time trace"); 
-    xlabel("t (s)"); ylabel('x'); grid(); 
+    xlabel("t (s)"); ylabel('signal'); grid(); 
     
     if(~isempty(options.labels) && ~options.spectrum) 
         legend(options.labels, 'Interpreter', 'none'); 
@@ -41,7 +41,7 @@ function tracesComparison(traces, varargin)
         semilogy(fs, z0/norm0, 'LineWidth', options.linewidth);  grid(); 
         if(~isempty(options.labels)), legend(options.labels, 'Interpreter', 'none'); end
         % title("PSD"); 
-        xlabel("f (Hz)"); ylabel("Power ([x^2]/Hz)")
+        xlabel("f (Hz)"); ylabel("Power (Hz^{-1})")
         xlim([min(fs), max(fs)]); 
         ylim([0.9,2].*[...
             min(z0(fs >= options.f0,:)/norm0, [], 'all'), ...

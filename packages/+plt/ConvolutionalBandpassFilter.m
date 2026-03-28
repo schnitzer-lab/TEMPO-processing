@@ -1,5 +1,5 @@
 function ConvolutionalBandpassFilter(conv_trans, fps, f0, wp, wr, attn, rppl )
-    
+    %%
     subplot(1,4,1)
     ts_plot = linspace(-length(conv_trans)/2, length(conv_trans)/2, length(conv_trans))/fps;
     plot(ts_plot, conv_trans)
@@ -19,7 +19,7 @@ function ConvolutionalBandpassFilter(conv_trans, fps, f0, wp, wr, attn, rppl )
     yline(1/attn, '--'); hold off;
     ylim([1e-1/attn,10^0])
     xlabel('frequency, Hz')
-    title(['f_0 =', num2str(f0), 'Hz, ', 'atten =', num2str(1/attn, '%.1e')])
+    title(["f_0 ="+num2str(f0)+"Hz,", "atten ="+num2str(1/attn, '%.1e')])
     grid
 
     subplot(1,4,3)
@@ -29,7 +29,7 @@ function ConvolutionalBandpassFilter(conv_trans, fps, f0, wp, wr, attn, rppl )
     xlim([f0-wp-3*wr, f0+wp+3*wr])
     ylim([1e-1/attn,10^0])
     xlabel('frequency, Hz')
-    title(['w_p=', num2str(wp), 'Hz, ', 'w_r=', num2str(wr), 'Hz' ])
+    title(["w_p="+num2str(wp)+"Hz, ", "w_r="+num2str(wr)+"Hz" ])
     grid
 
 

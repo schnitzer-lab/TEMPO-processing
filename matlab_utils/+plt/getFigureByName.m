@@ -5,5 +5,6 @@ function fig = getFigureByName(fig_name, ontop)
     fig = findobj( 'Type', 'Figure', 'Name', fig_name );
     if(isempty (fig)), fig=figure('Name', fig_name); end
     if(ontop), figure(fig(1)); end
+    if(length(fig) > 1), fig = fig(1); end
 end
 

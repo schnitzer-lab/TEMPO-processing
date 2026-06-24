@@ -29,7 +29,7 @@ function [trace, mask] = movieRegion2Trace(movie,contours,varargin)
             cy = contour(touse,2);       
         end
             
-        if(options.plot), plot(cx,cy, 'Color', options.plotcolor); end
+        if(options.plot), plot(cx,cy, 'Color', options.plotcolor); drawnow; end
         
         mask = mask | poly2mask(cx,cy, size(movie,1),size(movie,2));
     end

@@ -9,27 +9,29 @@ function tracesComparison(traces, varargin)
     
     spacings = [0, std(traces(:, 2:end)) + std(traces(:, 1:(end-1)))];
     
-    if(options.spectrum)
-        if(options.horizontal), subplot(1,2,1)
-        else, subplot(2,1,1) 
+    if(isempty(options.axplot))
+        if(options.spectrum)
+            options.axplot = subplot(2,1,1);
+            options.axspec = subplot(2,1,2);
+        else
+            options.axplot = subplot(1,1,1);
         end
     end
+
     ts = (0:(size(traces,1)-1))/options.fps + options.t0;
     xs = traces- mean(traces)*options.nomean + cumsum(spacings.*options.spacebysd); 
-    plot(ts, xs*options.x_plot_scale, 'LineWidth', options.linewidth); 
-    xlim([min(ts), max(ts)]);
+    plot(options.axplot, ts, xs*options.x_plot_scale, 'LineWidth', options.linewidth); 
+    xlim(options.axplot, [min(ts), max(ts)]);
     % title("Time trace"); 
-    xlabel("t (s)"); ylabel('signal'); grid(); 
+    xlabel(options.axplot, "t (s)"); ylabel(options.axplot, 'signal'); 
+    grid(options.axplot, 'on'); 
     
     if(~isempty(options.labels) && ~options.spectrum) 
-        legend(options.labels, 'Interpreter', 'none'); 
+        legend(options.axplot, options.labels, 'Interpreter', 'none'); 
     end
     
     if(options.spectrum)
-        if(options.horizontal), subplot(1,2,2)
-        else, subplot(2,1,2) 
-        end
-
+        
         z0 = pmtm(traces - mean(traces)*options.nomean_psd, options.nw);
         fs = linspace(0, options.fps/2, size(z0,1)); 
         norm0 = 1/pi * options.fps/2; % sum(traces.^2)/length(traces) / sum(z0/norm0*mean(diff(fs))) == 1 % ylabel("[x^2]/Hz")
@@ -38,12 +40,12 @@ function tracesComparison(traces, varargin)
         z0(fs < options.f0,:) = NaN;
         z0(end,:) = NaN;
 
-        semilogy(fs, z0/norm0, 'LineWidth', options.linewidth);  grid(); 
-        if(~isempty(options.labels)), legend(options.labels, 'Interpreter', 'none'); end
+        semilogy(options.axspec, fs, z0/norm0, 'LineWidth', options.linewidth);  grid(); 
+        if(~isempty(options.labels)), legend(options.axspec, options.labels, 'Interpreter', 'none'); end
         % title("PSD"); 
-        xlabel("f (Hz)"); ylabel("Power (Hz^{-1})")
-        xlim([min(fs), max(fs)]); 
-        ylim([0.9,2].*[...
+        xlabel(options.axspec, "Frequency (Hz)"); ylabel(options.axspec, "Power (Hz^{-1})")
+        xlim(options.axspec, [min(fs), max(fs)]); 
+        ylim(options.axspec, [0.9,2].*[...
             min(z0(fs >= options.f0,:)/norm0, [], 'all'), ...
             max(z0(fs >= options.f0,:)/norm0, [], 'all')])
     end
@@ -64,7 +66,11 @@ function [options,p] = parseInputs(varargin)
     p.addParameter('nomean', true);
     p.addParameter('nomean_psd', true);
     p.addParameter('spacebysd', false);
-    p.addParameter('horizontal', false);
+
+    p.addParameter('axplot', []);
+    p.addParameter('axspec', []);
+
+    
 %     options.colors = [];
     
     p.addParameter('f0', 0)

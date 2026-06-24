@@ -94,10 +94,19 @@ function fullpath_out = movieSaveSingleFrame(fullpath_movie, varargin)
 
     displog("plotting and saving")
     
-    plt.getFigureByName("Movie frame");
+    fig = plt.getFigureByName("Movie frame");
     imshow(plt.saturate(frame, options.saturate), []);
+
+    if(options.outlines && ~isempty(specs.getAllenOutlines()))
+        hold on;
+        plt.outlines(specs.getAllenOutlines(), [0, size(frame,2)], [0, size(frame,1)], 'color', 'black', 'linewidth', 1.25)
+        plt.outlines(specs.getAllenOutlines(), [0, size(frame,2)], [0, size(frame,1)], 'color', 'white', 'linewidth', 1)
+        hold off;
+    end
     %%
     switch options.format
+        case ".png"
+            saveas(fig, fullpath_out)
         case ".bmp"
             imwrite(plt.to01(double(frame), options.saturate), fullpath_out)
         case ".h5"
@@ -117,6 +126,7 @@ function options = defaultOptions(basepath)
     
     options.skip = true;
     options.mask = true;
+    options.outlines = false;
     options.scalebar = true;
     options.frametype = "mean"; % "mean", "std", "median", "F0" frame number
     options.saturate = [0.02,0.98];

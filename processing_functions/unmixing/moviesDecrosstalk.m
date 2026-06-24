@@ -49,7 +49,8 @@ function [fullpath_out_g, fullpath_out_r] =...
     %%
         
     Mout = decrosstalk(1,1)*Mg + decrosstalk(1,2)*Mr;
-    if(decrosstalk(1,2) == 0), Mout(isnan(Mr)) = decrosstalk(1,1)*Mg(isnan(Mr)); end
+    if(decrosstalk(1,1) ~= 0), Mout(isnan(Mr) & ~isnan(Mg)) = decrosstalk(1,1)*Mg(isnan(Mr) & ~isnan(Mg)); end
+%     if(decrosstalk(1,2) ~= 0), Mout(isnan(Mg) & ~isnan(Mr)) = decrosstalk(1,2)*Mr(isnan(Mg) & ~isnan(Mr)); end
    
     fig_trace_g = plt.getFigureByName("moviesDecrosstalk: Traces comparison G");
     plt.tracesComparison([squeeze(mean(Mg, [1,2],'omitnan' )), squeeze(mean(Mout, [1,2],'omitnan'))], ...
@@ -62,7 +63,8 @@ function [fullpath_out_g, fullpath_out_r] =...
     %%
     
     Mout = decrosstalk(2,2)*Mr + decrosstalk(2,1)*Mg;
-    if(decrosstalk(2,1) == 0), Mout(isnan(Mg)) = decrosstalk(2,2)*Mr(isnan(Mg)); end
+    if(decrosstalk(2,2) ~= 0), Mout(isnan(Mg) & ~isnan(Mr)) = decrosstalk(2,2)*Mr(isnan(Mg) & ~isnan(Mr)); end
+%     if(decrosstalk(2,1) ~= 0), Mout(isnan(Mr) & ~isnan(Mg)) = decrosstalk(2,1)*Mg(isnan(Mr) & ~isnan(Mg)); end
        
     fig_trace_r = plt.getFigureByName("moviesDecrosstalk: Traces comparison R");
     plt.tracesComparison([squeeze(mean(Mr, [1,2],'omitnan' )), squeeze(mean(Mout, [1,2],'omitnan'))], ...

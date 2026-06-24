@@ -8,6 +8,5 @@ function prepAxis(prep_cb)
         cb = colorbar(); 
         cb.Label.String = ' '; cb.Label.Rotation = -90;
     end
-    drawnow();
 end
 

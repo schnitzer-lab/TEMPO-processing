@@ -1,13 +1,14 @@
 function fullpath_movie = movieAddTimestampsTable(fullpath_movie, varargin)
     
     
-    [basepath, ~, ~] = fileparts(fullpath_movie, '-c', true);
+    [basepath, ~, ~] = fileparts(fullpath_movie);
 
     options = defaultOptions();
     if(~isempty(varargin))
         options = getOptions(options, varargin);
     end
     %%
+    specs = rw.h5readMovieSpecs(fullpath_movie);
     
     if(rw.h5checkDatasetExists(fullpath_movie, options.dataset) && options.skip)
         warning("timestamps already added, skipping: " + fullpath_movie)

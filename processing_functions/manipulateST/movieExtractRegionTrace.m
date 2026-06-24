@@ -107,7 +107,11 @@ function fullpath_out_all = movieExtractRegionTrace(fullpath_movie, region_ids, 
         
         specs_out = copy(specs);
         specs_out.AddToHistory(functionCallStruct({'fullpath_movie','region_ids','options'}));
+        
         specs_out.AddBinning(sqrt(sum(mask_full, 'all')));
+        [row, col] = find(mask_full, 1, 'first');
+        specs_out.AddSpatialCropping([row,col]);
+
         remove(specs_out.extra_specs, {'mask'});
         remove(specs_out.extra_specs, {'allenMapEdgeOutline'});
         remove(specs_out.extra_specs, {'allenTransform'});

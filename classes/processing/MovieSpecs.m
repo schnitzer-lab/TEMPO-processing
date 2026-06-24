@@ -147,7 +147,7 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
             if(length(p) ~= 2 || any(p < 0) ||  any( floor(p) ~= p) )
                 error("spaceorigin should be an array of two round numbers > 0")
             end
-            obj.spaceorigin = (obj.spaceorigin) + (p - [1,1])*obj.binning;
+            obj.spaceorigin = (obj.spaceorigin) + round((p - [1,1])*obj.binning);
             s = obj.getSpaceOrign();
         end
 
@@ -216,8 +216,8 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
                 error("pixsize %d should be a number > 0", pixsize)
             end
             
-            if(~isnumeric(binning) || binning < 1)
-                error("binning %d should be a number >= 1", binning)
+            if(~isnumeric(binning))
+                error("binning %d should be a number", binning)
             end
             
             if(length(spaceorigin) ~= 2 || any(spaceorigin < 0) || ...

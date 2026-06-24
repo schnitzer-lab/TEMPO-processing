@@ -19,6 +19,6 @@ function fullpath_out = copyfileWithRelativePath(fullpath_in, folder_new, ...
     if(~isfile(fullpath_out) || ~skip)
         copyfile(fullpath_in, fullpath_out); 
     else
-        warning("skipping " + fullpath_out)
+        displog("skipping " + fullpath_out)
     end
 end

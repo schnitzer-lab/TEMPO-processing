@@ -15,6 +15,7 @@ function signalTrials(m_stim, window_stim, fps, align_to)
     subplot(5,1,2:5);
     imagesc(ts, 1:size(m_stim,1), -plt.saturate(m_stim, 0.00025)*100); colormap(plt.redblue)
     cb = colorbar; cb.Label.String = "-\Delta F/F_0 (%)"; caxis([-1,1]*max(abs(cb.Limits)));
+    cb.Label.Rotation = -90;
     caxis();
     set(gca,'YDir','normal');
     

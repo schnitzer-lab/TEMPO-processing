@@ -31,7 +31,7 @@ function [st,fs,ts] = SpectrogramMultitaper(x, w, varargin)
     else, window = ones(w,1); end
 
     options = DefaultOptions(w);
-    if nargin>=2
+    if nargin>=3
         options=getOptions(options,varargin);
     end
     

@@ -2,7 +2,7 @@ function fullpath_movie = movieAddFramestampsTable(fullpath_movie, varargin)
     
     [basepath, ~, ~] = fileparts(fullpath_movie);
 
-    options = defaultOptions(basepath);
+    options = defaultOptions();
     if(~isempty(varargin))
         options = getOptions(options, varargin);
     end

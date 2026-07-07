@@ -24,11 +24,11 @@ skip_if_final_exists = true;
 mouse_state = "transition";% "iso"; "awake"; %"anesthesia" "transition"
 unmix_time_resolved = false;
 
-crosstalk_matrix =  [[1, 0]; [0.080, 1]];
-% % 0.080 for ASAP3
-% % 0.165 for ASAP7y
-% % 0.095 for old ace recordings seems good - based on m14 visual v1
-% % 0.141 (?) for older ASAP2s with different filters
+crosstalk_matrix =  [[1, 0]; [0.072, 1]];
+% 0.072 for ASAP3 / ASAP5
+% 0.165 for ASAP7y
+% 0.095 for old ace recordings seems good - based on m14 visual v1
+% 0.141 (?) for older ASAP2s with different filters
 
 postfix_in1 = "cG_bin8*_mc";
 postfix_in2 = "cR_bin8*_mc_reg";

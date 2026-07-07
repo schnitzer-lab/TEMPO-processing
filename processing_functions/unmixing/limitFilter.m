@@ -48,11 +48,18 @@ function w = limitFilter(w, varargin)
         s(a_large&in_flim) = options.max_amp*(s(a_large&in_flim)./abs(s(a_large&in_flim)));
     end
 
-    % project s(f) on exp(i*max_phase(f)) direction if phase is too large
-    % note: does not commute with max_amp
+    % The delay is computed relative to the nearest 0 phase mod \pi. That
+    % is, if the phase is \pi-\phi, it is treated as phase delay (-\phi)
+    % relative to \pi, not (\pi-\phi) relative to 0. Measuring the delay
+    % relative to \pi means that the non-delayed contributing is treated
+    % like a contribution with a negative weight, that is g = v - w*r,
+    % instead of a phase delay (\pi-\phi) relative to g = v + w*r.
     extra_angle = round(angle(s)/pi)*pi;
     s = s.*exp(-1.i*extra_angle);
 
+    % project s(f) on exp(i*max_phase(f)) direction if phase is too large
+    % Does not commute with max_amp. The amplitude was limited before, 
+    % now we decrease the out-of-phase contribution further by projecting.
     phase_too_large_p = angle(s) >  options.max_phase;
     phase_too_large_n = angle(s) < -options.max_phase;
     s(phase_too_large_p) = abs(s(phase_too_large_p)).*...

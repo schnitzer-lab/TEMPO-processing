@@ -302,22 +302,22 @@ function savePlots(Mg, Mr, Mr_filt, Wsm, Wxy, specs, filename_out, options)
     %%
 
     fig_pcs = plt.getFigureByName("movieEstimateHemoGFilt: filter spatial pca");
-    fig_pcs.Position(3:4) = [1300 900]; 
+    fig_pcs.Position(3:4) = [1300 1200]; 
 %     set(fig_pcs, 'Renderer', 'painters')
 
     sgtitle('Unmixing filter')
-    plt.unmixingFilterPCA(Wsm, specs)
+    plt.unmixingFilterPCA(Wsm, specs, 6)
 
     saveas(fig_pcs, fullfile(options.diagnosticdir, filename_out + "_filterPCA" + ".png"))
     saveas(fig_pcs, fullfile(options.diagnosticdir, filename_out + "_filterPCA" + ".fig"))
     %%
 
     fig_pcs = plt.getFigureByName("movieEstimateHemoGFilt: filter spatial pca (local)");
-    fig_pcs.Position(3:4) = [1300 900]; 
+    fig_pcs.Position(3:4) = [1300 1200]; 
 %     set(fig_pcs, 'Renderer', 'painters')
 
     sgtitle('Unmixing filter (local)')
-    plt.unmixingFilterPCA(Wxy, specs)
+    plt.unmixingFilterPCA(Wxy, specs, 6)
 
     saveas(fig_pcs, fullfile(options.diagnosticdir, filename_out + "_filterxyPCA" + ".png"))
     saveas(fig_pcs, fullfile(options.diagnosticdir, filename_out + "_filterxyPCA" + ".fig"))

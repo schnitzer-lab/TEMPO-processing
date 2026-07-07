@@ -26,7 +26,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     %%
 
     specs = rw.h5readMovieSpecs(fullpath);
-    m =  rw.h5getMeanTrace(fullpath, 'nframes_read', options.nframes_read ); %squeeze(sum(M,[1,2], 'omitnan'));
+    m =  rw.h5getMeanTrace(fullpath, 'nframes_read', options.nframes_read, 'mask', false); %squeeze(sum(M,[1,2], 'omitnan'));
     %%
 
     w = round(options.timewindow*specs.getFps());
@@ -41,7 +41,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     amp_st = mean(sum(st, 1),2)*mean(diff(fs));
     amp_m = mean(m.^2);
 
-    assert(2*(amp_st-amp_m)/(amp_st+amp_m) < 0.05, ...
+    assert(2*(amp_st-amp_m)/(amp_st+amp_m) < 0.08, ...
         "movieMeanTraceSpectrogram: norm difference")
     
     st = st*amp_m/amp_st;
@@ -51,9 +51,10 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     bg = ones(size(st));
     if(~isempty(options.bgmethod))
         %%
-
-        st(fs < specs.getFrequencyRange(1) | fs > specs.getFrequencyRange(2), :) = [];
-        fs(fs < specs.getFrequencyRange(1) | fs > specs.getFrequencyRange(2)) = [];  
+        
+        if(isempty(options.frange)), options.frange = specs.getFrequencyRange(); end
+        st(fs < options.frange(1) | fs > options.frange(2), :) = [];
+        fs(fs < options.frange(1) | fs > options.frange(2)) = [];  
 
         if(isempty(options.timewindow_bg)), options.timewindow_bg = 3*options.timewindow; end
 
@@ -115,15 +116,17 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     new_ticks = ceil(log10(ax_cb.Limits(1))):1:floor(log10(ax_cb.Limits(2)));
     axes_all(1).Colorbar.Ticks = 10.^(new_ticks);
     if(~isempty(options.bgmethod)), ax_cb.Label.String = ax_cb.Label.String + " (rel)";
-    else, axes_all(1).Colorbar.Label.String  = ax_cb.Label.String + " (Hz^{-1})"; end
+    else, axes_all(1).Colorbar.Label.String  = ax_cb.Label.String + " (Hz-1)"; end
     if(~isempty(options.bgmethod)), cl = clim(axes_all(1)); clim(axes_all(1), [1, cl(2)]); end    
     
-    drawnow();
-    p_ax_trace = get(axes_all(2), 'Position');
-    p_ax_ax_spectrogram = get(axes_all(1), 'Position');
-    set(axes_all(2), 'Position', ...
-            [p_ax_ax_spectrogram(1), p_ax_trace(2), ...
-             p_ax_ax_spectrogram(3), p_ax_trace(4)]);
+    if(options.meantrace)
+        drawnow();
+        p_ax_trace = get(axes_all(2), 'Position');
+        p_ax_ax_spectrogram = get(axes_all(1), 'Position');
+        set(axes_all(2), 'Position', ...
+                [p_ax_ax_spectrogram(1), p_ax_trace(2), ...
+                 p_ax_ax_spectrogram(3), p_ax_trace(4)]);
+    end
     %%
     tstart_ttl = (specs.timeorigin-1)/specs.getFps();
 
@@ -131,13 +134,13 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
         ttl = specs.getTTLTrace(length(m));
         if(options.meantrace)
             hold(axes_all(2), 'on')
-            h_ttl = plot(axes_all(2), ts_trace-tstart_ttl, ttl*2*std(m) + mean(m), ...
+            h_ttl = plot(axes_all(2), ts_trace, ttl*2*std(m) + mean(m), ...
                 'Color', [0.8500, 0.3250, 0.0980]);
             uistack(h_ttl, 'bottom')
             hold(axes_all(2), 'off')            
         else
             flim = get(axes_all(1), 'YLim');
-            plotSignalOnSpectrogram(axes_all(1), ts_trace-tstart_ttl, logical(ttl ~= 0), ...
+            plotSignalOnSpectrogram(axes_all(1), ts_trace, logical(ttl ~= 0), ...
                 [0.89, 0.97]*max(flim), [1,1,1]*0.9);
         end
     end

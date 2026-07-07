@@ -1,4 +1,4 @@
-﻿function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
+function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     
     [basepath, filename, ~] = fileparts(fullpath_movie);
 
@@ -48,6 +48,8 @@
     F1 = specs_ref.extra_specs('F0');
     if(specs_mov.extra_specs.isKey('F0'))
         F2 = specs_mov.extra_specs('F0');
+    elseif(specs_mov.extra_specs.isKey('expBaseline_end'))
+        F2 = specs_mov.extra_specs('expBaseline_end');
     else
         M = rw.h5readMovie(fullpath_movie);
         F2 = mean(M,3);
@@ -77,17 +79,21 @@
     end
     %%
 
-    plt.getFigureByName("movieCopyReference: templates overlap");
-    subplot(1,2,1)
-    imshowpair(template_moving, template_fixed)
-    title("initial")
-
-    %%
-
     ref_fixed = imref2d(size(template_fixed));
     ref_moving = imref2d(size(template_moving));
     center = [mean(ref_fixed.XWorldLimits), mean(ref_fixed.YWorldLimits)];
-    
+    %%
+
+    template_moving_regref = imwarp(template_moving, ref_moving, rigid2d(), ...
+        'OutputView', ref_fixed, ...
+        'SmoothEdges', true, 'FillValues', NaN, 'interp', options.interp);
+
+    plt.getFigureByName("movieCopyReference: templates overlap");
+    subplot(1,2,1)
+    imshowpair(template_moving_regref, template_fixed)
+    title("initial")
+    %%
+
     rot = @(t) [cosd(t) sind(t); -sind(t) cosd(t)];
 
     % tform0 = rigid2d(rot(-options.angle0), options.shifts0/specs_mov.getPixSize());
@@ -98,39 +104,44 @@
     % move origin to center, rotate, shift, move origin back
     tform0 = rigid2d(tform00.invert.T*tform02.T*tform01.T*tform00.T);
 
-    template_reg0 = imwarp(template_moving, ref_moving, tform0, 'OutputView', ref_moving, ...
+    template_moving_reg0 = imwarp(template_moving, ref_moving, tform0, 'OutputView', ref_fixed, ...
         'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
+    
+    % subplot(1,2,2)
+    % imshowpair(template_moving_reg0, template_fixed)
     %%
     
-    % tform_cor = imregcorr(template_reg0, template_fixed, ...
-        % 'transformtype', 'rigid', 'window', false);
-    % template_cor = imwarp(template_reg0, tform_cor, 'OutputView', ref_fixed, ...
-        % 'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
-
-    [opt, met] = imregconfig("multimodal");
-    tform_mul =  imregtform(template_reg0, ref_moving, template_fixed, ref_fixed,...
+    [opt, met] = imregconfig("monomodal");
+    % [opt, met] = imregconfig("multimodal");
+    tform_mul =  imregtform(template_moving_reg0, ref_fixed, template_fixed, ref_fixed,...
         'rigid', opt, met);
 
     tform_full = rigid2d(tform_mul.T*tform0.T); % *tform_cor.T
-    template_reg = imwarp(template_moving, ref_moving, tform_full, 'OutputView', ref_moving, ...
+    template_moving_reg = imwarp(template_moving, ref_moving, tform_full, 'OutputView', ref_fixed, ...
         'SmoothEdges', true, 'FillValues', options.fillval, 'interp', options.interp);
+    
+    % subplot(1,2,2)
+    % imshowpair(template_moving_reg, template_fixed)
+    %%
 
-    template_fixed_m = imwarp(template_fixed, ref_fixed, rigid2d(), 'OutputView', ref_moving, ...
+    template_fixed_movref = imwarp(template_fixed, ref_fixed, rigid2d(), 'OutputView', ref_moving, ...
+        'SmoothEdges', true, 'FillValues', options.fillval, 'interp', options.interp);
+    template_fixed_reg = imwarp(template_fixed, ref_fixed, tform_full.invert, 'OutputView', ref_moving, ...
         'SmoothEdges', true, 'FillValues', options.fillval, 'interp', options.interp);
     %%
 
-    nan_mask = isnan(template_reg) | isnan(template_fixed_m) | isnan(template_moving);
-    corr_mov = corr(template_moving(~nan_mask), template_fixed_m(~nan_mask));
-    corr_reg = corr(template_reg(~nan_mask), template_fixed_m(~nan_mask));
+    nan_mask = isnan(template_moving) | isnan(template_fixed_reg) | isnan(template_fixed_movref);
+    corr_mov = corr(template_moving(~nan_mask), template_fixed_movref(~nan_mask));
+    corr_reg = corr(template_moving(~nan_mask), template_fixed_reg(~nan_mask));
 
     fig_overlap = plt.getFigureByName("movieCopyReference: templates overlap");
     subplot(1,2,1);
     title(sprintf("initial (r=%.2f)", corr_mov))
     subplot(1,2,2);
-    imshowpair(template_reg, template_fixed);
+    imshowpair(template_moving_reg, template_fixed);
     title(sprintf("transformed (r=%.2f)", corr_reg)) 
 
-    sgtitle([basepath, filename], 'Interpreter', 'None')
+    sgtitle([string(basepath), string(filename)], 'Interpreter', 'None')
     %%
 
     if(any(abs(abs(tform_full.T(3,1:2)))*specs_mov.getPixSize() > options.shift_max))
@@ -163,7 +174,7 @@
     imshow(frame_moving.*double(specs_out.getMask()), [])
     title("target alignmet")
 
-    sgtitle([basepath, filename], 'Interpreter', 'None')
+    sgtitle([string(basepath), string(filename)], 'Interpreter', 'None')
     %%
     displog("registering allen")
         
@@ -220,7 +231,7 @@
     title("target alignmet")
     drawnow;
     
-    sgtitle([basepath, filename], 'Interpreter', 'None')
+    sgtitle([string(basepath), string(filename)], 'Interpreter', 'None')
     %%
 
     displog("saving aligned")

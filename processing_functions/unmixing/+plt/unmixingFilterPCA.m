@@ -1,35 +1,57 @@
 
-function unmixingFilterPCA(W, specs)
+function unmixingFilterPCA(W, specs, n_pcs)
 %%
     saturate = 0.01;
+    if(nargin < 3),  n_pcs = 6; end
 
 %%
 
     w = squeeze(mean(W, [1,2], 'omitnan'));
+    % sign0 = sign(w( ceil((numel(w)+1)/2) ));
+    sign0 = sign(mean(w));
     frange = specs.getFrequencyRange();
 
-    Win = W-repmat(reshape(w, [1,1,length(w)]), [size(W,[1,2]), 1]);
+    % non-centered PCA without substracting the mean. Basicaly, relative to
+    % 0, that is the first PC1 jenerally points towards the mean. Makes it 
+    % easy to compare PC1 (~= mean) to the contribution of other PCs
+    Win = W;%-reshape(w, [1,1,length(w)]);%-mean(W, 3);
     Win(isnan(Win)) = 0;
     
-    [coeff0,score0,latent] = pca(reshape(Win, [prod(size(Win, [1,2])), size(Win,3)])');
+    [spatialpc,temporalpc,latent] = ...
+        pca(reshape(Win, [prod(size(Win, [1,2])), size(Win,3)])');
         
-%     (Win - reshape(coeff*score', size(Win))) == 0
+%     (Win - reshape(spatialpc*temporalpc', size(Win))) == 0
     
-    score = score0 .* sqrt(mean(coeff0.^2,1));
-    coeff = coeff0 ./ sqrt(mean(coeff0.^2,1));
+    % coefficients are scaled to be comparible to the average trace, but
+    % thus no longer multiply to the total
 
-%     score = score0 ./ sqrt(sum(score0.^2, 1)).^2;
-%     coeff = coeff0 .* sqrt(sum(score0.^2, 1));
+    % score = temporalpc;
+    % coeff = spatialpc;
+
+    weight = sqrt(sum(temporalpc.^2, 1)).*sqrt(mean(spatialpc.^2,1));
+    varpercent = weight.^2 ./ sum(weight.^2);
+    
+    score = temporalpc .* sqrt(mean(spatialpc.^2,1));
+    coeff = spatialpc ./ sqrt(mean(spatialpc.^2,1));
+    
+    % coeff = coeff .* sqrt(mean(spatialpc.^2,1)) .* sqrt(sum(temporalpc.^2, 1));
+
+    % score = temporalpc ./ sqrt(sum(temporalpc.^2, 1));
+    % coeff = spatialpc .* sqrt(sum(temporalpc.^2, 1));
 
     coef2d = reshape(coeff, [size(Win, [1,2]), size(coeff, 2)]);
 %     coef2d(repmat(nanmask, [1,1, size(coef2d, 3)])) = NaN;
 %%
 
-    ax1 = subplot(4,3,1);
+    n_rows = n_pcs + 1;
+
+    ax1 = subplot(n_rows,3,1);
 
     im_show = plt.saturate(sqrt(sum(Win.^2,3)), saturate);
     im1 = imshow(im_show, []);
-%     set(im1, 'AlphaData', logical(specs.getMask()))
+    if(~isempty(specs.getMask()))
+        set(im1, 'AlphaData', logical(specs.getMask()))
+    end
     colormap(ax1, plt.redblue);  
     caxis([-1,1]*max(abs(im_show(:))));
     
@@ -42,158 +64,89 @@ function unmixingFilterPCA(W, specs)
     cb.Label.Position = cb.Label.Position + [1,0,0];
     cb.Label.FontSize = 11;
 
-    ax = subplot(4,3,2);
+    ax = subplot(n_rows,3,2);
     ts = (0:(length(w) - 1))/specs.getFps();
     ts = ts - mean(ts)-1/specs.getFps()/2;
     plot(ts, w, 'LineWidth', 1.5); %xlim(minmax(ts))
     xlim( [-1,1]*max(abs(ts)) ); 
     ylabel("Filter amplitude", 'FontSize',11); 
-    grid on;
+    % grid on;
     % title("Time-domain filter")
-    grid OFF;
-    % ax.YGrid = 'off';
+    % grid OFF;
+    grid on; ax.XMinorGrid = 'on'; ax.YGrid = 'off';
     
-    subplot(4,3,3)
+    ax = subplot(n_rows,3,3);
     zw = abs(fft(w));
     fs = linspace(0, specs.getFps(), length(zw)); 
     zw(fs < frange(1) | fs > frange(2)) = NaN;
     semilogy(fs, zw, 'LineWidth', 1.5); xlim(minmax(fs)); 
-    xlim([0, specs.getFps()/2])
+
+    grid on; ax.XMinorGrid = 'on';
+    xticks([0:10:specs.getFps()]);
+    xlim([0, specs.getFps()/2]);
+    ylabel('Spectral amplitude', 'FontSize',11);
     %%
     
-    ax1 = subplot(4,3,4);
+    ts  = (0:(size(score,1) - 1))/specs.getFps();   ts = ts - mean(ts);
+    fs  = linspace(0, specs.getFps(), size(score,1));
+    fps = specs.getFps();
 
-    sign_flip = sign(score((size(score,1)+1)/2,1));
-    im_show = sign_flip*plt.saturate(coef2d(:,:,1), saturate);
-    imshow(im_show, []);
-%     set(im1, 'AlphaData', logical(specs.getMask()))
-    colormap(ax1, plt.redblue);  
-    caxis([-1,1]*max(abs(im_show(:))));
-    
-    ht = title("PC1:");
-    set(ht, 'position', [-50,50,1])
-    
-    cb = colorbar();
+    % Create the axes here (change this layout to rearrange the plots), then
+    % hand each row its three axes [map, trace, spectrum] to plotPCRow.
+    % Rows 2..n_rows hold the PCs; row 1 is the average filter (above).
+    axs = gobjects(n_pcs, 3);
+    for i_pc = 1:n_pcs
+        base = 3*i_pc;   % subplot index of the previous (average/PC) row's end
+        axs(i_pc,:) = [subplot(n_rows,3,base+1), ...
+                       subplot(n_rows,3,base+2), ...
+                       subplot(n_rows,3,base+3)];
+    end
+
+    for i_pc = 1:n_pcs
+        %%
+        plotPC(coef2d(:,:,i_pc), score(:,i_pc), axs(i_pc,:), ...
+            ts, fs, frange, fps, sign(w'*score(:,i_pc)), saturate, ...
+            ["PC"+ num2str(i_pc) , ...
+             sprintf("%.1f%% var", 100*varpercent(i_pc))]);
+    end
+
+    % bottom-row axis labels
+    xlabel(axs(end,2), "Time (s)", 'FontSize',11);
+    xlabel(axs(end,3), "Frequency (Hz)", 'FontSize',11);
+end
+
+function plotPC(coef_map, trace, ax, ts, fs, frange, fps, sign_flip, saturate, titlestr)
+%% Plot one principal-component row into the three supplied axes:
+%   ax(1) spatial map | ax(2) time trace | ax(3) spectrum
+    % sign_flip = sign(trace( ceil((numel(trace)+1)/2) ))*sign0;
+    % sign_flip = sign(mean(trace))*sign0;
+
+    % --- spatial map ---
+    im_show = sign_flip*plt.saturate(coef_map, saturate);
+    imshow(im_show, [], 'Parent', ax(1));
+    colormap(ax(1), plt.redblue);
+    caxis(ax(1), [-1,1]*max(abs(im_show(:))));
+
+    ht = title(ax(1), titlestr);
+    set(ht, 'position', [-size(im_show,1)/2,size(im_show,2)/3,1])
+
+    cb = colorbar(ax(1));
     cb.Label.String = "Filter ampliture (rel.)";
     cb.Label.Rotation = -90;
     cb.Label.Position = cb.Label.Position + [1,0,0];
     cb.Label.FontSize = 11;
-    
-    % plotAxisAsImage(ax1)
-    
-    ax = subplot(4,3,5);
-    ts = (0:(length(score) - 1))/specs.getFps();
-    ts = ts - mean(ts);
-    plot(ts, sign_flip*score(:,1), 'LineWidth', 1.5); xlim(minmax(ts))
-    grid off;
-    % ax.YGrid = 'off';
-    % xticks(-0.4:0.2:0.4)
-%     xlim(tlim); 
-    % xlabel("Time (s)"); 
-    ylabel("Filter amplitude", 'FontSize',11); 
-    % set(gca, 'YTickLabels', []);
-    
-    ax = subplot(4,3,6);
-    z1 = abs(fft(score(:,1)));
-    fs = linspace(0, specs.getFps(), length(z1)); 
-    z1(fs < frange(1) | fs > frange(2)) = NaN;
-%     plot(fs, sqrt(z1/median(z0)), 'LineWidth', 1.5);
-    semilogy(fs, sqrt(z1), 'LineWidth', 1.5); 
-    % xlabel("Frequency (Hz)");
-    xlim([0, specs.getFps()/2]); 
-    % set(gca, 'YTickLabels', []);
-    ylabel('Spectral amplitude', 'FontSize',11);
-    grid off;
-    
-    % ax.YAxis.TickLabelFormat
-%     ylim([0,0.3001])
-%     ax.YAxis.TickValues = [0:0.05:5];
-%     ax.XAxis.MinorTickValues = [0:10:150];
-%     ax.YAxis.MinorTickValues = [];
-    % grid minor;
-    %%
 
-    ax2 = subplot(4,3,7);
+    % --- time-domain trace ---
+    plot(ax(2), ts, sign_flip*trace, 'LineWidth', 1.5); xlim(ax(2), minmax(ts));
+    ylabel(ax(2), "Filter amplitude", 'FontSize',11);
+    grid(ax(2), 'on'); ax(2).XMinorGrid = 'on'; ax(2).YGrid = 'off';
 
-    sign_flip = sign(score((size(score,1)+1)/2,2));
-
-    im_show = sign_flip*plt.saturate(coef2d(:,:,2), saturate);
-    imshow(im_show, []);
-%     set(im2, 'AlphaData', logical(specs.getMask()))
-    colormap(ax2, plt.redblue); %caxis([-1,1]*max(abs([min(im_show(:)), max(im_show(:))])));
-    caxis([-1,1]*max(abs(im_show(:))));
-    
-    cb = colorbar();
-    cb.Label.String = "Filter ampliture (rel.)";
-    cb.Label.Rotation = -90;
-    cb.Label.Position = cb.Label.Position + [1,0,0];
-    cb.Label.FontSize = 11;
-    
-   
-    ht = title("PC2:");
-    set(ht, 'position', [-50,50,1])
-       
-    ax = subplot(4,3,8);
-    plot(ts, sign_flip*score(:,2), 'LineWidth', 1.5); xlim(minmax(ts)); 
-    % set(gca, 'YTickLabels', []);
-    ylabel("Filter amplitude", 'FontSize',11); 
-%     xlim(tlim)
-    
-    grid off;
-    % ax.YGrid = 'off';
-    
-    ax = subplot(4,3,9);
-    z2 = abs(fft(score(:,2)));
-    z2(fs < frange(1) | fs > frange(2)) = NaN;
-%     z2 = pmtm(score(:,2), nw);
-%     plot(fs, sqrt(z2/median(z0)), 'LineWidth', 1.5); 
-    semilogy(fs, z2, 'LineWidth', 1.5); 
-    % xlabel("Frequency (Hz)"); 
-    xlim([0, specs.getFps()/2   ]); 
-    ylabel('Spectral amplitude', 'FontSize',11);
-    grid off;
-    
-    ax.XAxis.MinorTickValues = [0:10:150];
-    ax.YAxis.MinorTickValues = [];
-    % grid minor;
-    %%
-    
-    ax2 = subplot(4,3,10);
-
-    sign_flip = sign(score((size(score,1)+1)/2,3));
-
-    im_show = plt.saturate(sign_flip*coef2d(:,:,3), saturate);
-    imshow(im_show, []);
-%     set(im3, 'AlphaData', logical(specs.getMask()))
-    colormap(ax2, plt.redblue); 
-    caxis([-1,1]*max(abs(im_show(:))));
-    
-    cb = colorbar();
-    cb.Label.String = "Filter ampliture (rel.)";
-    cb.Label.Rotation = -90;
-    cb.Label.Position = cb.Label.Position + [1,0,0];
-    cb.Label.FontSize = 11;
-    
-    ht = title("PC3:");
-    set(ht, 'position', [-50,50,1])
-    
-    ax = subplot(4,3,11);
-    plot(ts, sign_flip*score(:,3), 'LineWidth', 1.5); xlim(minmax(ts)); 
-    xlabel("Time (s)", 'FontSize',11);
-    % set(gca, 'YTickLabels', []);
-    ylabel("Filter amplitude", 'FontSize',11); 
-    grid off;
-    % ax.YGrid = 'off';
-    
-    ax = subplot(4,3,12);
-    z3 = abs(fft(score(:,3)));
-    
-    z3(fs < frange(1) | fs > frange(2)) = NaN;
-%     plot(fs, sqrt(z1/median(z0)), 'LineWidth', 1.5);
-    semilogy(fs, z3, 'LineWidth', 1.5); 
-    xlabel("Frequency (Hz)", 'FontSize',11);
-    xlim([0, specs.getFps()/2]); 
-    % set(gca, 'YTickLabels', []);
-    ylabel('Spectral amplitude', 'FontSize',11);
-    grid off;
+    % --- spectrum ---
+    z = abs(fft(trace));
+    z(fs < frange(1) | fs > frange(2)) = NaN;
+    semilogy(ax(3), fs, z, 'LineWidth', 1.5);
+    grid(ax(3), 'on'); ax(3).XMinorGrid = 'on';
+    xticks(ax(3), [0:10:fps]);
+    xlim(ax(3), [0, fps/2]);
+    ylabel(ax(3), 'Spectral amplitude', 'FontSize',11);
 end

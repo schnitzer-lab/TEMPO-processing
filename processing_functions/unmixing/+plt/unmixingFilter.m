@@ -19,7 +19,7 @@ function unmixingFilter(Wall, fps, options)
         'color', [0.5,0.5,0.9,10/length(sampled_points)]); hold on;
     plot( ts, w, 'LineWidth', 1.5, 'Color', 'blue'); 
     
-    legend([repelem("", length(sampled_points)), "time representation"]); 
+    legend([repelem("", length(sampled_points)), "time representation"], 'FontSize', 12); 
     
     hold off; grid on;
     xlim([min(ts), max(ts)]); ylim([floor(min(w)/0.25), ceil(max(w)/0.25)]*0.25)
@@ -32,11 +32,11 @@ function unmixingFilter(Wall, fps, options)
     zw(fs <= options.frange(1)) = NaN;
     [~,ind_f0] = min(abs(fs-options.fref));
 
-    semilogy(fs, abs(ZW), 'color', ...
+    plot(fs, abs(ZW), 'color', ...
         [0.5,0.5,0.9,10/length(sampled_points)]); hold on;
-    semilogy(fs, abs(zw), '.-', 'LineWidth', 1.5, 'Color', 'blue');     
+    plot(fs, abs(zw), '.-', 'LineWidth', 1.5, 'Color', 'blue');     
     legend([repelem("", length(sampled_points)), "spectral amplitude"], ...
-        'Location', 'southeast');
+        'Location', 'northeast', 'FontSize', 12);
 
     if(options.max_amp_rel < inf)
         a = max(abs(zw(ind_f0)), median(abs(zw)));
@@ -46,7 +46,8 @@ function unmixingFilter(Wall, fps, options)
         scatter(options.fref, abs(zw(ind_f0)), 'o', 'red')
 
         legend([repelem("", length(sampled_points)), "spectral amplitude", ...
-            "limit ("+num2str(options.max_amp_rel)+"*ref)", "reference"]);
+            "limit ("+num2str(options.max_amp_rel)+"*ref)", "reference"],...
+            'FontSize', 12);
     end
 
     hold off; grid on;

@@ -1,5 +1,5 @@
 
-function [fullpath_out,fullpaths_out] = copyFilesForAnalysis(recording_name, pattern, name_new, varargin)
+function [fullpath_out,fullpaths_out] = copyFilesForAnalysis(recording_name, pattern, varargin)
 %%
     % patterns_tomove = ["*-cG*_nohemoS_dFF.h5"; "*-cR*_dFF.h5"];
     % names_new = ["cG_unmixed_dFF", "cR_dFF"];
@@ -17,15 +17,16 @@ function [fullpath_out,fullpaths_out] = copyFilesForAnalysis(recording_name, pat
     if(isempty(file)), error("no matches: " + fullfile(path_from, pattern)); end
     
     [~, filename, ~] = fileparts(file.name);
+    if(isempty(options.new_name)), options.new_name = filename; end
     
-    all_files = dir(fullfile(path_from, '**', [filename '*']));
+    all_files = dir(fullfile(path_from, '**', [filename '.*']));
     %%
 
     fullpaths_out = repelem("", length(all_files));
     for i_f = 1:length(all_files)
         fullpaths_out(i_f) = copyfileWithRelativePath(...
             fullfile(all_files(i_f).folder, all_files(i_f).name), ...
-            path_to, path_from, filename, name_new, options.skip);
+            path_to, path_from, filename, options.new_name, options.skip);
     end
     
     fullpath_out = fullpaths_out(1); 
@@ -42,6 +43,7 @@ function options = parseInputs(varargin)
         "T:\GEVI_Wave\Analysis", @(s) isstring(s)|ischar(s));
    
     p.addParameter('skip', true, @(x) (x==true)|(x==false));
+    p.addParameter('new_name', '', @(x) ischar(x) | isstring(x));
 
     p.parse(varargin{:});
     options = p.Results;

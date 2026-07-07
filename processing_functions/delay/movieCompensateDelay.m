@@ -34,7 +34,8 @@ function [fullpath_out,lag] = ...
 
         df = [0; diff(relative_phase)];
         df(isnan(df)) = 0;
-        df(abs((df - mean(df, 'omitnan'))./std(df, [], 'omitnan')) > 4) = mean(df, 'omitnan');
+        df(abs((df - mean(df, 'omitnan'))./std(df, [], 'omitnan')) > options.nsd) = ...
+            mean(df, 'omitnan');
         relative_phase_filtered = cumsum (df);
 
         relative_phase_filtered(isnan(relative_phase)) = NaN;
@@ -121,6 +122,7 @@ function options = defaultOptions(basepath)
     options.min_lag_frames = 0.5;
     options.max_lag_frames = 100;
 
+    options.nsd = 6; 
     options.f0 = 30;
 
     options.lag_estimator = "phase"; % "phase" or "xcorr"

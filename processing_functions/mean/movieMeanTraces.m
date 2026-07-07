@@ -31,7 +31,12 @@ function fullpaths_out = movieMeanTraces(fullpaths, varargin)
 
     xs = [];
     labels = [];
+    npixs = [];
     for i_f = 1:length(fullpaths)
+        %%
+        [sx, sy] = rw.h5getDatasetSize(fullpaths(i_f), '/mov');
+        npixs = [npixs, sx*sy];
+
         x = rw.h5getMeanTrace(fullpaths(i_f), 'nframes_read', options.nframes_read );
         
         if(i_f > 1)
@@ -60,12 +65,16 @@ function fullpaths_out = movieMeanTraces(fullpaths, varargin)
     %%
     
     for i_f = 1:length(fullpaths)
+        %%
         [~, name, ~] = fileparts(fullpaths(i_f));
         fullpath_out = fullfile(options.processingdir, name + "_mean.h5");
         if(isfile(fullpath_out)), delete(fullpath_out); end
         
         specs_out = rw.h5readMovieSpecs(fullpaths(i_f));
-        specs_out.AddBinning(Inf);
+        
+        % specs_out.AddBinning(Inf);
+        specs_out.AddBinning(sqrt(npixs(i_f)));
+
         specs_out.AddToHistory(functionCallStruct({'fullpaths', 'options'}));
         rw.h5saveMovie(fullpath_out, ...
             reshape(xs(:,i_f), [1,1,length(xs(:,i_f))]), specs_out);

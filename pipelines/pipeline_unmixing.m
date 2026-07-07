@@ -17,21 +17,21 @@
 % skip_if_final_exists = false;
 % 
 % mouse_state = "transition"; %"anesthesia"; % "awake"; %"transition";
-% unmix_time_resolved = true;
+% unmix_time_resolved = false;
 % 
 % basefolder_preprocessed = "F:\GEVI_Wave\Preprocessed\";
 % basefolder_processing = "T:\GEVI_Wave\Preprocessed\";
 % 
-% crosstalk_matrix =  [[1, 0]; [0.080, 1]]; 
-% % 0.080 for ASAP3
+% crosstalk_matrix =  [[1, 0]; [0.072, 1]]; 
+% % 0.072 for ASAP3 / ASAP5
 % % 0.165 for ASAP7y
 % % 0.095 for old ace recordings seems good - based on m14 visual v1
 % % 0.141 (?) for older ASAP2s with different filters
-% %%
+%%
 
 % postfixes for the final files in the output location
 if(unmix_time_resolved), postfix_out1 = "_nohemoTRS_dFF"; 
-else, postfix_out1 = "_nohemoS_dFF"; end
+else, postfix_out1 = "_nohemoS_dFF"; end %"_decross" + string(crosstalk_matrix(2))+"*
 % postfix_out2 = "_dFF";
 %%
 
@@ -106,7 +106,7 @@ fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, ...
 %%
     
 [fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, ...
-    crosstalk_matrix, 'skip', true);
+    crosstalk_matrix, 'skip', true); %, 'postfix_new', "_decross"+num2str(crosstalk_matrix(2,1))
 %%
 
 fullpathGbl = movieExpBaselineCorrection(fullpathGdx, 'divide', false); 
@@ -115,7 +115,6 @@ fullpathRbl = movieExpBaselineCorrection(fullpathRdx, 'divide', false);
 % fullpathRbl = movieRemoveMean(fullpathRdx, 'skip', true);
 %%
 
-% Make sure that filter resonable, if not increase wp or decrease attn;
 if mouse_state == "anesthesia",     f0_hp = 0.25; wp = 0.2; 
 elseif mouse_state == "iso",        f0_hp = 0.15; wp = 0.075; 
 elseif mouse_state == "awake",      f0_hp = 1.5; wp = 0.5; 
@@ -127,6 +126,7 @@ options_highpass = struct( 'attn', 1e4, 'rppl', 1e-1, 'skip', true);
 options_highpass.filtersdir = "..\analysis\convolution_filters\";    
 options_highpass.exepath = "..\analysis\c_codes\compiled\hdf5_movie_convolution.exe";    % to use compiled executable. 3-4 times faster
 
+% Make sure that filter resonable, if not increase wp or decrease attn;
 fullpathGhp = movieFilterHighpass(fullpathGbl, f0_hp, wp, options_highpass);
 fullpathRhp = movieFilterHighpass(fullpathRbl, f0_hp, wp, options_highpass);
 
@@ -143,21 +143,23 @@ movieMeanTraceSpectrogram(fullpathshp_mean(2), options_spectrogram);
 movieMeanTraceSpectrogram(fullpathshp_mean(1), options_spectrogram);
 %%
 
-if mouse_state == "anesthesia"
-    options_hfilt = struct('dt', 2.5, 'fref_lims', [1.5, 15], 'max_amp_rel', 1.1);
-elseif mouse_state == "iso"
-    options_hfilt = struct('dt', 8, 'fref_lims', [1.5, 15], 'max_amp_rel', 1.1);
-elseif mouse_state == "awake" 
-    options_hfilt = struct('dt', 1.5, 'fref_lims', [5.0, 20], 'max_amp_rel', 1.2);
+if mouse_state == "awake" 
+    options_hfilt = struct('dt', 1.5, 'fref_lims', [5.0,20], 'max_delay', 20*1e-3);
+elseif mouse_state == "anesthesia"
+    options_hfilt = struct('dt', 2.5, 'fref_lims', [1.5,15], 'max_delay', 30*1e-3);
 elseif mouse_state == "transition"
-    options_hfilt = struct('dt', 2.0, 'fref_lims', [1.5, 20], 'max_amp_rel', 1.1);
+    options_hfilt = struct('dt', 2.0, 'fref_lims', [1.5,20], 'max_delay', 30*1e-3);
+elseif mouse_state == "iso"
+    options_hfilt = struct('dt', 8.0, 'fref_lims', [1.5,15], 'max_delay', 20*1e-3);
 else
     error("unknown mouse_state = " + mouse_state);
 end  
 
-% options_hfilt.fref = 7;
 options_hfilt = mergeStructs({options_hfilt,  ...
-    struct('average_mm', 1, 'niter', 3, 'flim_max', 20, 'max_delay', 30*1e-3)});
+    struct('average_mm', 1, 'niter', 3, ...
+           'max_amp_rel', 1.1, 'flim_max', 20)});
+
+% options_hfilt.fref = 7; % to manually specify the ref (heartbeat) frequency
 
 if(unmix_time_resolved)
     options_hfilt.dt_slow = 20*options_hfilt.dt; 
@@ -213,8 +215,8 @@ if(~strcmp(fullpathRdx, fullpathRdl)), delete(fullpathRdx); end
 if(~strcmp(fullpathGbl, fullpathGdx)), delete(fullpathGbl); end
 if(~strcmp(fullpathRbl, fullpathRdx)), delete(fullpathRbl); end
 
-% if(~strcmp(fullpathGbl, fullpathGhp)), delete(fullpathGhp); end
-% if(~strcmp(fullpathRbl, fullpathRhp)), delete(fullpathRhp); end
+if(~strcmp(fullpathGbl, fullpathGhp)), delete(fullpathGhp); end
+if(~strcmp(fullpathRbl, fullpathRhp)), delete(fullpathRhp); end
 
 delete(fullpathGhemo); 
 delete(fullpathGnh);

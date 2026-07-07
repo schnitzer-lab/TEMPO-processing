@@ -62,8 +62,13 @@ if(~strcmp(folder_converted, folder_processing))
     if(~isfolder(folder_processing)), mkdir(folder_processing); end
     if(~isfile(fullpathGin)), copyfile(fullpathGconv,  fullpathGin); end
     if(~isfile(fullpathRin)), copyfile(fullpathRconv,  fullpathRin); end
-    copyfile(fullfile(folder_converted, "LVMeta"),  fullfile(folder_processing,"LVMeta"))
-    copyfile(fullfile(folder_converted, "processing"),  fullfile(folder_processing,"processing"))
+    if(isfolder(fullfile(folder_converted, "LVMeta")))
+        copyfile(fullfile(folder_converted, "LVMeta"),  fullfile(folder_processing,"LVMeta"))
+    end
+
+    if(isfolder(fullfile(folder_converted, "processing")))
+        copyfile(fullfile(folder_converted, "processing"),  fullfile(folder_processing,"processing"))
+    end
 end
 %%
 

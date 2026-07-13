@@ -1,4 +1,34 @@
 function fullpath_out = movieMaskReshape(fullpath_movie, mask, varargin)
+% Extracts the unmasked pixels of a movie and repacks them into a minimal
+% square frame (padding with NaN), saving diagnostic plots comparing the
+% original and reshaped frames. Downstream pipeline functions are unaware
+% of this reshaping and will treat the packed pixels as spatially
+% neighboring.
+%
+%   fullpath_out = movieMaskReshape(fullpath_movie, mask)
+%   fullpath_out = movieMaskReshape(___, Name, Value)
+%
+%   Required inputs:
+%     fullpath_movie - full path to the input movie .h5 file
+%     mask           - logical mask selecting pixels to keep, given either
+%                      as a logical/numeric array or as a path to an image
+%                      file to be read and converted to a logical mask
+%
+%   Name-Value arguments:
+%     outdir         - output directory for the reshaped movie
+%                      (default: same folder as fullpath_movie)
+%     diagnosticdir  - output directory for diagnostic plots
+%                      (default: <outdir>/diagnostic/maskReshape)
+%     postfix_new    - postfix appended to the output filename
+%                      (default: "_maskrshp")
+%     skip           - if true, skip processing when the output file
+%                      already exists; if false, delete and recompute it
+%                      (default: true)
+%     frametype      - summary statistic used for the diagnostic frame,
+%                      either "mean" or "std" (default: "mean")
+%
+%   Output:
+%     fullpath_out   - full path to the saved reshaped movie .h5 file
 
     [basepath, filename, ext] = fileparts(fullpath_movie);
 

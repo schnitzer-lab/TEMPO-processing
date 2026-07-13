@@ -1,4 +1,33 @@
 function fullpath_out = movieMaskReshapeUndo(fullpath_movie, varargin)
+% Reverses movieMaskReshape: reads a movie previously packed into a
+% minimal square frame, unpacks its pixels using the mask stored in
+% extra_specs("maskreshape_mask"), and restores them to their original
+% frame layout (unmasked pixels set to NaN), saving diagnostic plots
+% comparing the reshaped and reconstructed frames.
+%
+%   fullpath_out = movieMaskReshapeUndo(fullpath_movie)
+%   fullpath_out = movieMaskReshapeUndo(___, Name, Value)
+%
+%   Required input:
+%     fullpath_movie - full path to the reshaped movie .h5 file, as
+%                      produced by movieMaskReshape (must contain the
+%                      "maskreshape_mask" entry in extra_specs)
+%
+%   Name-Value arguments:
+%     outdir         - output directory for the reconstructed movie
+%                      (default: same folder as fullpath_movie)
+%     diagnosticdir  - output directory for diagnostic plots
+%                      (default: <outdir>/diagnostic/maskReshape)
+%     postfix_new    - postfix appended to the output filename
+%                      (default: "_undomaskrshp")
+%     skip           - if true, skip processing when the output file
+%                      already exists; if false, delete and recompute it
+%                      (default: true)
+%     frametype      - summary statistic used for the diagnostic frame,
+%                      either "mean" or "std" (default: "mean")
+%
+%   Output:
+%     fullpath_out   - full path to the saved reconstructed movie .h5 file
 
     [basepath, filename, ext] = fileparts(fullpath_movie);
 

@@ -31,7 +31,7 @@
 
 % postfixes for the final files in the output location
 if(unmix_time_resolved), postfix_out1 = "_nohemoTRS_dFF"; 
-else, postfix_out1 = "_nohemoS_dFF"; end %"_decross" + string(crosstalk_matrix(2))+"*
+else, postfix_out1 = "_nohemoS_dFF"; end
 % postfix_out2 = "_dFF";
 %%
 
@@ -106,7 +106,7 @@ fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, ...
 %%
     
 [fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, ...
-    crosstalk_matrix, 'skip', true); %, 'postfix_new', "_decross"+num2str(crosstalk_matrix(2,1))
+    crosstalk_matrix, 'skip', true, 'postfix_new', "_decross"+num2str(crosstalk_matrix(2,1)));
 %%
 
 fullpathGbl = movieExpBaselineCorrection(fullpathGdx, 'divide', false); 

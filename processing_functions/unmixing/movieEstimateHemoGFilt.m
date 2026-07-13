@@ -78,7 +78,8 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
             % NaNs on the ref edges due to registration. Imputing (imputeNaNS) or 
             % nan-tolerant smoothing (smooth2a/mm.movieSmooth) takes forever
             Mr_sm(isnan(Mr_sm)) = 0; 
-            Mr_sm = smooth3(Mr_sm, 'box', [options.naverage, options.naverage,1]);
+            % Mr_sm = smooth3(Mr_sm, 'box', [options.naverage, options.naverage,1]);
+            Mr_sm = smooth3(Mr_sm, 'gaussian', [options.naverage, options.naverage,1], options.naverage/3);
         end
     end
     %%
@@ -86,6 +87,8 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     Mr_xy_filt = zeros(size(Mr), class(Mr)); Mr_sm_filt = zeros(size(Mr), class(Mr));
     Wxy = zeros([size(Mg,[1,2]), wn], class(Mg)); 
     Wsm = zeros([size(Mg,[1,2]), wn], class(Mg));    
+    Wxy0 = NaN([size(Mg,[1,2]), wn], class(Mg)); 
+    Wsm0 = NaN([size(Mg,[1,2]), wn], class(Mg));    
 
     nrowsatonce = floor(options.npixatonce/size(Mg,2));
 
@@ -102,6 +105,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
             Wsm(r1:r2,:,:) = estimateFilters(...
                 Mg(r1:r2,:,:)-Mr_xy_filt(r1:r2,:,:), Mr_sm(r1:r2,:,:), ...
                 wn, no, options_estimate_sm);  
+            Wsm0 = Wsm;
             Wsm(r1:r2,:,:) = limitFiltersTimeResolved(Wsm(r1:r2,:,:), options_limit);       
             Mr_sm_filt(r1:r2,:,:) = applyFilters(Mr_sm(r1:r2,:,:), Wsm(r1:r2,:,:));  
       
@@ -111,6 +115,7 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
             Wxy(r1:r2,:,:) = estimateFilters(...
                 Mg(r1:r2,:,:)-Mr_sm_filt(r1:r2,:,:), Mr(r1:r2,:,:), ...
                 wn, no, options_estimate_xy);
+            Wxy0 = Wxy;
             Wxy(r1:r2,:,:) = limitFiltersTimeResolved(Wxy(r1:r2,:,:), options_limit);
             Mr_xy_filt(r1:r2,:,:) = applyFilters(Mr(r1:r2,:,:), Wxy(r1:r2,:,:));   
         end
@@ -139,7 +144,8 @@ function [fullpath_out, fullpathWxy_out, fullpathWsm_out]  = ...
     
     displog("generating and saving plots")
             
-    savePlots(Mg, Mr, Mr_filt, Wsm, Wxy, specs_r, filename_out, options);
+    savePlots(Mg, Mr, Mr_filt, Wsm, Wsm0, Wxy, Wxy0,...
+        specs_r, filename_out, options);
 end
 %%
 
@@ -212,7 +218,8 @@ end
 %%
 
 
-function savePlots(Mg, Mr, Mr_filt, Wsm, Wxy, specs, filename_out, options)
+function savePlots(Mg, Mr, Mr_filt, Wsm, Wsm0, Wxy, Wxy0, ...
+    specs, filename_out, options)
     
     Mg(isnan(Mr_filt)) = NaN;
     Mr(isnan(Mr_filt)) = NaN;
@@ -223,6 +230,8 @@ function savePlots(Mg, Mr, Mr_filt, Wsm, Wxy, specs, filename_out, options)
         Mr_filt = Mr_filt.*specs.getMaskNaN();
         Wsm = Wsm.*specs.getMaskNaN();
         Wxy = Wxy.*specs.getMaskNaN();
+        Wsm0 = Wsm0.*specs.getMaskNaN();
+        Wxy0 = Wxy0.*specs.getMaskNaN();
     end
     %%
 
@@ -321,6 +330,26 @@ function savePlots(Mg, Mr, Mr_filt, Wsm, Wxy, specs, filename_out, options)
 
     saveas(fig_pcs, fullfile(options.diagnosticdir, filename_out + "_filterxyPCA" + ".png"))
     saveas(fig_pcs, fullfile(options.diagnosticdir, filename_out + "_filterxyPCA" + ".fig"))
+    %%
+
+    fig_compare = plt.getFigureByName("movieEstimateHemoGFilt: comparison");
+    fig_compare.Position(3:4) = [500 1000]; 
+
+    sgtitle('Limiting unmixing filter')
+    plt.unmixingFilterComparison(Wsm0, Wsm, specs);
+
+    saveas(fig_compare, fullfile(options.diagnosticdir, filename_out + "_filterLim" + ".png"))
+    saveas(fig_compare, fullfile(options.diagnosticdir, filename_out + "_filterLim" + ".fig"))
+    %%
+
+    fig_compare = plt.getFigureByName("movieEstimateHemoGFilt: comparison (local)");
+    fig_compare.Position(3:4) = [500 1000]; 
+
+    sgtitle('Limiting unmixing filter (local)')
+    plt.unmixingFilterComparison(Wxy0, Wxy, specs);
+
+    saveas(fig_compare, fullfile(options.diagnosticdir, filename_out + "_filterLimXY" + ".png"))
+    saveas(fig_compare, fullfile(options.diagnosticdir, filename_out + "_filterLimXY" + ".fig"))
     %%
 end
 %%

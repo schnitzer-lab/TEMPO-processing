@@ -28,21 +28,21 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
         files = dir(fullfile(options.folder_ref, ...
             specs_mov.mouse_id() + "_c" + specs_mov.channel_id + "*.h5"));
 
-        if (length(files) > 1)
-            error("more than one reference for the mouse " + ...
-                specs_mov.mouse_id() + " in " + options.folder_ref)
-        elseif(length(files) < 1)
+        if(length(files) < 1)
             error("no reference for the mouse " + ...
                 specs_mov.mouse_id() + " in " + options.folder_ref)
+        elseif(length(files) == 1)
+            fullpath_movie_ref = fullfile(files(1).folder, files(1).name);
+        else
+            fullpath_movie_ref = selectClosestReference(files, specs_mov, options);
         end
-        fullpath_movie_ref = fullfile(files(1).folder, files(1).name);
     end
     %%
     
     displog("reading frames")
 
     specs_ref = rw.h5readMovieSpecs(fullpath_movie_ref);
-%     specs_mov = rw.h5readMovieSpecs(fullpath_movie);
+    % specs_mov = rw.h5readMovieSpecs(fullpath_movie);
     specs_out = copy(specs_mov);
 
     F1 = specs_ref.extra_specs('F0');
@@ -54,7 +54,17 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
         M = rw.h5readMovie(fullpath_movie);
         F2 = mean(M,3);
     end
+    %%
 
+    if(specs_mov.binning ~= specs_ref.binning)
+        % warning("movieCopyReference: binnign mismatch");
+        bin = specs_mov.binning/specs_ref.binning;
+        if(bin-round(bin))
+            error("movieCopyReference: binnign mismatch");
+        end
+        F1 = mm.DownsampleSpace(F1, bin);
+        specs_ref.AddBinning(bin);
+    end
     %%
 
     displog("performing registration")
@@ -150,7 +160,7 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     if(abs(atan2d(tform_full.T(2,1), tform_full.T(1,1))) > options.angle_max)
         error("movieCopyReference: template registration failed - angle too big");
     end
-    if(corr_reg < options.corr_min || corr_reg < corr_mov)
+    if(corr_reg < options.corr_min || corr_mov-corr_reg > 1e-8)
         error("movieCopyReference: template registration failed - final correlation too low");        
     end
     %%
@@ -261,6 +271,37 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
 
     saveas(fig_allen, fullfile(options.diagnosticdir, filename + "_allen.png"))
     saveas(fig_allen, fullfile(options.diagnosticdir, filename + "_allen.fig"))
+end
+%%
+
+function fullpath_movie_ref = selectClosestReference(files, specs_mov, options)
+
+    displog("more than one reference for the mouse " + ...
+        specs_mov.mouse_id() + " in " + options.folder_ref + ...
+        " - selecting the one with the closest recording date")
+
+    date_mov = datetime(specs_mov.extra_specs('recordingDate'));
+
+    date_refs = NaT(length(files), 1);
+    for i_f = 1:length(files)
+        fullpath_ref_i = fullfile(files(i_f).folder, files(i_f).name);
+        specs_ref_i = rw.h5readMovieSpecs(fullpath_ref_i);
+        if(specs_ref_i.extra_specs.isKey('recordingDate'))
+            date_refs(i_f) = datetime(specs_ref_i.extra_specs('recordingDate'));
+        end
+    end
+
+    if(all(isnat(date_refs)))
+        error("more than one reference for the mouse " + ...
+            specs_mov.mouse_id() + " in " + options.folder_ref + ...
+            " and none have a recording date to select the closest one")
+    end
+
+    [date_diff_min, i_best] = min(abs(date_refs - date_mov));
+    fullpath_movie_ref = fullfile(files(i_best).folder, files(i_best).name);
+
+    displog("selected reference: " + files(i_best).name + ...
+        " (" + string(date_diff_min) + " from target recording date)")
 end
 %%
 

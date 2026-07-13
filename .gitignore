@@ -33,3 +33,7 @@ analysis/allen_map/allen_reference_points*.txt
 *json
 
 *.DS_Store
+
+
+.claude/*
+CLAUDE*.md

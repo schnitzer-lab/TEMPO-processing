@@ -120,21 +120,23 @@ function savePlots(M, Mout, specs, filename_out, options)
     %%
 
     fig_space = plt.getFigureByName("movieRemoveHemoComponents: spatial variance");
-
+    fig_space.Position(4) = 300;
+    fig_space.Position(3) = 900;
+    
     var_in  = var(M, [], 3,'omitnan');
     var_out = var(Mout, [], 3,'omitnan');
 
-    subplot(1,2,1)
+    ax = subplot(1,2,1);
     imagesc(sqrt(var_in-var_out));
-    cb = colorbar(); cb.Label.String = "Variance decrease, counts"; 
+    axis equal; axis off;
+    cb = colorbar(); cb.Label.String = "Variance decrease (counts)"; 
     cb.Label.Rotation = -90; cb.Label.Position = cb.Label.Position + [1,0,0];
-    axis square
-
+     
     subplot(1,2,2)
     imagesc(100*(1-var_out./var_in));
-    cb = colorbar(); cb.Label.String = "Variance decrease, %"; 
+    axis equal; axis off;
+    cb = colorbar(); cb.Label.String = "Variance decrease (%)"; 
     cb.Label.Rotation = -90; cb.Label.Position = cb.Label.Position + [1,0,0];
-    axis square
    
     %%
     

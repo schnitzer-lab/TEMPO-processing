@@ -22,7 +22,7 @@ function unmixingFilter(Wall, fps, options)
     legend([repelem("", length(sampled_points)), "time representation"], 'FontSize', 12); 
     
     hold off; grid on;
-    xlim([min(ts), max(ts)]); ylim([floor(min(w)/0.25), ceil(max(w)/0.25)]*0.25)
+    xlim([min(ts), max(ts)]); ylim(1.5*[min(w), max(w)])
     xlabel('Time, s'); 
     %%
 
@@ -51,7 +51,7 @@ function unmixingFilter(Wall, fps, options)
     end
 
     hold off; grid on;
-    xlim([0, fps/2]); % ylim([0.9, 1.3].*[min(abs(zw')), max(abs(zw'))]);
+    xlim([0, fps/2]); ylim([0, 2*max(abs(zw), [], 'omitnan')]);
     xlabel('Frequency, Hz');
 
     %%

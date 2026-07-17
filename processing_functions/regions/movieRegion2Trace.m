@@ -7,10 +7,12 @@ function [trace, mask] = movieRegion2Trace(movie,contours,varargin)
         options=getOptions(options,varargin(1:end)); % CHECK IF NUMBER OF THE OPTION ARGUMENT OK!
     end
     
-    if(isempty(options.m2d)) options.m2d = std(movie,[],3); end
+    if(isempty(options.m2d)), options.m2d = std(movie,[],3); end
     
     if(options.plot) 
-        im = imshow(options.m2d, []); hold on; 
+        im = imagesc(options.m2d); hold on; 
+        axis equal; axis off;
+        colormap('gray');
         set(im, 'AlphaData', ~isnan(options.m2d) );
     end
     if(~iscell(contours)), contours = {contours}; end
@@ -29,7 +31,10 @@ function [trace, mask] = movieRegion2Trace(movie,contours,varargin)
             cy = contour(touse,2);       
         end
             
-        if(options.plot), plot(cx,cy, 'Color', options.plotcolor); drawnow; end
+        if(options.plot), 
+            plot(cx,cy, 'Color', options.plotcolor, 'LineWidth', 1.5); 
+            drawnow; 
+        end
         
         mask = mask | poly2mask(cx,cy, size(movie,1),size(movie,2));
     end

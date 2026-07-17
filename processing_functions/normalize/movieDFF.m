@@ -51,7 +51,10 @@ function fullpath_out = movieDFF(fullpath_movie, varargin)
     
     M_mean(M_mean < 8) = NaN; %less than 8 counts
     fig_f0 = plt.getFigureByName("F0");
-    im1 = imshow(M_mean, []); colormap(plt.redblue); 
+    % im1 = imshow(M_mean, []); colormap(plt.redblue); 
+    im1 = imagesc(M_mean); 
+    axis equal; axis off;
+    colormap(plt.redblue); 
     title("F_0");
     set(im1, 'AlphaData', ~isnan(M_mean));
 %     subplot(1,3,1)

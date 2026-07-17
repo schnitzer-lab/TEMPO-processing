@@ -101,13 +101,13 @@ else
     convertionDate=sprintf('%s',datetime('now','Format','yyyy-MM-dd HH:mm:ss'));
     fileInfo=rdir(dcimgPath);    
     if(~options.useMovieSpecs) %Radek's way
-        if ~isempty(fps), h5save(h5path,fps); end
-        if ~isempty(nDroppedFrames), h5save(h5path,nDroppedFrames); end
+        if ~isempty(fps), h5save(h5path,fps,'/fps'); end
+        if ~isempty(nDroppedFrames), h5save(h5path,nDroppedFrames,'/nDroppedFrames'); end
 
         h5save(h5path,sowtwarebinning,'/binning');
         h5save(h5path,metadata.hardwareBinning,'/hardwareBinning');
         h5save(h5path,dcimgPath,'/sourcePath');
-        h5save(h5path,convertionDate);
+        h5save(h5path,convertionDate,'/convertionDate');
         h5save(h5path,fileInfo(1).date,'/recordingDate');
         summary=closeSummary(summary);
         h5save(h5path, summary,  functionname);

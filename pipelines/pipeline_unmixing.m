@@ -31,7 +31,7 @@
 
 % postfixes for the final files in the output location
 if(unmix_time_resolved), postfix_out1 = "_nohemoTRS_dFF"; 
-else, postfix_out1 = "_nohemoS_dFF"; end
+else, postfix_out1 = "_nohemoS_dFF"; end %"_decross" + string(crosstalk_matrix(2))+"*
 % postfix_out2 = "_dFF";
 %%
 
@@ -106,7 +106,7 @@ fullpathRdl = movieCompensateDelay(fullpathRor, fullpathGor, ...
 %%
     
 [fullpathGdx, fullpathRdx] = moviesDecrosstalk(fullpathGdl, fullpathRdl, ...
-    crosstalk_matrix, 'skip', true, 'postfix_new', "_decross"+num2str(crosstalk_matrix(2,1)));
+    crosstalk_matrix, 'skip', true); %, 'postfix_new', "_decross"+num2str(crosstalk_matrix(2,1))
 %%
 
 fullpathGbl = movieExpBaselineCorrection(fullpathGdx, 'divide', false); 
@@ -117,6 +117,7 @@ fullpathRbl = movieExpBaselineCorrection(fullpathRdx, 'divide', false);
 
 if mouse_state == "anesthesia",     f0_hp = 0.25; wp = 0.2; 
 elseif mouse_state == "iso",        f0_hp = 0.15; wp = 0.075; 
+elseif mouse_state == "endo",       f0_hp = 0.25; wp = 0.2; 
 elseif mouse_state == "awake",      f0_hp = 1.5; wp = 0.5; 
 elseif mouse_state == "transition", f0_hp = 0.5; wp = 0.25; 
 else, error("unknown mouse_state = " + mouse_state); 
@@ -151,6 +152,8 @@ elseif mouse_state == "transition"
     options_hfilt = struct('dt', 2.0, 'fref_lims', [1.5,20], 'max_delay', 30*1e-3);
 elseif mouse_state == "iso"
     options_hfilt = struct('dt', 8.0, 'fref_lims', [1.5,15], 'max_delay', 20*1e-3);
+elseif mouse_state == "endo"
+    options_hfilt = struct('dt', 2.5, 'fref_lims', [1.5,15], 'max_delay', Inf);
 else
     error("unknown mouse_state = " + mouse_state);
 end  
@@ -173,9 +176,9 @@ moviesSavePreviewVideos([fullpathGhemo, fullpathRhp], ...
     'titles', ["reference filt", "reference ch"]);
 %%
 
-postfix_nh = "_nohemo"; if(unmix_time_resolved), postfix_nh = "_nohemoTR"; end
-fullpathGnh = movieRemoveHemoComponents(fullpathGhp, fullpathGhemo, ...
-    'divide', false, 'postfix', postfix_nh);
+postfix_nh = "_nohemoS"; if(unmix_time_resolved), postfix_nh = "_nohemoTRS"; end
+fullpathGnh = movieRemoveComponents(fullpathGhp, fullpathGhemo, ...
+    'divide', false, 'postfix_new', postfix_nh);
 
 moviesSavePreviewVideos([fullpathGnh, fullpathGhemo, fullpathGhp], ...
     'titles', ["unmixed", "reference filt", "voltage ch"]);

@@ -80,7 +80,7 @@ function fullpath_out = movieSaveSingleFrame(fullpath_movie, varargin)
     %%
 
     if(options.mask && ~isempty(specs.getMask()))
-        nan_mask = double(specs.getMask()); nan_mask(nan_mask==0) = NaN;
+        nan_mask = double(specs.getMask(size(frame))); nan_mask(nan_mask==0) = NaN;
         frame = frame.*nan_mask;
     end
     %%

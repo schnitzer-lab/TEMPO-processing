@@ -28,6 +28,9 @@ analysis/convolution_filters/
 analysis/compiled/hdf5_movie_fft/
 analysis/compiled/hdf5_movie_convolution/
 
+# no generated time-filters
+analysis/convolution_filters/
+
 # no allen reference points
 analysis/allen_map/allen_reference_points*.txt
 

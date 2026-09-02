@@ -90,46 +90,59 @@ classdef MovieSpecsTEMPO < MovieSpecs
         end
         
         function ttl_signal = getTTLTraceFromanalog(obj, nT)
-            if(~obj.extra_specs.isKey('ttl_fromanalog')) 
+            if(~obj.extra_specs.isKey('ttl_fromanalog'))
                 ttl_signal = [];
                 return;
             end
-            if(nargin < 2), nT = length(obj.extra_specs('ttl_fromanalog'))-(obj.timeorigin-1); end
-            
+
             ttl_signal_full = obj.extra_specs('ttl_fromanalog');
-            ttl_signal_raw = ttl_signal_full(obj.timeorigin:end);
-            
-            ttl_signal = ttl_signal_raw;
-            if(obj.timebinning ~= 1)
-                ttl_signal = ttl_signal(1:(length(ttl_signal) - mod(length(ttl_signal), obj.timebinning)));
-                ttl_signal = round(mean(reshape(ttl_signal,obj.timebinning,[]),1)');
-            end
+            frame_start = obj.getAbsFrameId(1);
+
+            if(nargin < 2), nT = floor((length(ttl_signal_full) - frame_start + 1)/obj.timebinning); end
+
+            ttl_signal_raw = ttl_signal_full(frame_start:end);
+            ttl_signal = obj.BinTTLSignal(ttl_signal_raw);
+
             ttl_signal = ttl_signal(1:min(nT, length(ttl_signal)));
             ttl_signal((end+1):nT) = NaN;
-        end   
+        end
 
         function ttl_signal = getTTLTrace(obj, nT)
-            if(~obj.extra_specs.isKey('timestamps_table')) 
+            if(~obj.extra_specs.isKey('timestamps_table'))
                 ttl_signal = [];
                 return;
             end
-            
-            timestamps_table = obj.extra_specs('timestamps_table');
 
-            if(nargin < 2), nT = size(timestamps_table,1)-(obj.timeorigin-1); end
+            timestamps_table = obj.extra_specs('timestamps_table');
+            frame_start = obj.getAbsFrameId(1);
+
+            if(nargin < 2), nT = floor((size(timestamps_table,1) - frame_start + 1)/obj.timebinning); end
 
             ttl_column = find(string(strsplit(obj.extra_specs('timestamps_table_names'), ';')) == "behavior_ttl");
-            
-            ttl_signal_raw = timestamps_table(obj.timeorigin:end, ttl_column);
-            
-            ttl_signal = ttl_signal_raw;
-            if(obj.timebinning ~= 1)
-                ttl_signal = ttl_signal(1:(length(ttl_signal) - mod(length(ttl_signal), obj.timebinning)));
-                ttl_signal = round(mean(reshape(ttl_signal,obj.timebinning,[]),1)');
-            end
+
+            ttl_signal_raw = timestamps_table(frame_start:end, ttl_column);
+            ttl_signal = obj.BinTTLSignal(ttl_signal_raw);
+
             ttl_signal = ttl_signal(1:min(nT, length(ttl_signal)));
             ttl_signal((end+1):nT) = NaN;
-        end   
-        %%   
+        end
+        %%
+    end
+
+    methods (Access = protected)
+        function ttl_binned = BinTTLSignal(obj, ttl_signal_raw)
+            % timebinning > 1 (movieDownsample): keep one sample per bin
+            % timebinning < 1 (movieUpsample): hold each raw sample for 1/timebinning frames
+            % nearest-value resampling, no averaging
+            if(obj.timebinning > 1)
+                n = round(obj.timebinning);
+                ttl_binned = ttl_signal_raw(1:n:end);
+            elseif(obj.timebinning < 1)
+                n = round(1/obj.timebinning);
+                ttl_binned = repelem(ttl_signal_raw, n);
+            else
+                ttl_binned = ttl_signal_raw;
+            end
+        end
     end
 end

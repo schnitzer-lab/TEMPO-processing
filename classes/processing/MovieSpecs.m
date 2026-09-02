@@ -98,6 +98,12 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
             s = (obj.spaceorigin- [1,1])/obj.binning + [1,1];
             s = s(dim);
         end
+
+        function frame_id_abs = getAbsFrameId(obj, frame_id)
+            % timebinning can be an integer (movieDownsample) or 1/integer
+            % (movieUpsample); round to the nearest original frame number
+            frame_id_abs = round(obj.timeorigin + (frame_id - 1) .* obj.timebinning);
+        end
     end
     %% setter methods
 
@@ -225,8 +231,11 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
                 error("spaceorigin should be an array of two round numbers > 0")
             end
             
-            if(~isnumeric(timebinning) || timebinning < 1)
-                error("timebinning %d should be a number >= 1", timebinning)
+            % if(~isnumeric(timebinning) || timebinning < 1)
+                % error("timebinning %d should be a number >= 1", timebinning)
+            % end            
+            if(~isnumeric(timebinning) || timebinning <= 0)
+                error("timebinning %d should be a positive number", timebinning)
             end
             
             if(timeorigin < 0 || floor(timeorigin) ~= timeorigin )

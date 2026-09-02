@@ -8,7 +8,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     if (~isfolder(options.processingdir)), mkdir(options.processingdir); end
     
     basepath_out = filename + options.postfix_new + ...
-        "_tw" + string(options.timewindow) + "fw" + string(options.fw);
+        "_tw" + string(options.tw) + "fw" + string(options.fw);
     if(~isempty(options.bgmethod)), basepath_out = basepath_out+string(options.bgmethod); end
     
     filename_out = fullfile(options.processingdir, basepath_out + ".h5");
@@ -29,7 +29,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     m =  rw.h5getMeanTrace(fullpath, 'nframes_read', options.nframes_read, 'mask', false); %squeeze(sum(M,[1,2], 'omitnan'));
     %%
 
-    w = round(options.timewindow*specs.getFps());
+    w = round(options.tw*specs.getFps());
     dw = round(w*options.overlap);
     nw = options.fw*w/specs.getFps()/2;
 
@@ -56,19 +56,35 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
         st(fs < options.frange(1) | fs > options.frange(2), :) = [];
         fs(fs < options.frange(1) | fs > options.frange(2)) = [];  
 
-        if(isempty(options.timewindow_bg)), options.timewindow_bg = 3*options.timewindow; end
+        if(isempty(options.tw_bg)), options.tw_bg = 3*options.tw; end
 
-        nbg = round(options.timewindow_bg/(options.timewindow*(1-options.overlap)));
-        if strcmp(options.bgmethod, 'cvx')
-            bg = proc.SpectrogramBackgroundsCVX(st, nbg);
+        dt_bin = (w - dw)/specs.getFps();             % seconds per column of st, see proc.SpectrogramMultitaper.m
+        nbg_av = max(1, round(options.tw_bg/dt_bin));  % columns of st per background-averaging block
+
+        nTime = size(st,2);
+        npad_total = mod(nbg_av - mod(nTime, nbg_av), nbg_av);
+        npad_l = floor(npad_total/2);
+        npad_r = ceil(npad_total/2);
+        nTime_padded = nTime + npad_total;
+        nBins = nTime_padded/nbg_av;
+
+        st_padded = [nan(size(st,1), npad_l), st, nan(size(st,1), npad_r)];
+        st_down = squeeze(mean(reshape(st_padded, size(st,1), nbg_av, nBins), 2, 'omitnan'));
+
+        if strcmp(options.bgmethod, 'qp')
+            bg_down = proc.SpectrogramBackgroundsQP(double(st_down));
         elseif strcmp(options.bgmethod, '1overf')
-            bg = proc.SpectrogramBackgrounds1fFit(st, nbg);
+            bg_down = proc.SpectrogramBackgrounds1fFit(st_down);
         elseif strcmp(options.bgmethod, 'quantile')
-            bg = quantile(st, 0.05, 2);
+            bg_down = repmat(quantile(st_down, 0.05, 2), 1, nBins);
         else
             warning(string(options.bgmethod) + " background method undefined")
-            bg = ones(size(st));
-        end            
+            bg_down = ones(size(st_down));
+        end
+
+        bin_centers = (0:(nBins-1))*nbg_av + floor(nbg_av/2);
+        bg_padded = interp1(bin_centers, bg_down', 1:nTime_padded, 'linear', 'extrap')';
+        bg = bg_padded(:, (npad_l+1):(end-npad_r));
     end
     %%
        
@@ -100,7 +116,7 @@ function filename_out = movieMeanTraceSpectrogram(fullpath, varargin)
     axes_all = plt.signalSpectrogram(toplotz(st)./toplotz(bg), ...
         ts_plot, toplotz(fs), options_spectrogram);   
 
-    sgtitle({"dt=" +  num2str(options.timewindow) + ...
+    sgtitle({"dt=" +  num2str(options.tw) + ...
            "s, df=" + num2str(options.fw) + "Hz: " + ...
            specs.recording_id, filename}, ...
            'interpreter', 'none', 'FontSize', 10,'FontWeight','bold')
@@ -214,14 +230,14 @@ function options = parseInputs(basepath, varargin)
     isnumpos  = @(x) isnumeric(x) && isscalar(x) && x > 0;
     islogscal = @(x) islogical(x) && isscalar(x);
 
-    p.addParameter('timewindow',   5,    isnumpos);
+    p.addParameter('tw',   5,    isnumpos);
     p.addParameter('overlap',      0.75, @(x) isnumeric(x) && isscalar(x) && x >= 0 && x < 1);
     p.addParameter('fw',           0.5,  isnumpos);
     p.addParameter('nframes_read', Inf,  isnumpos);
     p.addParameter('frange',       [],   @(x) isempty(x) || (isnumeric(x) && numel(x) == 2));
 
     p.addParameter('bgmethod',      [], @(x) isempty(x) || ischar(x) || isstring(x));
-    p.addParameter('timewindow_bg', [], @(x) isempty(x) || isnumpos(x));
+    p.addParameter('tw_bg', [], @(x) isempty(x) || isnumpos(x));
 
     p.addParameter('absorigin',     true, islogscal);
     p.addParameter('meantrace',     true, islogscal);

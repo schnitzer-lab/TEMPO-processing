@@ -16,7 +16,7 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
     [M,specs] = rw.h5readMovie(fullfile(basepath, filename + ".h5"));
     
     if(~isempty(specs.getMask()))
-        nan_mask = double(specs.getMask()); nan_mask(~nan_mask) = NaN;
+        nan_mask = double(specs.getMask(size(M,[1,2]))); nan_mask(~nan_mask) = NaN;
         M = M.*nan_mask;
     end    
     %%
@@ -122,6 +122,8 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
         wt1(coi' > frq1) = NaN;
         tscale = 1;
         
+        % [wt1,fs,ts] = proc.SpectrogramMultitaper(double(m_reg), round(specs.getFps()*1), 'fps', specs.getFps());
+        % tscale = mean(diff(ts))*specs.getFps();
 
 %         noise_trace = randn(size(M,3),1);
 %         A_noise = noiseAmplitudeDFF(specs);  
@@ -142,9 +144,11 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
         % wt1= flip(wt1,1);
 
         fs = frq1*specs.getFps();
-        wt1(fs < specs.getFrequencyRange(1), :) = NaN;
-        wt1(fs > specs.getFrequencyRange(2), :) = NaN;
-        %%
+        fs_touse =  ((movmean(fs > specs.getFrequencyRange(1), 3) > 0.7) & ...
+                     (movmean(fs < specs.getFrequencyRange(2), 3) > 0.7));
+        fs = fs(fs_touse);
+        wt1 = wt1(fs_touse, :);
+         %%
 
         % plt.getFigureByName("Full spectrogram")
         % 
@@ -199,17 +203,18 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
         %%
         
         f_start = 0; %1.5;
-        nframes_average = sum(window_stim1 == 1);%round(0.3*specs.getFps());
+        nframes_average = round(sum(window_stim1 == 1)/3);%round(0.3*specs.getFps()); % 
         
         
         fig_spect = plt.getFigureByName('moviePlotTraceStim: spectras');
         
         semilogy(fs(fs>f_start), mean(wt_trial(:,fs>f_start,window_stim1==0),[1,3], 'omitnan'), '.-'); hold on;
         semilogy(fs(fs>f_start), mean(wt_trial(:,fs>f_start,window_stim1==1),[1,3], 'omitnan'), '.-'); hold on;
-        semilogy(fs(fs>f_start), mean(wt_trial(:,fs>f_start,stim_onset_frame: (stim_onset_frame+nframes_average)),[1,3], 'omitnan'), '.-'); hold on;
+        semilogy(fs(fs>f_start), mean(wt_trial(:,fs>f_start,stim_onset_frame:(stim_onset_frame+nframes_average)),[1,3], 'omitnan'), '.-'); hold on;
         semilogy(fs(fs>f_start), mean(wt_trial(:,fs>f_start,stim_offset_frame:(stim_offset_frame+nframes_average)),[1,3], 'omitnan'), '.-'); hold on;
         % yline(wt_noise_limit)
         hold off;
+        xlim([min(fs), max(fs)])
         
         legend(["pre"+" ("+string(round(sum(window_stim1==0)/specs.getFps(),1)) + "s)", ...
                 "stim"+" ("+string(round(sum(window_stim1==1)/specs.getFps(),1)) + "s)",...
@@ -236,7 +241,7 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
         
 %         cs = [0,500];%
         cs = quantile( wt_plot(:)*100, [0.01,0.95], 'all');%
-        hpc = pcolor(ts1, frq1*specs.getFps(),  wt_plot*100); 
+        hpc = pcolor(ts1, fs,  wt_plot*100); 
         set(hpc, 'EdgeColor', 'none');
         ax_spec = gca();
         caxis(cs');
@@ -254,6 +259,8 @@ function fullpath_out = moviePlotTraceStim(fullpath_movie, regions, varargin)
         % xticks(-2:0.25:2); xlim([-1.25,1.25]);
         colormap('jet')
         % set(gca, 'ColorScale', 'Log')
+
+        ylim([min(fs), max(fs)])
         
         title({basepath, filename + " " + region_name+options.postfix_new}, 'Interpreter', 'none', 'FontSize', 12)
         fig_spec.Position = [fig_spec.Position(1:2), 500,400];
@@ -271,13 +278,12 @@ end
 function options = defaultOptions(basepath)
     
     options.align_to = "offset"; % "onset" or "offset"
-    options.regions_map = ...
-        containers.Map(["M1", "SSp-bfd", "SSp-ll", "V1", "RSP"], [4,10, 12,38,51]);
+    options.regions_map = getAllenRegionMap();
 
     options.postfix_new = "";
     options.skip = true;
     options.ttl_signal = [];
-    options.iti_scale = 2;
+    options.iti_scale = 1;
     options.drop = 1;
     options.processingdir = basepath + "\processing\plotTraceStim\";
     

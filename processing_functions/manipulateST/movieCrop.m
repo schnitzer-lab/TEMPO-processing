@@ -47,7 +47,7 @@
     fig_crop = plt.getFigureByName("movieCrop");
     subplot(1,2,1)
     imshow(std(single(M), [], 3), []);
-    rectangle('Position', box_crop, 'EdgeColor', 'r');
+    rectangle('Position', box_crop- [0.5,0.5,0,0], 'EdgeColor', 'r');
     drawnow();
     %%    
     displog("movieCrop: cropping")

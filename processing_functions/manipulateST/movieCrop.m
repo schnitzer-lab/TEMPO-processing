@@ -36,18 +36,25 @@
         box_crop = mm.getCropBoxNaN(mask);
     end
 
+    if(box_crop(3) < 1 || box_crop(4) < 1)
+        error("movieCrop: box_crop width and height must be >= 1 pixel, got " + mat2str(box_crop))
+    end
+
+    rows_crop = box_crop(2):(box_crop(2)+box_crop(4)-1);
+    cols_crop = box_crop(1):(box_crop(1)+box_crop(3)-1);
     %%
 
     fig_crop = plt.getFigureByName("movieCrop");
     subplot(1,2,1)
-    imshow(std(single(M), [], 3), []); rectangle('Position',box_crop, 'EdgeColor', 'r');    
+    imshow(std(single(M), [], 3), []);
+    rectangle('Position', box_crop, 'EdgeColor', 'r');
     drawnow();
     %%    
     displog("movieCrop: cropping")
     
-    M_cropped = cropMovie(M, box_crop);
+    M_cropped = M(rows_crop, cols_crop, :);
 
-    specs_out = copy(specs); 
+    specs_out = copy(specs);
     specs_out.AddToHistory(functionCallStruct({'fullpath_movie','box_crop','options'}));
     specs_out.AddSpatialCropping(box_crop([2,1]));
 %     if(isKey(specs.extra_specs, "mask"))
@@ -76,7 +83,7 @@
         [M, ~] = rw.h5readMovie(fullpath_movie, ...
             'frame_start', frame_start, ...
             'frames_num', min(options.frames_read, nframes_file-frame_start+1));
-        M_cropped = cropMovie(M, box_crop);
+        M_cropped = M(rows_crop, cols_crop, :);
         h5append(fullpath_out, M_cropped, '/mov');
         frame_start = frame_start+options.frames_read;
     end

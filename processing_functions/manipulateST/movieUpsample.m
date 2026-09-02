@@ -1,4 +1,4 @@
-function fullpath_out = movieUpsample(fullpath_movie, n_x, n_y,  varargin)
+function fullpath_out = movieUpsample(fullpath_movie, nt, ns, varargin)
     
     [basepath, filename, ext] = fileparts(fullpath_movie);
 
@@ -26,29 +26,48 @@ function fullpath_out = movieUpsample(fullpath_movie, n_x, n_y,  varargin)
     [M, specs] = rw.h5readMovie(fullpath_movie);
     %%
 
-    Mout = repmat(M, [n_x, n_y, 1]);
+    if (nt ~= 1)
+        Mup = interpft(M, size(M,3)*nt, 3);
+    else
+        Mup = M;
+    end
+
+    Mup = repmat(Mup, [ns, ns, 1]);
     %%
-    
+
     specs_out = copy(specs);
-    
+
     specs_out.AddToHistory("upsampled", {});
-    specs_out.AddBinning( 1/sqrt(n_x*n_y) );
-    
-    specs_out.AddToHistory(functionCallStruct({'n_x','n_y','options'})); 
+    specs_out.AddBinning( 1/ns );
+    specs_out.AddBinningTime( 1/nt );
+
+    specs_out.AddToHistory(functionCallStruct({'nt','ns','options'}));
     %%
    
     displog("movieUpsample: plotting illustrations")
     
     fig_2dmean = plt.getFigureByName("movieUpsample");
     subplot(1,2,1); imshow(mean(M,3), []); title("mean");
-    subplot(1,2,2); imshow(mean(Mout,3), []); title("mean upsampled");
+    subplot(1,2,2); imshow(mean(Mup,3), []); title("mean upsampled");
     %%
     
     displog("movieUpsample: saving")
     
-    rw.h5saveMovie(fullpath_out, Mout, specs_out);
+    rw.h5saveMovie(fullpath_out, Mup, specs_out);
     saveas(fig_2dmean, fullfile(options.diagnosticdir, filename_out + "_2dmean.png"))
     saveas(fig_2dmean, fullfile(options.diagnosticdir, filename_out + "_2dmean.fig"))
+    %%
+
+    m = squeeze(mean(M, [1,2], 'omitnan'));
+    m_up = squeeze(mean(Mup(1:size(M,1), 1:size(M,2), :), [1,2], 'omitnan'));
+    m_rep = repelem(m, nt);
+
+    fig_traces = plt.getFigureByName("Upsampling - traces comparison");
+    plt.tracesComparison([m_rep(1:length(m_up)), m_up], 'fps', specs_out.getFps(),...
+        'labels', ["original", "upsampled"])
+
+    saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + '_traces.png') )
+    saveas(fig_traces, fullfile(options.diagnosticdir, filename_out + '_traces.fig') )
 end
 %%
 

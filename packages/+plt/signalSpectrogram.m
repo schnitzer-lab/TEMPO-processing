@@ -58,15 +58,16 @@ function axes_all = signalSpectrogram(st, ts, fs, varargin)
     set(ax_spectrogram,'GridColor',[1 1 1]) 
     set(ax_spectrogram,'YDir','normal')
     
-    xlim([min(ts), max(ts)]);
-    ylim(options.flims_plot);
+    xlim(ax_spectrogram, [min(ts), max(ts)]);
+    ylim(ax_spectrogram, options.flims_plot);
         
     data_distr = st(fs >= options.flims_plot(1) & fs <= options.flims_plot(2),:);
     data_distr = data_distr(:);
     set(ax_spectrogram, 'CLim', ...
         [quantile(data_distr, options.q(1))+...
             min(data_distr(data_distr>0)*strcmp(options.colorscale,"Log") ), ...
-         quantile(data_distr, options.q(2))])
+         quantile(data_distr, options.q(2))+...
+            min(data_distr(data_distr>0)*strcmp(options.colorscale,"Log") )])
     
     set(ax_spectrogram,'ColorScale', options.colorscale)
     colormap(ax_spectrogram, 'turbo'); 

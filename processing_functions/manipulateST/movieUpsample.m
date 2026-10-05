@@ -37,7 +37,6 @@ function fullpath_out = movieUpsample(fullpath_movie, nt, ns, varargin)
 
     specs_out = copy(specs);
 
-    specs_out.AddToHistory("upsampled", {});
     specs_out.AddBinning( 1/ns );
     specs_out.AddBinningTime( 1/nt );
 

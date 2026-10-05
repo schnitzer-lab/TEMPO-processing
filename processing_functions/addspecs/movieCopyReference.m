@@ -114,6 +114,16 @@ function movieCopyReference(fullpath_movie, fullpath_movie_ref, varargin)
     % move origin to center, rotate, shift, move origin back
     tform0 = rigid2d(tform00.invert.T*tform02.T*tform01.T*tform00.T);
 
+    % automatic initial estimate via phase correlation, robust to large offsets
+    tform_auto = imregcorr(template_moving, template_fixed, ...
+        'transformtype', 'rigid', 'window', false);
+
+    if(isequal(options.shifts0, [0,0]) && options.angle0 == 0)
+        tform0 = rigid2d(tform_auto.T);
+    else
+        tform0 = rigid2d(tform_auto.T * tform0.T);
+    end
+
     template_moving_reg0 = imwarp(template_moving, ref_moving, tform0, 'OutputView', ref_fixed, ...
         'SmoothEdges', true, 'FillValues', 0, 'interp', options.interp);
     

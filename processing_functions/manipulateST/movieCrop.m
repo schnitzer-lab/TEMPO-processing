@@ -68,6 +68,11 @@
     subplot(1,2,2)
     imshow(std(single(M_cropped), [], 3), []);
     %%
+    m = squeeze(mean(M, [1,2], 'omitnan'));
+    mc = squeeze(mean(M_cropped, [1,2], 'omitnan'));
+    plt.tracesComparison([m,mc], 'fps', specs.getFps(), ...
+        'fw', 0.2, "labels", ["original", "cropped"], 'f0', specs.getFrequencyRange(1));
+    %%
 
     saveas(fig_crop, fullfile(options.diagnosticdir, filename + "_crop.png"))
     saveas(fig_crop, fullfile(options.diagnosticdir, filename + "_crop.fig"))

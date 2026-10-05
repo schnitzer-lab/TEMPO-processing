@@ -88,6 +88,19 @@ classdef MovieSpecsTEMPO < MovieSpecs
             mask_nan = nan(size(mask));
             mask_nan(mask) = 1;
         end
+
+        function s = getSign(obj)
+            if(~obj.extra_specs.isKey('sign'))
+                s = +1;
+            else
+                s = obj.extra_specs('sign');
+            end
+        end
+
+        function s = flipSign(obj)
+            obj.extra_specs('sign') = -obj.getSign();
+            s = obj.getSign();
+        end
         
         function ttl_signal = getTTLTraceFromanalog(obj, nT)
             if(~obj.extra_specs.isKey('ttl_fromanalog'))

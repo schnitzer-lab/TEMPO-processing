@@ -81,7 +81,7 @@ end
 
 function options = defaultOptions(basepath)
     
-    options.processingdir = basepath + "\diagnostic\movieDownsampe\";
+    options.processingdir = basepath + "\diagnostic\downsample\";
     options.outdir = basepath;
     options.type = [];
     options.skip = true;

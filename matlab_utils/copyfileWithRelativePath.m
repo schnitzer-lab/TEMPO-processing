@@ -10,7 +10,7 @@ function fullpath_out = copyfileWithRelativePath(fullpath_in, folder_new, ...
     
     path_rel = erase(fullpath_in, folder_old);
     [folder_rel, filename, ext] =  fileparts(path_rel);
-    filename_new = filename_start_new + erase(filename, filename_start_old);
+    filename_new = string(filename_start_new) + erase(filename, filename_start_old);
     
     fullpath_out = fullfile(folder_new, folder_rel, filename_new+ext);
 

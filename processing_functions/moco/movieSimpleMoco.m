@@ -130,7 +130,7 @@ function [fullpath_out,fullpath_out_shifts] = movieSimpleMoco(fullpath_movie, va
     sha = sqrt(sum(shifts.^2,2));
     
     plt.tracesComparison([m0, mf,sha*std(m0)/std(sha)/5], 'fps', specs.getFps(), 'fw', 0.5,...
-        'labels', ["single pix trace - initial", "single pix trace - mc", "displacement (scaled)"])
+        'labels', ["single pix trace - initial", "single pix trace - mc", "displacement (scaled)"]);
     sgtitle("Pixel " + strjoin(string(pix_xy), ','))
     %%
 

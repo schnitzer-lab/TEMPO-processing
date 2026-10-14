@@ -136,7 +136,7 @@ function savePlots(M, Mout, specs, filename_out, options)
     plt.tracesComparison([m, m_out, m-m_out], ...
         'labels',["Input", "Nocomp", "Removed"] + " (mean)",...
         'fps', specs.getFps(), 'fw', 0.2, 'f0', specs.getFrequencyRange(1),...
-        'spacebysd', [0,0,5])  
+        'spacebysd', [0,0,5]);
     %%
     fig_trace1 = plt.getFigureByName("movieRemoveComponents: Single-pixel traces");
 
@@ -148,7 +148,7 @@ function savePlots(M, Mout, specs, filename_out, options)
     plt.tracesComparison([m, m_out, m-m_out], ...
         'labels',["Input", "Nocomp", "Removed"] + " (pixel)",...
         'fps', specs.getFps(), 'fw', 0.2, 'f0', specs.getFrequencyRange(1),...
-        'spacebysd', [0,0,5])  
+        'spacebysd', [0,0,5]);
     %%
 
     fig_space = plt.getFigureByName("movieRemoveComponents: spatial variance");
@@ -172,12 +172,12 @@ function savePlots(M, Mout, specs, filename_out, options)
    
     %%
     
-    saveas(fig_trace, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".png"))
-    saveas(fig_trace, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".fig"))
-    saveas(fig_trace1, fullfile(options.diagnosticdir, filename_out + "_pixtraces" + ".png"))
-    saveas(fig_trace1, fullfile(options.diagnosticdir, filename_out + "_pixtraces" + ".fig"))
-    saveas(fig_space, fullfile(options.diagnosticdir, filename_out + "_variance" + ".png"))
-    saveas(fig_space, fullfile(options.diagnosticdir, filename_out + "_variance" + ".fig"))
+    saveas(fig_trace, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".png"));
+    saveas(fig_trace, fullfile(options.diagnosticdir, filename_out + "_meantraces" + ".fig"));
+    saveas(fig_trace1, fullfile(options.diagnosticdir, filename_out + "_pixtraces" + ".png"));
+    saveas(fig_trace1, fullfile(options.diagnosticdir, filename_out + "_pixtraces" + ".fig"));
+    saveas(fig_space, fullfile(options.diagnosticdir, filename_out + "_variance" + ".png"));
+    saveas(fig_space, fullfile(options.diagnosticdir, filename_out + "_variance" + ".fig"));
 end
 %%
 

@@ -65,7 +65,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
 
     fig_meanfit = plt.getFigureByName("movieExpBaselineCorrection - mean trace");
     plot(f0, ts, m, '-'); xlabel("frame #"); 
-    text(0.15*mean(ts), max(get(gca, 'YLim')) - 0.2*diff(get(gca, 'YLim')), evalc('f0'))
+    text(0.15*mean(ts), max(get(gca, 'YLim')) - 0.2*diff(get(gca, 'YLim')), evalc('f0'));
     drawnow;
     %%
     
@@ -116,7 +116,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     subplot(2,3,6); histogram(plt.saturate(C2,[0,0.99])); 
     
     sgtitle("M = (A + C_1exp(-t/b_1) + C_2exp(-t/b_2)), " + ...
-            sprintf("b_1=%.1fs, b_2=%.1fs", f0.b1/specs.getFps(), f0.b2/specs.getFps()) )
+            sprintf("b_1=%.1fs, b_2=%.1fs", f0.b1/specs.getFps(), f0.b2/specs.getFps()) );
     %%
     
     Mbl = (baseline(A, B1, C1, B2, C2, permute(ts,[3,2,1])));
@@ -138,7 +138,7 @@ function fullpath_out = movieExpBaselineCorrection(fullpath_movie, varargin)
     fig_meanout = plt.getFigureByName("movieExpBaselineCorrection - traces");
     plt.tracesComparison([m, mout, bl], ...
         'fps', specs.getFps(), 'fw', 0.1, 'labels', ["raw", "baseline-corrected", "baseline"], ...
-        'nomean', false, 'spectrum', false)
+        'nomean', false, 'spectrum', false);
     title(sprintf("baseline correction (rs=%.2f, a=%.1f)", r2, a))
     %%
     

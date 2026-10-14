@@ -28,7 +28,7 @@ function [fullpath_out_g, fullpath_out_r] =...
     
     if (isfile(fullpath_out_g) && isfile(fullpath_out_r))
         if(options.skip)
-            displog("Output file exists. Skipping: "  + fullpath_out_r)
+            displog("Output file exists. Skipping: "  + fullpath_out_r);
             return;
         else
             warning("moviesDecrosstalk: Output file exists. Deleting: "  + fullpath_out_r);
@@ -38,7 +38,7 @@ function [fullpath_out_g, fullpath_out_r] =...
     end
     %%
     
-    displog("reading movies")
+    displog("reading movies");
     [Mg, specs_g] = rw.h5readMovie(fullpath_movie_g);
     [Mr, specs_r] = rw.h5readMovie(fullpath_movie_r);
     %%
@@ -51,8 +51,9 @@ function [fullpath_out_g, fullpath_out_r] =...
     specs_out_r.AddToHistory(functionCallStruct(...
         {'fullpath_movie_g', 'fullpath_movie_r', 'crosstalk', 'options'}));
     
-    displog("decrosstalking")
+    displog("decrosstalking");
     %%
+
     if(decrosstalk(1,2) ~= 0)    
         Mout = decrosstalk(1,1)*Mg + decrosstalk(1,2)*Mr;
         if(decrosstalk(1,1) ~= 0), Mout(isnan(Mr) & ~isnan(Mg)) = decrosstalk(1,1)*Mg(isnan(Mr) & ~isnan(Mg)); end
@@ -60,15 +61,15 @@ function [fullpath_out_g, fullpath_out_r] =...
        
         fig_trace_g = plt.getFigureByName("moviesDecrosstalk: Traces comparison G");
         plt.tracesComparison([squeeze(mean(Mg, [1,2],'omitnan' )), squeeze(mean(Mout, [1,2],'omitnan'))], ...
-            'fps', specs_g.getFps(), 'fw', 0.2, 'labels', ["spatially-averaged trace", "spatially-averaged trace after decrosstalking"]) 
+            'fps', specs_g.getFps(), 'fw', 0.2, 'labels', ["spatially-averaged trace", "spatially-averaged trace after decrosstalking"]);
         sgtitle({basepath, filename_g}, 'interpreter', 'none', 'FontSize', 10); 
         drawnow();
         %%
         
         rw.h5saveMovie(fullpath_out_g, Mout, specs_out_g);
 
-        saveas(fig_trace_g, fullfile(options.processingdir, filename_out_g + "_decrosstalking.png"))
-        saveas(fig_trace_g, fullfile(options.processingdir, filename_out_g + "_decrosstalking.fig"))
+        saveas(fig_trace_g, fullfile(options.processingdir, filename_out_g + "_decrosstalking.png"));
+        saveas(fig_trace_g, fullfile(options.processingdir, filename_out_g + "_decrosstalking.fig"));
         %%
     end
 
@@ -82,14 +83,14 @@ function [fullpath_out_g, fullpath_out_r] =...
         fig_trace_r = plt.getFigureByName("moviesDecrosstalk: Traces comparison R");
         plt.tracesComparison([squeeze(mean(Mr, [1,2],'omitnan' )), squeeze(mean(Mout, [1,2],'omitnan'))], ...
             'fps', specs_g.getFps(), 'fw', 0.2,...
-            'labels', ["spatially-averaged trace", "spatially-averaged trace after decrosstalking"]) 
+            'labels', ["spatially-averaged trace", "spatially-averaged trace after decrosstalking"]);
         sgtitle({basepath, filename_r}, 'interpreter', 'none', 'FontSize', 10); 
         drawnow();
     %%
 
         rw.h5saveMovie(fullpath_out_r, Mout, specs_out_r);
-        saveas(fig_trace_r, fullfile(options.processingdir, filename_out_r + "_decrosstalking.png"))
-        saveas(fig_trace_r, fullfile(options.processingdir, filename_out_r + "_decrosstalking.fig"))
+        saveas(fig_trace_r, fullfile(options.processingdir, filename_out_r + "_decrosstalking.png"));
+        saveas(fig_trace_r, fullfile(options.processingdir, filename_out_r + "_decrosstalking.fig"));
     %%
     end
 

@@ -70,9 +70,9 @@ function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
     fig_mean = plt.getFigureByName("movieDelay: mean");
     md = squeeze(mean(Md, [1,2], 'omitnan'));
 
-    plt.tracesComparison([m0,md], 'labels', ["initial", "delayed"])
+    plt.tracesComparison([m0,md], 'labels', ["initial", "delayed"]);
     % plt.tracesComparison([x(:,1), x(:,1)-x(:,2), x(:,1)-x(:,3)])
-    sgtitle([basepath, filename], 'interpreter', 'none', 'FontSize', 8)
+    sgtitle([basepath, filename], 'interpreter', 'none', 'FontSize', 8);
 %%
 
     displog("saving delayed movie");
@@ -82,8 +82,8 @@ function fullpath_out = movieDelay(fullpath_movie, delay, varargin)
     
     rw.h5saveMovie(fullpath_out, Md, specs_out);
 
-    saveas(fig_mean, fullfile(options.diagnosticdir, filename_out + "_mean.png"))
-    saveas(fig_mean, fullfile(options.diagnosticdir, filename_out + "_mean.fig"))
+    saveas(fig_mean, fullfile(options.diagnosticdir, filename_out + "_mean.png"));
+    saveas(fig_mean, fullfile(options.diagnosticdir, filename_out + "_mean.fig"));
 %%
 end
 %%

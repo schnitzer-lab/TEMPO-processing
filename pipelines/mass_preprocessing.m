@@ -54,5 +54,9 @@ for i_f = 1:length(recording_names)
 end
 %%
 
+displog(["Errors:"; recording_names(recording_ids_error)])
+warning("Errors: " + strjoin(recording_names(recording_ids_error), ', '))
+%%
+
 diary off
     

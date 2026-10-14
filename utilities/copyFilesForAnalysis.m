@@ -38,7 +38,7 @@ function options = parseInputs(varargin)
     p = inputParser();
 
     p.addParameter('basefolder_preprocessed', ...
-        "F:\GEVI_Wave\Preprocessed", @(s) isstring(s)|ischar(s));
+        "P:\GEVI_Wave\Preprocessed", @(s) isstring(s)|ischar(s));
     p.addParameter('basefolder_analysis', ...
         "T:\GEVI_Wave\Analysis", @(s) isstring(s)|ischar(s));
    

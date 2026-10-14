@@ -48,7 +48,7 @@ summary.timestamps=timestamps;
 summary.interval=diff(timestamps);
 summary.fpsVec= 1./summary.interval;
 summary.meanFps=mean(summary.fpsVec(timestapms_use(1:(end-1))));
-fps=summary.meanFps;
+fps=median(summary.fpsVec(timestapms_use(1:(end-1))));
 summary.jitter=std(summary.interval);
 summary.medianInterval=median(summary.interval);
 summary.intervalDeviations=abs(summary.interval-summary.medianInterval);
@@ -62,8 +62,3 @@ end
 
 summary=closeSummary(summary);
 end  %%% END GETTIMESTAMPS
-
-
-
-
-

@@ -1,24 +1,60 @@
         
-basepath = "N:\GEVI_Wave\Analysis\Visual\m48\20210824\meas00\";
-postfix = "cG_unmixed*_dFF"; 
+basepath_preprocessed = "P:\GEVI_Wave\Preprocessed\";
+basepath_analysis = "N:\GEVI_Wave\Analysis\";
 
-file = dir(fullfile(basepath, "/*" +  postfix + ".h5"));
-fullpath = fullfile(file.folder, file.name);
-
-[filepath,name,~] = fileparts(fullpath);
+recording_name = "Visual\mlk2501\20261003\meas00\";
+patternG_in = "*-cG*_nohemoS_dFF.h5"; 
+patternR_in = "*-cR*_dFF.h5"; 
+% postfix = "cG_unmixed*_dFF"; 
 %%
 
-movieSaveSingleFrame(fullpath, ...
+fullpathGdFF = copyFilesForAnalysis(recording_name, patternG_in, ...
+    'new_name', "cG_unmixed_dFF", ...
+    'basefolder_preprocessed', basepath_preprocessed, ...
+    'basefolder_analysis', basepath_analysis,...
+    'skip', true);
+
+fullpathRdFF = copyFilesForAnalysis(recording_name, patternR_in, ...
+    'new_name', "cR_dFF", ...
+    'basefolder_preprocessed', basepath_preprocessed, ...
+    'basefolder_analysis', basepath_analysis,...
+    'skip', true);
+
+copyfile( ...
+    fullfile(basepath_preprocessed, recording_name, "alignment_images/"), ...
+    fullfile(basepath_analysis,     recording_name, "alignment_images/"))
+%%
+
+[filepath,name,~] = fileparts(fullpathGdFF);
+
+movieSaveSingleFrame(fullpathGdFF, ...
     'frametype', 'F0', 'mask', false,...
     'outdir', fullfile(filepath, "alignment_images"));
 %%  
                     
-movieAddMask(fullpath, fullfile(filepath, "alignment_images", name + "_maskManual.bmp"));
+movieAddMask(fullpathGdFF, fullfile(filepath, "alignment_images", name + "_maskManual.bmp"));
+%%
+    
+% f0_lp = 10; wp = 1;
+% options_lowpass = struct( 'attn', 1e4, 'rppl', 1e-1, 'skip', true);
+% options_lowpass.filtersdir = "..\analysis\convolution_filters\";    
+% options_lowpass.exepath = "..\analysis\c_codes\compiled\hdf5_movie_convolution.exe";    % to use compiled executable. 3-4 times faster
+% 
+% fullpathGlp = movieFilterLowpass(fullpathGdFF, f0_lp, wp, options_lowpass);
+% 
+% movieSaveSingleFrame(fullpathGlp, ...  
+%     'frametype', 'std', 'outdir', fullfile(filepath, "alignment_images"),...
+%     'mask', true, 'skip', true);
+%%
+
+movieSaveSingleFrame(fullpathGdFF, ...  
+    'frametype', 'std', 'outdir', fullfile(filepath, "alignment_images"),...
+    'mask', false, 'skip', true);
 %%
 
 allen_path = "..\analysis\allen_map\";
     
-[filepath,name,ext] = fileparts(fullpath);  
+[filepath,name,ext] = fileparts(fullpathGdFF);  
 
 if(~isfolder(fullfile(filepath, "alignment_images"))), mkdir(fullfile(filepath, "alignment_images")); end
 
@@ -26,61 +62,45 @@ copyfile(fullfile(allen_path, "allen_reference_image_scaled_toalign.png"), ... %
           fullfile(filepath, "alignment_images", name + "_allen.png"))
 copyfile(fullfile(allen_path, "allen_reference_points.txt"), ... % allen_reference_points or allen_reference_points_V1
           fullfile(filepath, "alignment_images", name + "_allen.txt"))
-%%  
-
-movieSaveSingleFrame(fullpath, ...  
-    'frametype', 'std', 'outdir', fullfile(filepath, "alignment_images"),...
-    'mask', false, 'skip', true);
 %%
 
-movieAddAllen(fullpath, fullfile(filepath, "alignment_images", name + "_allenManual.bmp"),...
+movieAddAllen(fullpathGdFF, fullfile(filepath, "alignment_images", name + "_allenManual.bmp"),...
     fullfile(filepath, "alignment_images", name + "_allen.txt"), fullfile(allen_path, "allenmap.mat"))
 %%
 
 % movieAddCustomOutlines(fullpath, 'frametype', 'std')
 %%
-files = dir(fullfile(basepath, "cR*.h5"));
 
-for i_f = 1:length(files)
-   fullpath_copy = fullfile(files(i_f).folder, files(i_f).name);
-   displog(fullpath_copy)
-    
-   movieCopyReference(fullpath_copy, fullpath, 'skip', false)
-end
+movieCopyReference(fullpathRdFF, fullpathGdFF, 'skip', false)
 %%  
-
-postfix_ref = "cR_dFF"; %
-file_ref = dir(fullfile(basepath, "/*" +  postfix_ref + ".h5"));
-fullpath_ref = fullfile(file_ref.folder, file_ref.name);
-%%
 
 % saves alignmet results to reference folder so that it can be reused
  
-specs = rw.h5readMovieSpecs(fullpath);
-[sz_x, sz_y] = rw.h5getDatasetSize(fullpath, '/mov', [1,2]);
+specs = rw.h5readMovieSpecs(fullpathGdFF);
+[sz_x, sz_y] = rw.h5getDatasetSize(fullpathGdFF, '/mov', [1,2]);
     
 fileroot_ref = specs.mouse_id + "_c" + specs.channel_id + "_" + ...
     string(datetime(specs.extra_specs('recordingDate')), 'yyyyMMdd') + "_" + ...
     strjoin(string([sz_x, sz_y]*specs.binning), 'x');
 
-movieSaveSingleFrame(fullpath, ...
+movieSaveSingleFrame(fullpathGdFF, ...
     'frametype', 'std', 'mask', false, 'format', ".h5",...
     'outdir', "N:\GEVI_Wave\MiceAlignment\", 'fileroot_out', fileroot_ref, ...
     'skip', false);
 
-specs_ref = rw.h5readMovieSpecs(fullpath_ref);
-[sz_x, sz_y] = rw.h5getDatasetSize(fullpath_ref, '/mov', [1,2]);
+specs_ref = rw.h5readMovieSpecs(fullpathRdFF);
+[sz_x, sz_y] = rw.h5getDatasetSize(fullpathRdFF, '/mov', [1,2]);
 
 fileroot_ref = specs_ref.mouse_id + "_c" + specs_ref.channel_id + "_" + ...
     string(datetime(specs_ref.extra_specs('recordingDate')), 'yyyyMMdd') + "_" + ...
     strjoin(string([sz_x, sz_y]*specs_ref.binning), 'x');
 
-movieSaveSingleFrame(fullpath_ref, ...
+movieSaveSingleFrame(fullpathRdFF, ...
     'frametype', 'std', 'mask', false, 'format', ".h5",...
     'outdir', "N:\GEVI_Wave\MiceAlignment\", 'fileroot_out', fileroot_ref, ...
     'skip', false);
 %%
 
-movieSavePreviewVideos(fullpath, 'skip', false, 'mask', true)
+movieSavePreviewVideos(fullpathGdFF, 'skip', false, 'mask', true)
 % movieSavePreviewVideos(fullpath_ref, 'skip', false, 'mask', true)
 

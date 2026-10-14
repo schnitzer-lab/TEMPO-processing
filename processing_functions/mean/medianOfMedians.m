@@ -1,12 +1,12 @@
-% matlab's median overhear is 3x, prohibitive for large movies
+% matlab's median overhead is 3x, prohibitive for large movies
 function m =  medianOfMedians(M, ns)
-    sample_size = floor(size(M,3)/ns);
-    inx = datasample(1:size(M,3), sample_size*ns,'Replace',false);
-    medians = nan([size(M,[1,2]), ns]);
-    for i = 1:ns
-%         disp(i)
-        medians(:,:,i) =...
-            median(M(:,:, inx((1+(i-1)*sample_size):(i*sample_size))), 3,'omitnan');
+
+    nmedians = ceil(size(M,3)/ns);
+    medians = nan([size(M,[1,2]), nmedians]);
+    for i_m = 1:nmedians
+        range = [(1+(i_m-1)*ns), min(i_m*ns, size(M,3))];
+        medians(:,:,i_m) = median(M(:,:, range(1):range(2)), 3,'omitnan');
     end
-    m = median(medians, 3);  
+
+    m = median(medians, 3); 
 end

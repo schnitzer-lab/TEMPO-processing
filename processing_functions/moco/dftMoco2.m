@@ -61,7 +61,7 @@ function [M, shifts, template_out] = dftMoco2(M,varargin)
 end
 
 function options = defaultOptions()
-    options.nmedian = 2; % subsampling used for median estimation
+    options.nmedian = 20000; % number of frames used for median estimation
     options.padto2n = true;
     options.fill_value = NaN;
     options.interpolation_method = 'linear';

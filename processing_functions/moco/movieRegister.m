@@ -192,7 +192,7 @@ function [options,p] = parseInputs(basepath, varargin)
     p.addParameter('processingdir', ...
         fullfile(basepath, "\processing\movieRegister\"), @(s) isstring(s)|ischar(s));
 
-    p.addParameter('nmedian', 10000);
+    p.addParameter('nmedian', 20000);
 
     p.addParameter('bandpass', [0.05, 0.5], @(x) isinrange(x,0,Inf)); % mm
     p.addParameter('flipax', 2);

@@ -75,7 +75,7 @@ function axes_all = signalSpectrogram(st, ts, fs, varargin)
     cb.Label.Rotation = -90; cb.Label.Position(1) = cb.Label.Position(1)*1.4;
     
     xlabel(ax_spectrogram, options.xlabel); ylabel(ax_spectrogram, options.ylabel);
-    title(ax_spectrogram, options.title);
+    title(ax_spectrogram, options.title, 'Interpreter', 'none');
  
     %%
     

@@ -80,21 +80,25 @@ else
     else 
         disps('Did not find hardware binning for LV metadata');
     end
+    %%
+   
+    disps('Analyzing frame rate')
     
+    try
+        [fps,nDroppedFrames,summary.getFps]=getFps(dcimgPath, 'dropError', false);
+    catch ME
+        getReport(ME)
+        error('Cannot get fps from the DCIMG file');
+%         fps=[];
+%         nDroppedFrames=[];
+    end
+    %%
     disps('And actual convertion');
     [~,summary.loadDCIMG]=loadDCIMGchunks(dcimgPath, options.frameRange,...
         'binning',sowtwarebinning, 'h5path',h5path, 'maxRAM', options.maxRAM,...
         'parallel', options.parallel, 'useDCIMGmex', options.useDCIMGmex);
-    disps('Analyzing frame rate')
     
-    try
-        [fps,nDroppedFrames,summary.getFps]=getFps(dcimgPath);
-    catch ME
-        getReport(ME)
-        disps('Cannot get fps from the DCIMG file');
-        fps=[];
-        nDroppedFrames=[];
-    end
+    %%
     
     disps('Adding extra data to h5 file');
     

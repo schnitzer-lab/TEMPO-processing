@@ -20,7 +20,7 @@ function  movieAddAllen(fullpath_movie, fullpath_allen, ...
     points_ref = points_ref_all(:, 1:2);
     points_colors = points_ref_all(:, 3:5);
 
-    points_aligned = zeros(size(points_ref));
+    points_aligned = nan(size(points_ref));
 
     imshow(atlas_matched_img, []); hold on;
 
@@ -28,7 +28,7 @@ function  movieAddAllen(fullpath_movie, fullpath_allen, ...
 
         d = double(atlas_matched_img)/255 - reshape(points_colors(i_p,:), [1,1,3]);
 
-        [row, column] = find(sqrt(sum(d.^2, 3)) < 0.2);
+        [row, column] = find(sqrt(sum(d.^2, 3)) < options.thresh);
 
         if(isempty(row)), continue; end
 
@@ -39,7 +39,8 @@ function  movieAddAllen(fullpath_movie, fullpath_allen, ...
     hold off;
 
     %  if affine, affinestr='affine'; else, affinestr='nonreflectivesimilarity'; end
-    tform = fitgeotrans(points_aligned, points_ref,'affine');
+    p_touse = ~any(isnan(points_aligned),2);
+    tform = fitgeotrans(points_aligned(p_touse,:), points_ref(p_touse,:), 'affine');
     %%
     load(allenmap_path); %allenmap
     
@@ -97,6 +98,9 @@ end
 function options = defaultOptions(basepath)
     
     options.processingdir = basepath + "\diagnostic\movieAddAllen\";
+    
+    options.thresh = 0.2;
+
     options.plotmean = true;
 end
 %%

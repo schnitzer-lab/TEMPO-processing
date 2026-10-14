@@ -15,7 +15,7 @@ function fullpath_out = movieDownsample(fullpath_movie, nt, ns, varargin)
     %%
 
     if (~isfolder(options.outdir)), mkdir(options.outdir); end
-    if (~isfolder(options.processingdir)), mkdir(options.processingdir); end
+    if (~isfolder(options.diagnosticdir)), mkdir(options.diagnosticdir); end
 
     filename_out = filename + postfix_new;
     fullpath_out = fullfile(options.outdir , filename_out + ".h5");
@@ -64,24 +64,60 @@ function fullpath_out = movieDownsample(fullpath_movie, nt, ns, varargin)
 
     %%
     
-    M_tot = squeeze(mean(Mraw(1:min(size(M_xytdownsampled,1)*ns, size(Mraw, 1)),...
-                              1:min(size(M_xytdownsampled,2)*ns, size(Mraw, 2)),:), [1,2], 'omitnan'));
-    Mdown_tot = repelem(squeeze(mean(M_xytdownsampled, [1,2], 'omitnan')), nt);
+    m = squeeze(mean(Mraw, [1,2], 'omitnan'));
+    mdown = squeeze(mean(M_xytdownsampled, [1,2], 'omitnan'));
     
-    fig = plt.getFigureByName("Downsampling - traces comparison");
-    plt.tracesComparison([M_tot(1:length(Mdown_tot)), Mdown_tot], 'fps', specs.getFps(),...
-        'labels', ["original", "downsampled"])
+    fig_mean = plt.getFigureByName("Downsampling - mean traces comparison");
 
-    saveas(fig, fullfile(options.processingdir, filename_out  + '_traces.png') )
-    saveas(fig, fullfile(options.processingdir, filename_out  + '_traces.fig') )
+    [axplot, axspec] = plt.tracesComparison(m, ...
+        'fps', specs.getFps(), 'fw', 0.2, 'f0', specs.getFrequencyRange(1));
+    hold(axplot, 'on'); hold(axspec, 'on');
+    xls = xlim(axspec); yls = ylim(axspec);
+    
+    plt.tracesComparison(mdown, ...
+        'fps', specs_out.getFps(), 'fw', 0.2, 'f0', specs.getFrequencyRange(1), ...
+        't0', 0.5/specs.getFps(), ...
+        'labels', ["original", "downsampled"], ...
+        'axplot', axplot, 'axspec', axspec);
+    hold(axplot, 'off'); hold(axspec, 'off');
+    xlim(xls); ylim(yls);
+    %%
 
-    imwrite(mat2gray(mean(Mraw,3)), fullfile(options.processingdir, filename_out + "_mean_in.bmp"));
-    imwrite(mat2gray(mean(M_xytdownsampled,3)), fullfile(options.processingdir, filename_out + "_mean_out.bmp"));
+    pix = round(size(Mraw, [1,2]).*[1/3,2/3]);
+    m = squeeze(Mraw(pix(1), pix(2),:));
+
+    pixdown = round(size(M_xytdownsampled, [1,2]).*[1/3,2/3]);
+    mdown = squeeze(M_xytdownsampled(pixdown(1), pixdown(2),:));
+    
+    fig_pix = plt.getFigureByName("Downsampling - single pix traces comparison");
+
+    [axplot, axspec] = plt.tracesComparison(m, ...
+        'fps', specs.getFps(), 'fw', 0.2, 'f0', specs.getFrequencyRange(1));
+    hold(axplot, 'on'); hold(axspec, 'on');
+    xls = xlim(axspec); yls = ylim(axspec);
+    
+    plt.tracesComparison(mdown, ...
+        'fps', specs_out.getFps(), 'fw', 0.2, 'f0', specs.getFrequencyRange(1), ...
+        't0', 0.5/specs.getFps(), ...
+        'labels', ["original", "downsampled"], ...
+        'axplot', axplot, 'axspec', axspec);
+    hold(axplot, 'off'); hold(axspec, 'off');
+    xlim(xls); 
+    % ylim(yls);
+    %%
+
+    saveas(fig_mean, fullfile(options.diagnosticdir, filename_out  + '_traces.png') );
+    saveas(fig_mean, fullfile(options.diagnosticdir, filename_out  + '_traces.fig') );
+    saveas(fig_pix, fullfile(options.diagnosticdir, filename_out  + '_tracespix.png') );
+    saveas(fig_pix, fullfile(options.diagnosticdir, filename_out  + '_tracespix.fig') );
+
+    imwrite(mat2gray(mean(Mraw,3)), fullfile(options.diagnosticdir, filename_out + "_mean_in.bmp"));
+    imwrite(mat2gray(mean(M_xytdownsampled,3)), fullfile(options.diagnosticdir, filename_out + "_mean_out.bmp"));
 end
 
 function options = defaultOptions(basepath)
     
-    options.processingdir = basepath + "\diagnostic\downsample\";
+    options.diagnosticdir = basepath + "\diagnostic\downsample\";
     options.outdir = basepath;
     options.type = [];
     options.skip = true;

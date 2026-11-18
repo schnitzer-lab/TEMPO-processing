@@ -35,7 +35,10 @@ function Mh = addMovieHeader(M, varargin)
             'TextColor', [1,1,1], 'BoxOpacity', 0, 'FontSize', options.fontsize_fps);
         hg = imbinarize(rgb2gray(h2));%;
 
-        H(:,:,i_f) = hg*(options.text_value - options.background_value) + options.background_value;
+        % (not arithmetic on hg, so background_value may be NaN)
+        Hf = repmat(options.background_value, size(hg));
+        Hf(hg) = options.text_value;
+        H(:,:,i_f) = Hf;
     end
     %%
     

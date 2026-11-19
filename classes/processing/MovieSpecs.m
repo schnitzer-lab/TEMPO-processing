@@ -140,7 +140,7 @@ classdef MovieSpecs < handle & matlab.mixin.Copyable
         end
         
         function timeorigin = AddFrameDelay(obj, nframes)
-            obj.timeorigin = obj.timeorigin + nframes;
+            obj.timeorigin = obj.timeorigin + round(nframes*obj.timebinning);
             timeorigin = obj.timeorigin;
         end
       
